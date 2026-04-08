@@ -6,6 +6,7 @@
 - No `any` types - use proper typing or `unknown`
 - Define interfaces for all props, API responses, and data models
 - Use type inference where obvious, explicit types where helpful
+- Arrow functions are preferred over traditional functions whenever possible
 
 ## React
 

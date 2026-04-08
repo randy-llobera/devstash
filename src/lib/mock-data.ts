@@ -55,7 +55,7 @@ export const mockDashboardData: MockDashboardData = {
     {
       id: "type-snippet",
       name: "Snippets",
-      slug: "snippet",
+      slug: "snippets",
       icon: "code-2",
       color: "blue",
       count: 24,
@@ -64,7 +64,7 @@ export const mockDashboardData: MockDashboardData = {
     {
       id: "type-prompt",
       name: "Prompts",
-      slug: "prompt",
+      slug: "prompts",
       icon: "sparkles",
       color: "purple",
       count: 18,
@@ -73,7 +73,7 @@ export const mockDashboardData: MockDashboardData = {
     {
       id: "type-command",
       name: "Commands",
-      slug: "command",
+      slug: "commands",
       icon: "terminal",
       color: "orange",
       count: 15,
@@ -82,7 +82,7 @@ export const mockDashboardData: MockDashboardData = {
     {
       id: "type-note",
       name: "Notes",
-      slug: "note",
+      slug: "notes",
       icon: "notebook-pen",
       color: "yellow",
       count: 12,
@@ -91,7 +91,7 @@ export const mockDashboardData: MockDashboardData = {
     {
       id: "type-file",
       name: "Files",
-      slug: "file",
+      slug: "files",
       icon: "file",
       color: "slate",
       count: 5,
@@ -100,7 +100,7 @@ export const mockDashboardData: MockDashboardData = {
     {
       id: "type-image",
       name: "Images",
-      slug: "image",
+      slug: "images",
       icon: "image",
       color: "pink",
       count: 3,
@@ -109,7 +109,7 @@ export const mockDashboardData: MockDashboardData = {
     {
       id: "type-link",
       name: "Links",
-      slug: "link",
+      slug: "links",
       icon: "link",
       color: "green",
       count: 8,

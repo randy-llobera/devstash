@@ -1,22 +1,35 @@
-import { Plus, Search, SquareStack } from "lucide-react";
+import type { ReactNode } from "react";
+import { FolderPlus, Plus, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-export const TopBar = () => {
+interface TopBarProps {
+  mobileSidebar: ReactNode;
+}
+
+export const TopBar = ({ mobileSidebar }: TopBarProps) => {
   return (
     <header className="border-b border-border/70">
       <div className="grid gap-4 px-4 py-4 sm:px-6 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <SquareStack className="size-5" />
+        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 lg:flex lg:items-center lg:gap-4">
+          <div className="justify-self-start lg:hidden">{mobileSidebar}</div>
+          <div className="flex items-center justify-center gap-3 lg:hidden">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-xs font-semibold text-primary-foreground">
+              DS
             </div>
             <span className="text-lg font-semibold tracking-tight">DevStash</span>
           </div>
+          <div className="hidden items-center gap-3 lg:flex">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-xs font-semibold text-primary-foreground">
+              DS
+            </div>
+            <span className="text-lg font-semibold tracking-tight">DevStash</span>
+          </div>
+          <div className="lg:hidden" />
         </div>
 
-        <div className="relative mx-auto w-full max-w-xl">
+        <div className="relative min-w-0 lg:mx-auto lg:w-full lg:max-w-xl">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             aria-label="Search items"
@@ -25,10 +38,16 @@ export const TopBar = () => {
           />
         </div>
 
-        <Button type="button" className="w-full lg:w-auto">
-          <Plus className="size-4" />
-          New Item
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+          <Button type="button" variant="outline" className="w-full shrink-0 lg:w-auto">
+            <FolderPlus className="size-4" />
+            New Collection
+          </Button>
+          <Button type="button" className="w-full shrink-0 lg:w-auto">
+            <Plus className="size-4" />
+            New Item
+          </Button>
+        </div>
       </div>
     </header>
   );
