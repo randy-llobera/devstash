@@ -1,6 +1,6 @@
 # Current Feature
 
-Prisma + Neon PostgreSQL Setup
+Seed Development Data
 
 ## Status
 
@@ -8,26 +8,22 @@ Completed
 
 ## Goals
 
-- Set up Prisma ORM with Neon PostgreSQL
-- Create the initial schema from the data models in context/project-overview.md
-- Include NextAuth models: Account, Session, and VerificationToken
-- Add appropriate indexes
-- Configure cascade deletes where needed
-- Use migrations only and do not push schema changes directly unless explicitly specified
+- Overwrite the current seed file contents with a development seed implementation
+- Seed a demo user with the exact credentials and flags defined in `context/features/seed-spec.md`
+- Seed all system item types with the specified Lucide icon names, colors, and `isSystem: true`
+- Seed sample collections and items for React Patterns, AI Workflows, DevOps, Terminal Commands, and Design Resources
+- Use real URLs where the spec requires links
+- Keep the seed data suitable for local development and demos
 
 ## Notes
 
-- Requirements source: context/features/database-spec.md
-- Use Prisma 7 and account for its breaking changes
-- Target Neon PostgreSQL serverless
-- Use separate development and production database branches via DATABASE_URL
-- Prisma docs: https://prisma.io/docs
-- Prisma 7 upgrade guide: https://www.prisma.io/docs/orm/more/upgrade-guides/upgrading-versions/upgrading-to-prisma-7
-- Prisma Postgres quickstart: https://www.prisma.io/docs/getting-started/prisma-postgres/quickstart
-- Phase 1 setup is complete
-- Phase 2 schema and seed implementation is complete
-- Initial migration has been created and applied on the development Neon branch
-- System item types have been seeded
+- Requirements source: `context/features/seed-spec.md`
+- Target file: `prisma/seed.ts`
+- Demo user email: `demo@devstash.io`
+- Demo user password must be hashed with `bcryptjs` using 12 rounds
+- Demo user `emailVerified` should use the current date at seed time
+- Collections and item counts must match the spec exactly
+- Replace the existing seed file content instead of incrementally extending it
 
 ## History
 
@@ -39,3 +35,4 @@ Completed
 - Dashboard UI Phase 3 completed with reusable dashboard components for stats, recent collections, pinned items, and 10 recent items using shadcn Card and Badge primitives with mock data
 - Prisma 7 and Neon setup added with repo-level Prisma config, generated client output, full initial schema, and seed script for system item types
 - Initial Prisma migration created and applied, migration status verified, Prisma client regenerated, and system item types seeded on the development database
+- Seed development data completed with a demo user, system item types, and sample collections and items defined in `context/features/seed-spec.md`
