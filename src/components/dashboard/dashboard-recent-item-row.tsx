@@ -2,9 +2,8 @@ import Link from "next/link";
 import { Star } from "lucide-react";
 
 import type { MockCollection, MockItem, MockItemType } from "@/lib/mock-data";
-import { cn } from "@/lib/utils";
-
-import { formatUpdatedAt, getItemTypeColorClass, getItemTypeIcon } from "@/components/dashboard/dashboard-icons";
+import { formatUpdatedAt } from "@/components/utils/date";
+import { getItemTypeIcon } from "@/components/utils/item-type";
 import { Badge } from "@/components/ui/badge";
 
 interface DashboardRecentItemRowProps {
@@ -18,7 +17,7 @@ export const DashboardRecentItemRow = ({
   collection,
   itemType,
 }: DashboardRecentItemRowProps) => {
-  const Icon = getItemTypeIcon(itemType?.icon ?? "file");
+  const Icon = getItemTypeIcon(itemType?.icon ?? "File");
 
   return (
     <Link
@@ -28,10 +27,8 @@ export const DashboardRecentItemRow = ({
       <div className="flex min-w-0 items-start gap-3">
         <div className="rounded-xl border border-border/60 bg-muted/50 p-2 text-muted-foreground">
           <Icon
-            className={cn(
-              "size-4",
-              getItemTypeColorClass(itemType?.color ?? "slate")
-            )}
+            className="size-4"
+            style={itemType?.color ? { color: itemType.color } : undefined}
           />
         </div>
 

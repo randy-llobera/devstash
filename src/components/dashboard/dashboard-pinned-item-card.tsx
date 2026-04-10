@@ -2,9 +2,7 @@ import Link from "next/link";
 import { Pin } from "lucide-react";
 
 import type { MockCollection, MockItem, MockItemType } from "@/lib/mock-data";
-import { cn } from "@/lib/utils";
-
-import { getItemTypeColorClass, getItemTypeIcon } from "@/components/dashboard/dashboard-icons";
+import { getItemTypeIcon } from "@/components/utils/item-type";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -19,7 +17,7 @@ export const DashboardPinnedItemCard = ({
   collection,
   itemType,
 }: DashboardPinnedItemCardProps) => {
-  const Icon = getItemTypeIcon(itemType?.icon ?? "file");
+  const Icon = getItemTypeIcon(itemType?.icon ?? "File");
 
   return (
     <Link href="#" className="block">
@@ -27,10 +25,8 @@ export const DashboardPinnedItemCard = ({
         <CardContent className="flex items-start gap-3">
           <div className="rounded-xl border border-border/60 bg-muted/50 p-2 text-muted-foreground">
             <Icon
-              className={cn(
-                "size-4",
-                getItemTypeColorClass(itemType?.color ?? "slate")
-              )}
+              className="size-4"
+              style={itemType?.color ? { color: itemType.color } : undefined}
             />
           </div>
 

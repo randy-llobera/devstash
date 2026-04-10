@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { ArrowRight, Folder, Star } from "lucide-react";
 
-import type { MockCollection, MockItemType } from "@/lib/mock-data";
+import type { DashboardCollection } from "@/lib/db/collections";
 import { cn } from "@/lib/utils";
+import { formatUpdatedAt } from "@/components/utils/date";
+import { getItemTypeIcon } from "@/components/utils/item-type";
 
-import { formatUpdatedAt, getItemTypeColorClass, getItemTypeIcon } from "@/components/dashboard/dashboard-icons";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -16,16 +17,23 @@ import {
 } from "@/components/ui/card";
 
 interface DashboardCollectionCardProps {
-  collection: MockCollection & { updatedAt: string };
-  itemTypes: MockItemType[];
+  collection: DashboardCollection;
 }
 
 export const DashboardCollectionCard = ({
   collection,
-  itemTypes,
 }: DashboardCollectionCardProps) => {
+  const dominantTypeLabel = collection.itemTypes[0]?.name ?? "No types";
+
   return (
-    <Card className="border-border/70 bg-background/50 transition-colors hover:border-primary/40 hover:bg-muted/40">
+    <Card
+      className={cn("border border-border/70 border-l-4 bg-background/50 transition-colors hover:border-primary/40 hover:bg-muted/40")}
+      style={
+        collection.dominantTypeColor
+          ? { borderLeftColor: collection.dominantTypeColor }
+          : undefined
+      }
+    >
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-3">
@@ -51,23 +59,29 @@ export const DashboardCollectionCard = ({
       </CardHeader>
 
       <CardContent>
-        <div className="flex flex-wrap gap-2">
-          {itemTypes.slice(0, 3).map((itemType) => {
-            const Icon = getItemTypeIcon(itemType.icon);
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <span>{collection.typeCount} types</span>
+            <span>{dominantTypeLabel} leads</span>
+          </div>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {collection.itemTypes.map((itemType) => {
+              const Icon = getItemTypeIcon(itemType.icon);
 
-            return (
-              <Badge
-                key={itemType.id}
-                variant="outline"
-                className="rounded-full px-3 py-1 text-xs text-muted-foreground"
-              >
-                <Icon
-                  className={cn("size-3.5", getItemTypeColorClass(itemType.color))}
-                />
-                {itemType.name}
-              </Badge>
-            );
-          })}
+              return (
+                <span
+                  key={itemType.id}
+                  title={itemType.name}
+                  className="inline-flex size-8 items-center justify-center rounded-full border border-border/70 bg-muted/40"
+                >
+                  <Icon
+                    className="size-3.5"
+                    style={itemType.color ? { color: itemType.color } : undefined}
+                  />
+                </span>
+              );
+            })}
+          </div>
         </div>
       </CardContent>
 

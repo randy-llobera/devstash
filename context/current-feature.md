@@ -1,6 +1,6 @@
 # Current Feature
 
-Seed Development Data
+Dashboard Collections
 
 ## Status
 
@@ -8,22 +8,23 @@ Completed
 
 ## Goals
 
-- Overwrite the current seed file contents with a development seed implementation
-- Seed a demo user with the exact credentials and flags defined in `context/features/seed-spec.md`
-- Seed all system item types with the specified Lucide icon names, colors, and `isSystem: true`
-- Seed sample collections and items for React Patterns, AI Workflows, DevOps, Terminal Commands, and Design Resources
-- Use real URLs where the spec requires links
-- Keep the seed data suitable for local development and demos
+- Replace the dummy recent collections data shown in the main dashboard area with real data from the database
+- Keep the existing dashboard design and current 6-card recent collections layout
+- Fetch collections with Prisma from the Neon database instead of `src/lib/mock-data.ts`
+- Fetch data directly in the server component
+- Derive each collection card border color from the most-used content type in that collection
+- Show small icons for all item types present in each collection
+- Update the collection stats display
+- Do not add the items list underneath yet
 
 ## Notes
 
-- Requirements source: `context/features/seed-spec.md`
-- Target file: `prisma/seed.ts`
-- Demo user email: `demo@devstash.io`
-- Demo user password must be hashed with `bcryptjs` using 12 rounds
-- Demo user `emailVerified` should use the current date at seed time
-- Collections and item counts must match the spec exactly
-- Replace the existing seed file content instead of incrementally extending it
+- Requirements source: `context/features/dashboard-collections-spec.md`
+- Primary new data layer file: `src/lib/db/collections.ts`
+- The dashboard should continue to render recent collections in the main right-side area
+- The main dashboard collections section should use real Prisma data, not mock data
+- The implementation should follow the current server-component-first data fetching approach
+- Reference screenshot: `context/screenshots/dashboard-ui-main.png`
 
 ## History
 
@@ -36,3 +37,4 @@ Completed
 - Prisma 7 and Neon setup added with repo-level Prisma config, generated client output, full initial schema, and seed script for system item types
 - Initial Prisma migration created and applied, migration status verified, Prisma client regenerated, and system item types seeded on the development database
 - Seed development data completed with a demo user, system item types, and sample collections and items defined in `context/features/seed-spec.md`
+- Dashboard collections completed with Prisma-backed recent collections in the dashboard server component, dominant-type border colors, item type icons, and shared UI helpers aligned to DB icon names and hex colors
