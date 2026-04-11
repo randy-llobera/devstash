@@ -1,4 +1,4 @@
-import type { MockDashboardData } from "@/lib/mock-data";
+import type { DashboardItem } from "@/lib/db/items";
 
 import { DashboardPinnedItemCard } from "@/components/dashboard/dashboard-pinned-item-card";
 import { Badge } from "@/components/ui/badge";
@@ -11,19 +11,13 @@ import {
 } from "@/components/ui/card";
 
 interface DashboardPinnedItemsProps {
-  data: MockDashboardData;
+  items: DashboardItem[];
 }
 
-export const DashboardPinnedItems = ({ data }: DashboardPinnedItemsProps) => {
-  const collectionLookup = new Map(
-    data.collections.map((collection) => [collection.id, collection])
-  );
-  const itemTypeLookup = new Map(
-    data.itemTypes.map((itemType) => [itemType.id, itemType])
-  );
-  const pinnedItems = data.items
-    .filter((item) => item.isPinned)
-    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
+export const DashboardPinnedItems = ({ items }: DashboardPinnedItemsProps) => {
+  if (items.length === 0) {
+    return null;
+  }
 
   return (
     <Card className="border-border/70 bg-card/70 shadow-sm shadow-black/5">
@@ -37,17 +31,12 @@ export const DashboardPinnedItems = ({ data }: DashboardPinnedItemsProps) => {
           </CardDescription>
         </div>
         <Badge variant="outline" className="rounded-full px-3 py-1">
-          {pinnedItems.length} pinned
+          {items.length} pinned
         </Badge>
       </CardHeader>
       <CardContent className="space-y-3">
-        {pinnedItems.map((item) => (
-          <DashboardPinnedItemCard
-            key={item.id}
-            item={item}
-            collection={collectionLookup.get(item.collectionId)}
-            itemType={itemTypeLookup.get(item.typeId)}
-          />
+        {items.map((item) => (
+          <DashboardPinnedItemCard key={item.id} item={item} />
         ))}
       </CardContent>
     </Card>

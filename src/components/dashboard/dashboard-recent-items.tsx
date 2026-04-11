@@ -1,4 +1,4 @@
-import type { MockDashboardData } from "@/lib/mock-data";
+import type { DashboardItem } from "@/lib/db/items";
 
 import { DashboardRecentItemRow } from "@/components/dashboard/dashboard-recent-item-row";
 import { Badge } from "@/components/ui/badge";
@@ -11,20 +11,10 @@ import {
 } from "@/components/ui/card";
 
 interface DashboardRecentItemsProps {
-  data: MockDashboardData;
+  items: DashboardItem[];
 }
 
-export const DashboardRecentItems = ({ data }: DashboardRecentItemsProps) => {
-  const collectionLookup = new Map(
-    data.collections.map((collection) => [collection.id, collection])
-  );
-  const itemTypeLookup = new Map(
-    data.itemTypes.map((itemType) => [itemType.id, itemType])
-  );
-  const recentItems = [...data.items]
-    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
-    .slice(0, 10);
-
+export const DashboardRecentItems = ({ items }: DashboardRecentItemsProps) => {
   return (
     <Card className="border-border/70 bg-card/70 shadow-sm shadow-black/5">
       <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -37,7 +27,7 @@ export const DashboardRecentItems = ({ data }: DashboardRecentItemsProps) => {
           </CardDescription>
         </div>
         <Badge variant="outline" className="rounded-full px-3 py-1">
-          Showing {recentItems.length} items
+          Showing {items.length} items
         </Badge>
       </CardHeader>
 
@@ -50,13 +40,8 @@ export const DashboardRecentItems = ({ data }: DashboardRecentItemsProps) => {
           </div>
 
           <div className="divide-y divide-border/70">
-            {recentItems.map((item) => (
-              <DashboardRecentItemRow
-                key={item.id}
-                item={item}
-                collection={collectionLookup.get(item.collectionId)}
-                itemType={itemTypeLookup.get(item.typeId)}
-              />
+            {items.map((item) => (
+              <DashboardRecentItemRow key={item.id} item={item} />
             ))}
           </div>
         </div>

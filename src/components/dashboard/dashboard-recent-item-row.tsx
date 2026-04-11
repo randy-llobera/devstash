@@ -1,35 +1,31 @@
+import { createElement } from "react";
 import Link from "next/link";
 import { Star } from "lucide-react";
 
-import type { MockCollection, MockItem, MockItemType } from "@/lib/mock-data";
+import type { DashboardItem } from "@/lib/db/items";
 import { formatUpdatedAt } from "@/components/utils/date";
 import { getItemTypeIcon } from "@/components/utils/item-type";
 import { Badge } from "@/components/ui/badge";
 
 interface DashboardRecentItemRowProps {
-  item: MockItem;
-  collection?: MockCollection;
-  itemType?: MockItemType;
+  item: DashboardItem;
 }
 
-export const DashboardRecentItemRow = ({
-  item,
-  collection,
-  itemType,
-}: DashboardRecentItemRowProps) => {
-  const Icon = getItemTypeIcon(itemType?.icon ?? "File");
-
+export const DashboardRecentItemRow = ({ item }: DashboardRecentItemRowProps) => {
   return (
     <Link
       href="#"
       className="grid gap-4 px-5 py-4 transition-colors hover:bg-muted/30 md:grid-cols-[minmax(0,1.6fr)_minmax(0,0.8fr)_auto] md:items-center"
     >
       <div className="flex min-w-0 items-start gap-3">
-        <div className="rounded-xl border border-border/60 bg-muted/50 p-2 text-muted-foreground">
-          <Icon
-            className="size-4"
-            style={itemType?.color ? { color: itemType.color } : undefined}
-          />
+        <div
+          className="rounded-xl border border-border/60 bg-muted/50 p-2 text-muted-foreground"
+          style={{ borderColor: item.itemType.color }}
+        >
+          {createElement(getItemTypeIcon(item.itemType.icon), {
+            className: "size-4",
+            style: { color: item.itemType.color },
+          })}
         </div>
 
         <div className="min-w-0">
@@ -55,16 +51,14 @@ export const DashboardRecentItemRow = ({
       </div>
 
       <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-        {collection ? (
+        {item.collection ? (
           <Badge variant="outline" className="rounded-full px-2.5 py-1">
-            {collection.name}
+            {item.collection.name}
           </Badge>
         ) : null}
-        {itemType ? (
-          <Badge variant="outline" className="rounded-full px-2.5 py-1">
-            {itemType.name}
-          </Badge>
-        ) : null}
+        <Badge variant="outline" className="rounded-full px-2.5 py-1">
+          {item.itemType.name}
+        </Badge>
       </div>
 
       <div className="text-sm text-muted-foreground">

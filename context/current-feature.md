@@ -1,28 +1,37 @@
 # Current Feature
 
-Dashboard Collections
+<!-- Feature Name -->
+
+Dashboard Items
 
 ## Status
+
+<!-- Not Started|In Progress|Completed -->
 
 Completed
 
 ## Goals
 
-- Replace the dummy recent collections data shown in the main dashboard area with real data from the database
-- Keep the existing dashboard design and current 6-card recent collections layout
-- Fetch collections with Prisma from the Neon database instead of `src/lib/mock-data.ts`
-- Fetch data directly in the server component
-- Derive each collection card border color from the most-used content type in that collection
-- Show small icons for all item types present in each collection
-- Update the collection stats display
-- Do not add the items list underneath yet
+<!-- Goals & requirements -->
+
+- Replace the dummy pinned and recent item data shown in the main dashboard area with real data from the database
+- Keep the existing dashboard design and current pinned and recent items layout
+- Fetch items with Prisma from the Neon database instead of `src/lib/mock-data.ts`
+- Create `src/lib/db/items.ts` with data fetching functions
+- Fetch item data directly in the server component
+- Derive each item card icon and border from the item type
+- Display item type tags and the rest of the current item card content
+- If there are no pinned items, do not render that section
+- Update collection stats display
 
 ## Notes
 
-- Requirements source: `context/features/dashboard-collections-spec.md`
-- Primary new data layer file: `src/lib/db/collections.ts`
-- The dashboard should continue to render recent collections in the main right-side area
-- The main dashboard collections section should use real Prisma data, not mock data
+<!-- Any extra notes -->
+
+- Requirements source: `context/features/dashboard-items-spec.md`
+- Primary new data layer file: `src/lib/db/items.ts`
+- The dashboard should continue to render pinned and recent items in the main right-side area
+- The main dashboard items sections should use real Prisma data, not mock data
 - The implementation should follow the current server-component-first data fetching approach
 - Reference screenshot: `context/screenshots/dashboard-ui-main.png`
 
@@ -38,3 +47,4 @@ Completed
 - Initial Prisma migration created and applied, migration status verified, Prisma client regenerated, and system item types seeded on the development database
 - Seed development data completed with a demo user, system item types, and sample collections and items defined in `context/features/seed-spec.md`
 - Dashboard collections completed with Prisma-backed recent collections in the dashboard server component, dominant-type border colors, item type icons, and shared UI helpers aligned to DB icon names and hex colors
+- Dashboard items completed with Prisma-backed pinned and recent dashboard items, a temporary demo-user query scope until auth is implemented, item-type-driven card styling, hidden pinned section when no pinned items exist, and a new `typecheck` script in `package.json`
