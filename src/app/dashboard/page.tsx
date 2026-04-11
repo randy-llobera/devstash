@@ -1,8 +1,14 @@
-import { mockDashboardData } from "@/lib/mock-data";
-import { getRecentDashboardCollections } from "@/lib/db/collections";
 import {
+  getFavoriteSidebarCollections,
+  getRecentDashboardCollections,
+  getRecentSidebarCollections,
+} from "@/lib/db/collections";
+import { getDashboardUser } from "@/lib/db/dashboard-user";
+import {
+  getDashboardStats,
   getPinnedDashboardItems,
   getRecentDashboardItems,
+  getSidebarItemTypes,
 } from "@/lib/db/items";
 
 import { DashboardCollections } from "@/components/dashboard/dashboard-collections";
@@ -12,14 +18,33 @@ import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardStats } from "@/components/dashboard/dashboard-stats";
 
 const DashboardPage = async () => {
-  const [recentCollections, pinnedItems, recentItems] = await Promise.all([
+  const [
+    user,
+    stats,
+    itemTypes,
+    favoriteCollections,
+    recentSidebarCollections,
+    recentCollections,
+    pinnedItems,
+    recentItems,
+  ] = await Promise.all([
+    getDashboardUser(),
+    getDashboardStats(),
+    getSidebarItemTypes(),
+    getFavoriteSidebarCollections(),
+    getRecentSidebarCollections(),
     getRecentDashboardCollections(),
     getPinnedDashboardItems(),
     getRecentDashboardItems(),
   ]);
 
   return (
-    <DashboardShell>
+    <DashboardShell
+      user={user}
+      itemTypes={itemTypes}
+      favoriteCollections={favoriteCollections}
+      recentCollections={recentSidebarCollections}
+    >
       <div className="space-y-1">
         <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
         <p className="text-sm text-muted-foreground">
@@ -27,7 +52,7 @@ const DashboardPage = async () => {
         </p>
       </div>
 
-      <DashboardStats data={mockDashboardData} />
+      <DashboardStats data={stats} />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(300px,0.9fr)]">
         <DashboardCollections collections={recentCollections} />

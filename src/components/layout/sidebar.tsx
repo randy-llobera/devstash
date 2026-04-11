@@ -5,50 +5,31 @@ import Link from "next/link";
 import {
   ChevronDown,
   ChevronRight,
-  Code2,
-  File,
   Folder,
-  ImageIcon,
-  LinkIcon,
-  NotebookPen,
   PanelLeftClose,
   PanelLeftOpen,
-  Sparkles,
   Star,
-  Terminal,
 } from "lucide-react";
+
+import type { SidebarCollection } from "@/lib/db/collections";
+import type { DashboardUser } from "@/lib/db/dashboard-user";
+import type { SidebarItemType } from "@/lib/db/items";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { mockDashboardData } from "@/lib/mock-data";
+import { getItemTypeIcon } from "@/components/utils/item-type";
 
 interface SidebarProps {
+  user: DashboardUser | null;
+  itemTypes: SidebarItemType[];
+  favoriteCollections: SidebarCollection[];
+  recentCollections: SidebarCollection[];
   collapsed?: boolean;
   mobile?: boolean;
   className?: string;
   onNavigate?: () => void;
   onToggleCollapsed?: () => void;
 }
-
-const ICON_MAP = {
-  "code-2": Code2,
-  sparkles: Sparkles,
-  terminal: Terminal,
-  "notebook-pen": NotebookPen,
-  file: File,
-  image: ImageIcon,
-  link: LinkIcon,
-} as const;
-
-const ICON_COLOR_MAP = {
-  blue: "text-blue-400",
-  slate: "text-slate-400",
-  yellow: "text-yellow-300",
-  orange: "text-orange-400",
-  purple: "text-violet-400",
-  pink: "text-pink-400",
-  green: "text-emerald-400",
-} as const;
 
 const getInitials = (name: string) =>
   name
@@ -58,31 +39,11 @@ const getInitials = (name: string) =>
     .map((part) => part[0]?.toUpperCase() ?? "")
     .join("");
 
-const getRecentCollections = () => {
-  return mockDashboardData.collections
-    .map((collection) => {
-      const updatedAt = mockDashboardData.items
-        .filter((item) => item.collectionId === collection.id)
-        .map((item) => item.updatedAt)
-        .sort((left, right) => right.localeCompare(left))[0];
-
-      return {
-        ...collection,
-        updatedAt,
-      };
-    })
-    .filter((collection) => collection.updatedAt)
-    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
-    .slice(0, 4);
-};
-
-const itemTypes = mockDashboardData.itemTypes;
-const favoriteCollections = mockDashboardData.collections.filter(
-  (collection) => collection.isFavorite
-);
-const recentCollections = getRecentCollections();
-
 export const Sidebar = ({
+  user,
+  itemTypes,
+  favoriteCollections,
+  recentCollections,
   collapsed = false,
   mobile = false,
   className,
@@ -139,11 +100,7 @@ export const Sidebar = ({
           )}
           <nav className="space-y-1">
             {itemTypes.map((itemType) => {
-              const Icon =
-                ICON_MAP[itemType.icon as keyof typeof ICON_MAP] ?? Folder;
-              const iconColor =
-                ICON_COLOR_MAP[itemType.color as keyof typeof ICON_COLOR_MAP] ??
-                "text-muted-foreground";
+              const Icon = getItemTypeIcon(itemType.icon);
 
               return (
                 <Link
@@ -156,7 +113,10 @@ export const Sidebar = ({
                     collapsed && !mobile && "justify-center px-2"
                   )}
                 >
-                  <Icon className={cn("size-4 shrink-0", iconColor)} />
+                  <Icon
+                    className="size-4 shrink-0"
+                    style={itemType.color ? { color: itemType.color } : undefined}
+                  />
                   {collapsed && !mobile ? null : (
                     <>
                       <span className="min-w-0 flex-1 truncate">{itemType.name}</span>
@@ -222,7 +182,14 @@ export const Sidebar = ({
                         title={collection.name}
                         className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
                       >
-                        <Folder className="size-4 shrink-0" />
+                        <span
+                          className="size-2.5 shrink-0 rounded-full"
+                          style={
+                            collection.dominantTypeColor
+                              ? { backgroundColor: collection.dominantTypeColor }
+                              : undefined
+                          }
+                        />
                         <span className="min-w-0 flex-1 truncate">{collection.name}</span>
                         <span className="text-xs text-muted-foreground/80">
                           {collection.itemCount}
@@ -231,6 +198,14 @@ export const Sidebar = ({
                     ))}
                   </div>
                 </div>
+
+                <Link
+                  href="/collections"
+                  onClick={onNavigate}
+                  className="inline-flex items-center px-3 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+                >
+                  View all collections
+                </Link>
               </div>
             ) : null}
           </section>
@@ -246,16 +221,14 @@ export const Sidebar = ({
           )}
         >
           <Avatar size="default">
-            <AvatarFallback>{getInitials(mockDashboardData.user.name)}</AvatarFallback>
+            <AvatarFallback>
+              {getInitials(user?.name ?? "Demo User")}
+            </AvatarFallback>
           </Avatar>
           {collapsed && !mobile ? null : (
             <div className="min-w-0">
-              <div className="truncate text-sm font-medium">
-                {mockDashboardData.user.name}
-              </div>
-              <div className="truncate text-xs text-muted-foreground">
-                {mockDashboardData.user.email}
-              </div>
+              <div className="truncate text-sm font-medium">{user?.name ?? "Demo User"}</div>
+              <div className="truncate text-xs text-muted-foreground">{user?.email ?? ""}</div>
             </div>
           )}
         </button>

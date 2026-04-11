@@ -2,7 +2,7 @@
 
 <!-- Feature Name -->
 
-Dashboard Items
+Stats & Sidebar
 
 ## Status
 
@@ -14,26 +14,26 @@ Completed
 
 <!-- Goals & requirements -->
 
-- Replace the dummy pinned and recent item data shown in the main dashboard area with real data from the database
-- Keep the existing dashboard design and current pinned and recent items layout
-- Fetch items with Prisma from the Neon database instead of `src/lib/mock-data.ts`
+- Replace the mock stats data shown in the main dashboard area with real data from the database
+- Keep the existing stats design and current dashboard layout
+- Show system item types in the sidebar with their icons
+- Link each sidebar item type to `/items/[typename]`
+- Show actual collections data from the database in the sidebar
+- Add a `View all collections` link under the collections list that goes to `/collections`
+- Keep star icons for favorite collections
+- For recent collections, show a colored circle based on the most-used item type in that collection
 - Create `src/lib/db/items.ts` with data fetching functions
-- Fetch item data directly in the server component
-- Derive each item card icon and border from the item type
-- Display item type tags and the rest of the current item card content
-- If there are no pinned items, do not render that section
-- Update collection stats display
+- Use `src/lib/db/collections.ts` as reference if needed
 
 ## Notes
 
 <!-- Any extra notes -->
 
-- Requirements source: `context/features/dashboard-items-spec.md`
+- Requirements source: `context/features/stats-sidebar-spec.md`
 - Primary new data layer file: `src/lib/db/items.ts`
-- The dashboard should continue to render pinned and recent items in the main right-side area
-- The main dashboard items sections should use real Prisma data, not mock data
+- The dashboard stats should use real Prisma data, not mock data
+- The sidebar should render system item types and collection data from the database
 - The implementation should follow the current server-component-first data fetching approach
-- Reference screenshot: `context/screenshots/dashboard-ui-main.png`
 
 ## History
 
@@ -48,3 +48,4 @@ Completed
 - Seed development data completed with a demo user, system item types, and sample collections and items defined in `context/features/seed-spec.md`
 - Dashboard collections completed with Prisma-backed recent collections in the dashboard server component, dominant-type border colors, item type icons, and shared UI helpers aligned to DB icon names and hex colors
 - Dashboard items completed with Prisma-backed pinned and recent dashboard items, a temporary demo-user query scope until auth is implemented, item-type-driven card styling, hidden pinned section when no pinned items exist, and a new `typecheck` script in `package.json`
+- Stats & sidebar completed with Prisma-backed dashboard stats, DB-driven system item types and sidebar collections, recent collection dominant-type color indicators, shared dashboard user lookup, and `View all collections` links wired to `/collections`

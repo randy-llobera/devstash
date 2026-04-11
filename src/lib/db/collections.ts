@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getDashboardUser } from "@/lib/db/dashboard-user";
 
 type DashboardCollectionItemType = {
   id: string;
@@ -20,6 +21,14 @@ export interface DashboardCollection {
   itemTypes: DashboardCollectionItemType[];
 }
 
+export interface SidebarCollection {
+  id: string;
+  name: string;
+  isFavorite: boolean;
+  itemCount: number;
+  dominantTypeColor: string | null;
+}
+
 const getLatestUpdatedAt = (
   collectionUpdatedAt: Date,
   itemDates: Date[]
@@ -34,23 +43,7 @@ const getLatestUpdatedAt = (
 export const getRecentDashboardCollections = async (): Promise<
   DashboardCollection[]
 > => {
-  const user = await prisma.user.findFirst({
-    where: {
-      collections: {
-        some: {
-          items: {
-            some: {},
-          },
-        },
-      },
-    },
-    select: {
-      id: true,
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
-  });
+  const user = await getDashboardUser();
 
   if (!user) {
     return [];
@@ -137,4 +130,124 @@ export const getRecentDashboardCollections = async (): Promise<
       );
     })
     .slice(0, 6);
+};
+
+const getSidebarCollections = async (): Promise<DashboardCollection[]> => {
+  const user = await getDashboardUser();
+
+  if (!user) {
+    return [];
+  }
+
+  const collections = await prisma.collection.findMany({
+    where: {
+      userId: user.id,
+      items: {
+        some: {},
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      isFavorite: true,
+      updatedAt: true,
+      items: {
+        select: {
+          item: {
+            select: {
+              updatedAt: true,
+              itemType: {
+                select: {
+                  id: true,
+                  name: true,
+                  icon: true,
+                  color: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return collections
+    .map((collection) => {
+      const itemTypeCounts = new Map<string, DashboardCollectionItemType>();
+      const itemDates = collection.items.map(({ item }) => item.updatedAt);
+
+      for (const { item } of collection.items) {
+        const existingItemType = itemTypeCounts.get(item.itemType.id);
+
+        if (existingItemType) {
+          existingItemType.itemCount += 1;
+          continue;
+        }
+
+        itemTypeCounts.set(item.itemType.id, {
+          id: item.itemType.id,
+          name: item.itemType.name,
+          icon: item.itemType.icon,
+          color: item.itemType.color,
+          itemCount: 1,
+        });
+      }
+
+      const itemTypes = Array.from(itemTypeCounts.values()).sort((left, right) => {
+        if (right.itemCount !== left.itemCount) {
+          return right.itemCount - left.itemCount;
+        }
+
+        return left.name.localeCompare(right.name);
+      });
+
+      return {
+        id: collection.id,
+        name: collection.name,
+        description: collection.description ?? "No description yet.",
+        isFavorite: collection.isFavorite,
+        itemCount: collection.items.length,
+        typeCount: itemTypes.length,
+        updatedAt: getLatestUpdatedAt(collection.updatedAt, itemDates),
+        dominantTypeColor: itemTypes[0]?.color ?? null,
+        itemTypes,
+      };
+    })
+    .sort((left, right) => {
+      return (
+        new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime()
+      );
+    });
+};
+
+export const getFavoriteSidebarCollections = async (
+  limit = 4
+): Promise<SidebarCollection[]> => {
+  const collections = await getSidebarCollections();
+
+  return collections
+    .filter((collection) => collection.isFavorite)
+    .slice(0, limit)
+    .map((collection) => ({
+      id: collection.id,
+      name: collection.name,
+      isFavorite: collection.isFavorite,
+      itemCount: collection.itemCount,
+      dominantTypeColor: collection.dominantTypeColor,
+    }));
+};
+
+export const getRecentSidebarCollections = async (
+  limit = 4
+): Promise<SidebarCollection[]> => {
+  const collections = await getSidebarCollections();
+
+  return collections.slice(0, limit).map((collection) => ({
+    id: collection.id,
+    name: collection.name,
+    isFavorite: collection.isFavorite,
+    itemCount: collection.itemCount,
+    dominantTypeColor: collection.dominantTypeColor,
+  }));
 };

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { DASHBOARD_DEMO_USER } from "@/lib/db/dashboard-user";
+import { getDashboardUser } from "@/lib/db/dashboard-user";
 
 type DashboardItemCollection = {
   id: string;
@@ -25,16 +25,21 @@ export interface DashboardItem {
   collection: DashboardItemCollection | null;
 }
 
-const getDashboardUser = async () => {
-  return prisma.user.findUnique({
-    where: {
-      email: DASHBOARD_DEMO_USER.email,
-    },
-    select: {
-      id: true,
-    },
-  });
-};
+export interface DashboardStats {
+  itemCount: number;
+  collectionCount: number;
+  favoriteItemCount: number;
+  favoriteCollectionCount: number;
+}
+
+export interface SidebarItemType {
+  id: string;
+  name: string;
+  slug: string;
+  icon: string;
+  color: string;
+  count: number;
+}
 
 const mapDashboardItem = (item: {
   id: string;
@@ -128,4 +133,114 @@ export const getRecentDashboardItems = async (
   const items = await getDashboardItems();
 
   return items.slice(0, limit).map(mapDashboardItem);
+};
+
+export const getDashboardStats = async (): Promise<DashboardStats> => {
+  const user = await getDashboardUser();
+
+  if (!user) {
+    return {
+      itemCount: 0,
+      collectionCount: 0,
+      favoriteItemCount: 0,
+      favoriteCollectionCount: 0,
+    };
+  }
+
+  const [itemCount, collectionCount, favoriteItemCount, favoriteCollectionCount] =
+    await Promise.all([
+      prisma.item.count({
+        where: {
+          userId: user.id,
+        },
+      }),
+      prisma.collection.count({
+        where: {
+          userId: user.id,
+        },
+      }),
+      prisma.item.count({
+        where: {
+          userId: user.id,
+          isFavorite: true,
+        },
+      }),
+      prisma.collection.count({
+        where: {
+          userId: user.id,
+          isFavorite: true,
+        },
+      }),
+    ]);
+
+  return {
+    itemCount,
+    collectionCount,
+    favoriteItemCount,
+    favoriteCollectionCount,
+  };
+};
+
+const getItemTypeSlug = (name: string) => `${name.toLowerCase()}s`;
+const getItemTypeLabel = (name: string) =>
+  `${name.charAt(0).toUpperCase()}${name.slice(1)}s`;
+const SIDEBAR_ITEM_TYPE_ORDER = [
+  "snippet",
+  "prompt",
+  "command",
+  "note",
+  "file",
+  "image",
+  "link",
+] as const;
+
+export const getSidebarItemTypes = async (): Promise<SidebarItemType[]> => {
+  const user = await getDashboardUser();
+
+  const itemTypes = await prisma.itemType.findMany({
+    where: {
+      isSystem: true,
+    },
+    select: {
+      id: true,
+      name: true,
+      icon: true,
+      color: true,
+      _count: {
+        select: {
+          items: user
+            ? {
+                where: {
+                  userId: user.id,
+                },
+              }
+            : true,
+        },
+      },
+    },
+  });
+
+  return itemTypes
+    .sort((left, right) => {
+      const leftIndex = SIDEBAR_ITEM_TYPE_ORDER.indexOf(
+        left.name as (typeof SIDEBAR_ITEM_TYPE_ORDER)[number]
+      );
+      const rightIndex = SIDEBAR_ITEM_TYPE_ORDER.indexOf(
+        right.name as (typeof SIDEBAR_ITEM_TYPE_ORDER)[number]
+      );
+
+      if (leftIndex === -1 || rightIndex === -1) {
+        return left.name.localeCompare(right.name);
+      }
+
+      return leftIndex - rightIndex;
+    })
+    .map((itemType) => ({
+      id: itemType.id,
+      name: getItemTypeLabel(itemType.name),
+      slug: getItemTypeSlug(itemType.name),
+      icon: itemType.icon,
+      color: itemType.color,
+      count: user ? itemType._count.items : 0,
+    }));
 };
