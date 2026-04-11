@@ -2,6 +2,10 @@
 
 import { Menu } from "lucide-react";
 
+import type { SidebarCollection } from "@/lib/db/collections";
+import type { DashboardUser } from "@/lib/db/dashboard-user";
+import type { SidebarItemType } from "@/lib/db/items";
+
 import { Sidebar } from "@/components/layout/sidebar";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +17,19 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-export const MobileSidebarTrigger = () => {
+interface MobileSidebarTriggerProps {
+  user: DashboardUser | null;
+  itemTypes: SidebarItemType[];
+  favoriteCollections: SidebarCollection[];
+  recentCollections: SidebarCollection[];
+}
+
+export const MobileSidebarTrigger = ({
+  user,
+  itemTypes,
+  favoriteCollections,
+  recentCollections,
+}: MobileSidebarTriggerProps) => {
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -30,7 +46,14 @@ export const MobileSidebarTrigger = () => {
           <SheetTitle>Sidebar navigation</SheetTitle>
           <SheetDescription>Browse item types and collections.</SheetDescription>
         </SheetHeader>
-        <Sidebar mobile className="border-r-0" />
+        <Sidebar
+          mobile
+          user={user}
+          itemTypes={itemTypes}
+          favoriteCollections={favoriteCollections}
+          recentCollections={recentCollections}
+          className="border-r-0"
+        />
       </SheetContent>
     </Sheet>
   );

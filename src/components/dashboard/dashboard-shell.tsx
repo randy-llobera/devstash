@@ -2,6 +2,10 @@
 
 import { useState, type ReactNode } from "react";
 
+import type { SidebarCollection } from "@/lib/db/collections";
+import type { DashboardUser } from "@/lib/db/dashboard-user";
+import type { SidebarItemType } from "@/lib/db/items";
+
 import { cn } from "@/lib/utils";
 
 import { TopBar } from "@/components/layout/top-bar";
@@ -9,16 +13,35 @@ import { MobileSidebarTrigger } from "@/components/layout/mobile-sidebar-trigger
 import { Sidebar } from "@/components/layout/sidebar";
 
 interface DashboardShellProps {
+  user: DashboardUser | null;
+  itemTypes: SidebarItemType[];
+  favoriteCollections: SidebarCollection[];
+  recentCollections: SidebarCollection[];
   children: ReactNode;
 }
 
-export const DashboardShell = ({ children }: DashboardShellProps) => {
+export const DashboardShell = ({
+  user,
+  itemTypes,
+  favoriteCollections,
+  recentCollections,
+  children,
+}: DashboardShellProps) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   return (
     <main className="min-h-screen bg-background text-foreground">
       <div className="grid min-h-screen grid-rows-[auto_1fr]">
-        <TopBar mobileSidebar={<MobileSidebarTrigger />} />
+        <TopBar
+          mobileSidebar={
+            <MobileSidebarTrigger
+              user={user}
+              itemTypes={itemTypes}
+              favoriteCollections={favoriteCollections}
+              recentCollections={recentCollections}
+            />
+          }
+        />
 
         <div
           className={cn(
@@ -30,6 +53,10 @@ export const DashboardShell = ({ children }: DashboardShellProps) => {
         >
           <Sidebar
             collapsed={isSidebarCollapsed}
+            user={user}
+            itemTypes={itemTypes}
+            favoriteCollections={favoriteCollections}
+            recentCollections={recentCollections}
             className="hidden lg:flex"
             onToggleCollapsed={() => setIsSidebarCollapsed((current) => !current)}
           />

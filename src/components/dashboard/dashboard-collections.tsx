@@ -31,10 +31,10 @@ export const DashboardCollections = ({
           </CardDescription>
         </div>
         <Link
-          href="#"
+          href="/collections"
           className="inline-flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80"
         >
-          View all
+          View all collections
           <ArrowRight className="size-4" />
         </Link>
       </CardHeader>
