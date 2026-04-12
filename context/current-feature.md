@@ -1,39 +1,22 @@
-# Current Feature
-
-<!-- Feature Name -->
-
-Stats & Sidebar
+# Current Feature: Add Pro Badge to Sidebar
 
 ## Status
 
-<!-- Not Started|In Progress|Completed -->
-
-Completed
+In Progress
 
 ## Goals
 
-<!-- Goals & requirements -->
-
-- Replace the mock stats data shown in the main dashboard area with real data from the database
-- Keep the existing stats design and current dashboard layout
-- Show system item types in the sidebar with their icons
-- Link each sidebar item type to `/items/[typename]`
-- Show actual collections data from the database in the sidebar
-- Add a `View all collections` link under the collections list that goes to `/collections`
-- Keep star icons for favorite collections
-- For recent collections, show a colored circle based on the most-used item type in that collection
-- Create `src/lib/db/items.ts` with data fetching functions
-- Use `src/lib/db/collections.ts` as reference if needed
+- Add a pro badge to the files type in the sidebar
+- Add a pro badge to the images type in the sidebar
+- Use the shadcn/ui badge component
+- Keep the badge clean and subtle
+- Render the label as `PRO`
 
 ## Notes
 
-<!-- Any extra notes -->
-
-- Requirements source: `context/features/stats-sidebar-spec.md`
-- Primary new data layer file: `src/lib/db/items.ts`
-- The dashboard stats should use real Prisma data, not mock data
-- The sidebar should render system item types and collection data from the database
-- The implementation should follow the current server-component-first data fetching approach
+- Requirements source: `context/features/add-pro-badge-sidebar.md`
+- Scope is limited to sidebar item types for files and images
+- Badge text must be uppercase: `PRO`
 
 ## History
 
