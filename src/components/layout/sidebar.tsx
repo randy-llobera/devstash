@@ -16,6 +16,7 @@ import type { DashboardUser } from "@/lib/db/dashboard-user";
 import type { SidebarItemType } from "@/lib/db/items";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { getItemTypeIcon } from "@/components/utils/item-type";
 
@@ -38,6 +39,8 @@ const getInitials = (name: string) =>
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() ?? "")
     .join("");
+
+const proItemTypeSlugs = new Set(["files", "images"]);
 
 export const Sidebar = ({
   user,
@@ -101,6 +104,7 @@ export const Sidebar = ({
           <nav className="space-y-1">
             {itemTypes.map((itemType) => {
               const Icon = getItemTypeIcon(itemType.icon);
+              const showProBadge = proItemTypeSlugs.has(itemType.slug);
 
               return (
                 <Link
@@ -119,7 +123,17 @@ export const Sidebar = ({
                   />
                   {collapsed && !mobile ? null : (
                     <>
-                      <span className="min-w-0 flex-1 truncate">{itemType.name}</span>
+                      <div className="flex min-w-0 flex-1 items-center gap-2">
+                        <span className="truncate">{itemType.name}</span>
+                        {showProBadge ? (
+                          <Badge
+                            variant="outline"
+                            className="h-5 rounded-full border-border/70 px-1.5 text-[10px] font-semibold tracking-[0.14em] text-muted-foreground"
+                          >
+                            PRO
+                          </Badge>
+                        ) : null}
+                      </div>
                       <span className="text-xs text-muted-foreground/80">
                         {itemType.count}
                       </span>
