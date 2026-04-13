@@ -1,10 +1,11 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { LockKeyhole, Mail } from "lucide-react";
 import { signIn } from "next-auth/react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +27,7 @@ const getErrorMessage = (error: string | null) => {
 };
 
 export const SignInForm = () => {
+  const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
@@ -38,6 +40,20 @@ export const SignInForm = () => {
   const [error, setError] = useState("");
 
   const pageError = useMemo(() => getErrorMessage(oauthError), [oauthError]);
+
+  useEffect(() => {
+    if (!registered) {
+      return;
+    }
+
+    toast.success("Account created. You can now log in.");
+
+    const nextParams = new URLSearchParams(searchParams.toString());
+    nextParams.delete("registered");
+    const nextSearch = nextParams.toString();
+
+    router.replace(nextSearch ? `${pathname}?${nextSearch}` : pathname);
+  }, [pathname, registered, router, searchParams]);
 
   const handleCredentialsSignIn = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -82,12 +98,6 @@ export const SignInForm = () => {
 
   return (
     <>
-      {registered ? (
-        <div className="rounded-xl border border-border/70 bg-muted/50 px-4 py-3 text-sm text-foreground">
-          Account created. Sign in to continue.
-        </div>
-      ) : null}
-
       {pageError ? (
         <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {pageError}

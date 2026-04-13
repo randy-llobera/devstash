@@ -70,6 +70,7 @@ export const RegisterForm = () => {
       return;
     }
 
+    setError("");
     router.push("/sign-in?registered=1");
   };
 
