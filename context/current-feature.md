@@ -1,34 +1,15 @@
-# Current Feature: Auth UI - Sign In, Register & Sign Out
+# Current Feature
 
 ## Status
 
-In Progress
 <!-- Not Started|In Progress|Completed -->
 
 ## Goals
 
-- Add a custom `/sign-in` page with email/password fields, a GitHub sign-in button, a register link, and validation/error handling.
-- Add a custom `/register` page with name, email, password, and confirm password fields, validation, submit to `/api/auth/register`, and redirect to `/sign-in` on success.
-- Update the sidebar user area to show the signed-in user's avatar, name, and a click target to `/profile`.
-- Add a user menu from the avatar with a sign-out action.
-- Create a reusable avatar component that supports GitHub images and initials fallback.
 <!-- Goals & requirements -->
 
 ## Notes
 
-Custom auth UI should replace the default NextAuth pages.
-
-Avatar logic:
-- Use `user.image` when available.
-- Otherwise derive initials from the user's name, for example `Randy Llobera` -> `RLL`.
-
-Testing from the spec covers:
-- `/sign-in` rendering
-- GitHub sign-in flow
-- Email/password sign-in flow
-- Avatar display in the sidebar
-- Avatar menu and sign-out flow
-- `/register` success redirect
 <!-- Any extra notes -->
 
 ## History
@@ -50,3 +31,4 @@ Testing from the spec covers:
 - Prisma 7 seed configuration completed by moving seed registration into `prisma.config.ts`, removing the legacy `package.json` Prisma seed block, and verifying both `npm run db:seed` and `npx prisma db seed` work on the dev database
 - Auth Setup - NextAuth + GitHub Provider completed with Auth.js v5 GitHub OAuth, Prisma adapter setup, Next.js 16 proxy protection for `/dashboard`, session typing for `user.id`, and dashboard user lookup moved off the demo account
 - Auth Credentials - Email/Password Provider completed with Auth.js Credentials split-config setup, bcrypt-backed password validation, a new `POST /api/auth/register` route, and preserved GitHub OAuth support
+- Auth UI - Sign In, Register & Sign Out completed with custom route-grouped auth pages, server-rendered auth shells plus client form components, reusable user avatar handling, a shadcn dropdown menu for sidebar sign-out, and a Sonner success toast after registration redirect
