@@ -1,35 +1,18 @@
-# Current Feature: Auth Credentials - Email/Password Provider
+# Current Feature
+
+<!-- Feature Name -->
 
 ## Status
 
 <!-- Not Started|In Progress|Completed -->
-In Progress
 
 ## Goals
 
 <!-- Goals & requirements -->
-- Add email/password authentication with a Credentials provider.
-- Add a password field to the `User` model via migration if it does not already exist.
-- Update `auth.config.ts` with the Credentials provider placeholder for the split config pattern.
-- Update `auth.ts` to override the Credentials provider with bcrypt-based validation.
-- Create `POST /api/auth/register` for registration with validation, duplicate-user checks, password hashing, and user creation.
-- Preserve existing GitHub OAuth behavior.
 
 ## Notes
 
 <!-- Any extra notes -->
-- Use `bcryptjs` for password hashing.
-- Registration request fields: `name`, `email`, `password`, `confirmPassword`.
-- Registration must validate matching passwords and return success/error responses.
-- Split pattern detail:
-  - `auth.config.ts` keeps `authorize: () => null` as a placeholder.
-  - `auth.ts` contains the actual bcrypt validation logic.
-- Verification targets:
-  - Register via `POST /api/auth/register`.
-  - Sign in via `/api/auth/signin`.
-  - Confirm redirect to `/dashboard`.
-  - Confirm GitHub OAuth still works.
-- Reference: Auth.js Credentials provider docs at `https://authjs.dev/getting-started/authentication/credentials`.
 
 ## History
 
@@ -49,3 +32,4 @@ In Progress
 - Dashboard accessibility quick wins completed with sidebar collections disclosure accessibility attributes, while intentionally leaving placeholder `#` links unchanged for upcoming route work
 - Prisma 7 seed configuration completed by moving seed registration into `prisma.config.ts`, removing the legacy `package.json` Prisma seed block, and verifying both `npm run db:seed` and `npx prisma db seed` work on the dev database
 - Auth Setup - NextAuth + GitHub Provider completed with Auth.js v5 GitHub OAuth, Prisma adapter setup, Next.js 16 proxy protection for `/dashboard`, session typing for `user.id`, and dashboard user lookup moved off the demo account
+- Auth Credentials - Email/Password Provider completed with Auth.js Credentials split-config setup, bcrypt-backed password validation, a new `POST /api/auth/register` route, and preserved GitHub OAuth support
