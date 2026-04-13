@@ -1,9 +1,6 @@
-import { prisma } from "@/lib/prisma";
+import { cache } from "react";
 
-export const DASHBOARD_DEMO_USER = {
-  email: "demo@devstash.io",
-  name: "Demo User",
-} as const;
+import { auth } from "@/auth";
 
 export interface DashboardUser {
   id: string;
@@ -11,15 +8,16 @@ export interface DashboardUser {
   email: string;
 }
 
-export const getDashboardUser = async (): Promise<DashboardUser | null> => {
-  return prisma.user.findUnique({
-    where: {
-      email: DASHBOARD_DEMO_USER.email,
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-    },
-  });
-};
+export const getDashboardUser = cache(async (): Promise<DashboardUser | null> => {
+  const session = await auth();
+
+  if (!session?.user?.id || !session.user.email) {
+    return null;
+  }
+
+  return {
+    id: session.user.id,
+    name: session.user.name ?? null,
+    email: session.user.email,
+  };
+});
