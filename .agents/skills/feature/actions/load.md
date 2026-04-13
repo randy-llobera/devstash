@@ -12,3 +12,8 @@
    - Set Status to "Not Started"
 
 3. Confirm spec loaded and show the feature summary
+
+## Important Rules
+
+- Do not remove section comments
+- Do not add to history
