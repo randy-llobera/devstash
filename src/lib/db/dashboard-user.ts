@@ -6,6 +6,7 @@ export interface DashboardUser {
   id: string;
   name: string | null;
   email: string;
+  image: string | null;
 }
 
 export const getDashboardUser = cache(async (): Promise<DashboardUser | null> => {
@@ -19,5 +20,6 @@ export const getDashboardUser = cache(async (): Promise<DashboardUser | null> =>
     id: session.user.id,
     name: session.user.name ?? null,
     email: session.user.email,
+    image: session.user.image ?? null,
   };
 });

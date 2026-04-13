@@ -9,7 +9,7 @@ export const proxy = auth((request) => {
     return;
   }
 
-  const signInUrl = new URL("/api/auth/signin", request.url);
+  const signInUrl = new URL("/sign-in", request.url);
   signInUrl.searchParams.set("callbackUrl", request.nextUrl.href);
 
   return Response.redirect(signInUrl);
