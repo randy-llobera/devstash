@@ -54,6 +54,7 @@ export const Sidebar = ({
   onToggleCollapsed,
 }: SidebarProps) => {
   const [isCollectionsOpen, setIsCollectionsOpen] = useState(true);
+  const collectionsSectionId = mobile ? "sidebar-collections-mobile" : "sidebar-collections";
 
   return (
     <aside
@@ -150,6 +151,8 @@ export const Sidebar = ({
             <button
               type="button"
               onClick={() => setIsCollectionsOpen((current) => !current)}
+              aria-controls={collectionsSectionId}
+              aria-expanded={isCollectionsOpen}
               className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:bg-muted/70"
             >
               <span className="flex-1 text-left">Collections</span>
@@ -161,7 +164,7 @@ export const Sidebar = ({
             </button>
 
             {isCollectionsOpen ? (
-              <div className="space-y-5">
+              <div id={collectionsSectionId} className="space-y-5">
                 <div className="space-y-2">
                   <div className="px-3 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground/80">
                     Favorites
