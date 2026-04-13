@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { signOut as clientSignOut } from "next-auth/react";
 import {
   ChevronDown,
   ChevronRight,
   Folder,
+  LogOut,
   PanelLeftClose,
   PanelLeftOpen,
   Star,
@@ -15,8 +17,16 @@ import type { SidebarCollection } from "@/lib/db/collections";
 import type { DashboardUser } from "@/lib/db/dashboard-user";
 import type { SidebarItemType } from "@/lib/db/items";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/auth/user-avatar";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { getItemTypeIcon } from "@/components/utils/item-type";
 
@@ -31,14 +41,6 @@ interface SidebarProps {
   onNavigate?: () => void;
   onToggleCollapsed?: () => void;
 }
-
-const getInitials = (name: string) =>
-  name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
 
 const proItemTypeSlugs = new Set(["files", "images"]);
 
@@ -55,6 +57,12 @@ export const Sidebar = ({
 }: SidebarProps) => {
   const [isCollectionsOpen, setIsCollectionsOpen] = useState(true);
   const collectionsSectionId = mobile ? "sidebar-collections-mobile" : "sidebar-collections";
+  const displayName = user?.name?.trim() || "User";
+
+  const handleSignOut = async () => {
+    onNavigate?.();
+    await clientSignOut({ callbackUrl: "/sign-in" });
+  };
 
   return (
     <aside
@@ -230,25 +238,45 @@ export const Sidebar = ({
       </div>
 
       <div className="mt-auto border-t border-border/70 p-3">
-        <button
-          type="button"
-          className={cn(
-            "flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-muted/70",
-            collapsed && !mobile && "justify-center px-2"
-          )}
-        >
-          <Avatar size="default">
-            <AvatarFallback>
-              {getInitials(user?.name ?? "Demo User")}
-            </AvatarFallback>
-          </Avatar>
-          {collapsed && !mobile ? null : (
-            <div className="min-w-0">
-              <div className="truncate text-sm font-medium">{user?.name ?? "Demo User"}</div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              title={displayName}
+              className={cn(
+                "flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-muted/70 data-[state=open]:bg-muted/70",
+                collapsed && !mobile && "justify-center px-2"
+              )}
+            >
+              <UserAvatar
+                name={user?.name}
+                image={user?.image}
+                fallbackLabel={user?.email ?? "User"}
+              />
+              {collapsed && !mobile ? null : (
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-medium">{displayName}</div>
+                  <div className="truncate text-xs text-muted-foreground">{user?.email ?? ""}</div>
+                </div>
+              )}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align={collapsed && !mobile ? "end" : "start"}
+            side="top"
+            className="w-56"
+          >
+            <DropdownMenuLabel>
+              <div className="truncate text-sm font-medium">{displayName}</div>
               <div className="truncate text-xs text-muted-foreground">{user?.email ?? ""}</div>
-            </div>
-          )}
-        </button>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={handleSignOut} variant="destructive">
+              <LogOut className="size-4 shrink-0" />
+              <span>Sign out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </aside>
   );

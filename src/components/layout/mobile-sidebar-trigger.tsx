@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Menu } from "lucide-react";
 
 import type { SidebarCollection } from "@/lib/db/collections";
@@ -30,8 +31,10 @@ export const MobileSidebarTrigger = ({
   favoriteCollections,
   recentCollections,
 }: MobileSidebarTriggerProps) => {
+  const [open, setOpen] = useState(false);
+
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button type="button" variant="ghost" size="icon" aria-label="Open sidebar">
           <Menu className="size-4" />
@@ -53,6 +56,7 @@ export const MobileSidebarTrigger = ({
           favoriteCollections={favoriteCollections}
           recentCollections={recentCollections}
           className="border-r-0"
+          onNavigate={() => setOpen(false)}
         />
       </SheetContent>
     </Sheet>
