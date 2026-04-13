@@ -1,4 +1,4 @@
-# Current Feature: Auth Setup - NextAuth + GitHub Provider
+# Current Feature
 
 <!-- Feature Name -->
 
@@ -6,30 +6,13 @@
 
 <!-- Not Started|In Progress|Completed -->
 
-In Progress
-
 ## Goals
 
 <!-- Goals & requirements -->
 
-- Set up NextAuth v5 with the Prisma adapter and GitHub OAuth provider
-- Use the split auth config pattern for edge compatibility
-- Add the auth route handler exports for NextAuth
-- Protect `/dashboard/*` routes with Next.js 16 proxy auth checks
-- Redirect unauthenticated users to the default NextAuth sign-in page
-- Extend the session type so `session.user.id` is available
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Spec source: `context/features/auth-phase-1-spec.md`
-- Create these files: `src/auth.config.ts`, `src/auth.ts`, `src/app/api/auth/[...nextauth]/route.ts`, `src/proxy.ts`, `src/types/next-auth.d.ts`
-- Use Context7 to verify the current NextAuth v5 config and edge-compatibility conventions before implementation
-- Install `next-auth@beta` and `@auth/prisma-adapter`
-- Keep the sign-in flow on NextAuth default pages for testing
-- Required env vars: `AUTH_SECRET`, `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET`
-- Test targets: `/dashboard` redirects to sign-in, GitHub sign-in works, and auth returns to `/dashboard`
 
 ## History
 
@@ -48,3 +31,4 @@ In Progress
 - Add Pro Badge to Sidebar completed with subtle shadcn badge styling for the `files` and `images` sidebar item types using uppercase `PRO`
 - Dashboard accessibility quick wins completed with sidebar collections disclosure accessibility attributes, while intentionally leaving placeholder `#` links unchanged for upcoming route work
 - Prisma 7 seed configuration completed by moving seed registration into `prisma.config.ts`, removing the legacy `package.json` Prisma seed block, and verifying both `npm run db:seed` and `npx prisma db seed` work on the dev database
+- Auth Setup - NextAuth + GitHub Provider completed with Auth.js v5 GitHub OAuth, Prisma adapter setup, Next.js 16 proxy protection for `/dashboard`, session typing for `user.id`, and dashboard user lookup moved off the demo account
