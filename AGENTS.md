@@ -29,3 +29,20 @@ npm run dev      # Start dev server
 npm run build    # Build for production
 npm run lint     # Run ESLint
 ```
+
+## Neon MCP Defaults
+
+- Default Neon project: `devstash` (`fancy-sound-03830381`)
+- Default Neon branch: `devstash-dev` (`br-twilight-lake-amzju9vx`)
+- When using any Neon MCP tool, always use this project and branch unless I
+  explicitly say otherwise.
+- Treat `production` (`br-proud-violet-am3tppgg`) as read-only by default.
+- Never run write operations against `production` unless I explicitly name
+  `production` and clearly ask for that change.
+- If a Neon MCP tool supports `branchId`, always pass `br-twilight-lake-amzju9vx`
+  unless I explicitly override it.
+- If a Neon MCP tool supports `projectId`, always pass `fancy-sound-03830381`
+  unless I explicitly override it.
+- If a request is ambiguous, assume `devstash-dev`, not `production`.
+- Before any destructive or write action in Neon, state which project and branch
+  you are about to use.
