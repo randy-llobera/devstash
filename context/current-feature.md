@@ -1,25 +1,16 @@
-# Current Feature: Forgot Password Flow
+# Current Feature
 
 ## Status
 
 <!-- Not Started|In Progress|Completed -->
-Completed
 
 ## Goals
 
 <!-- Goals & requirements -->
-- Add a forgot password link from the sign-in flow.
-- Let users request a password reset email for credentials accounts.
-- Reuse the existing `VerificationToken` model for password reset tokens.
-- Let users reset their password from a tokenized email link.
-- Invalidate expired and used reset tokens.
 
 ## Notes
 
 <!-- Any extra notes -->
-- Keep the existing email verification flow unchanged.
-- Namespace password reset token identifiers so they do not conflict with verification tokens stored in the same table.
-- Avoid leaking whether an account exists when requesting a reset link.
 
 ## History
 
@@ -43,3 +34,4 @@ Completed
 - Auth UI - Sign In, Register & Sign Out completed with custom route-grouped auth pages, server-rendered auth shells plus client form components, reusable user avatar handling, a shadcn dropdown menu for sidebar sign-out, and a Sonner success toast after registration redirect
 - Email Verification on Register completed with Resend-backed verification emails, hashed verification tokens, a resend verification endpoint, and credentials sign-in blocked until `emailVerified` is set
 - Toggle Email Verification completed with an `EMAIL_VERIFICATION_ENABLED` env flag, auth flow gating for registration and credentials sign-in, and auth UI updates that hide resend verification when disabled
+- Forgot Password Flow completed with a sign-in reset link, password reset request and reset routes, a reset-password auth page and form, and shared `VerificationToken` reuse for reset tokens
