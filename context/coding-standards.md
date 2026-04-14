@@ -68,7 +68,8 @@ Example v4 configuration:
 ## Styling
 
 - Tailwind CSS for all styling
-- Use shadcn/ui components where applicable
+- Use shadcn/ui components where applicable. All shadcn components must be added
+  via CLI.
 - No inline styles
 - Dark mode first, light mode as option
 
