@@ -4,6 +4,8 @@ const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
 });
 
+export const formatDate = (value: string) => DATE_FORMATTER.format(new Date(value));
+
 export const formatUpdatedAt = (value: string) => {
   const now = new Date();
   const currentDate = new Date(value);
