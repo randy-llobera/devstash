@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import Credentials from "next-auth/providers/credentials";
 
 import authConfig from "@/auth.config";
+import { isEmailVerificationEnabled } from "@/lib/email-verification-settings";
 import { prisma } from "@/lib/prisma";
 
 const credentialsProvider = Credentials({
@@ -33,7 +34,10 @@ const credentialsProvider = Credentials({
 
     const isValidPassword = await bcrypt.compare(password, user.password);
 
-    if (!isValidPassword || !user.emailVerified) {
+    if (
+      !isValidPassword ||
+      (isEmailVerificationEnabled() && !user.emailVerified)
+    ) {
       return null;
     }
 

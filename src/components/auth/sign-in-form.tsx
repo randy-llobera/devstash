@@ -26,7 +26,11 @@ const getErrorMessage = (error: string | null) => {
   }
 };
 
-export const SignInForm = () => {
+interface SignInFormProps {
+  emailVerificationEnabled: boolean;
+}
+
+export const SignInForm = ({ emailVerificationEnabled }: SignInFormProps) => {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -51,7 +55,11 @@ export const SignInForm = () => {
     }
 
     if (registered) {
-      toast.success("Check your email to verify your account.");
+      toast.success(
+        emailVerificationEnabled
+          ? "Check your email to verify your account."
+          : "Account created. You can now sign in.",
+      );
     }
 
     if (verified) {
@@ -70,7 +78,15 @@ export const SignInForm = () => {
     const nextSearch = nextParams.toString();
 
     router.replace(nextSearch ? `${pathname}?${nextSearch}` : pathname);
-  }, [pathname, registered, router, searchParams, verificationState, verified]);
+  }, [
+    emailVerificationEnabled,
+    pathname,
+    registered,
+    router,
+    searchParams,
+    verificationState,
+    verified,
+  ]);
 
   const handleCredentialsSignIn = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -221,18 +237,20 @@ export const SignInForm = () => {
         </Button>
       </form>
 
-      <div className="rounded-xl border border-border/70 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
-        Need a new verification email?
-        <Button
-          type="button"
-          variant="link"
-          className="h-auto px-1 align-baseline"
-          onClick={handleResendVerification}
-          disabled={isResendingVerification || isSubmitting}
-        >
-          {isResendingVerification ? "Sending..." : "Resend verification email"}
-        </Button>
-      </div>
+      {emailVerificationEnabled ? (
+        <div className="rounded-xl border border-border/70 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+          Need a new verification email?
+          <Button
+            type="button"
+            variant="link"
+            className="h-auto px-1 align-baseline"
+            onClick={handleResendVerification}
+            disabled={isResendingVerification || isSubmitting}
+          >
+            {isResendingVerification ? "Sending..." : "Resend verification email"}
+          </Button>
+        </div>
+      ) : null}
 
       <p className="text-sm text-muted-foreground">
         New here?{" "}
