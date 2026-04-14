@@ -33,7 +33,7 @@ const credentialsProvider = Credentials({
 
     const isValidPassword = await bcrypt.compare(password, user.password);
 
-    if (!isValidPassword) {
+    if (!isValidPassword || !user.emailVerified) {
       return null;
     }
 

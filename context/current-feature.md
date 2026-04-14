@@ -1,15 +1,22 @@
-# Current Feature
+# Current Feature: Email Verification on Register
 
 ## Status
 
+Not Started
 <!-- Not Started|In Progress|Completed -->
 
 ## Goals
 
-<!-- Goals & requirements -->
+- Send an email verification message when a user registers.
+- Require users to click the verification link from their email before their email is considered verified.
+- Use Resend for email delivery.
+- Use the existing `RESEND_API_KEY` from the local `.env` configuration.
 
 ## Notes
 
+- Registration should trigger an email verification flow rather than immediately treating the account email as verified.
+- The request explicitly states Resend is the email provider.
+- The API key already exists in `.env`; do not hardcode credentials.
 <!-- Any extra notes -->
 
 ## History
