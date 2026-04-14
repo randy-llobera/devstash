@@ -1,21 +1,16 @@
-# Current Feature: Toggle Email Verification
+# Current Feature
 
 ## Status
 
-In Progress
+<!-- Not Started|In Progress|Completed -->
 
 ## Goals
 
-- Add a simple flag to enable or disable email verification during registration
-- Keep the flag easy to change without code edits, preferably via environment configuration
-- Preserve the existing verification flow when the flag is enabled
-- Allow registration and sign-in without verification when the flag is disabled
+<!-- Goals & requirements -->
 
 ## Notes
 
-- Current blocker: no verified sending domain is linked to Resend, so verification emails can only reliably come from the Resend test sender
-- User is open to an env variable or another minimal configuration approach
-- Keep the change incremental and avoid unnecessary auth refactors
+<!-- Any extra notes -->
 
 ## History
 
@@ -38,3 +33,4 @@ In Progress
 - Auth Credentials - Email/Password Provider completed with Auth.js Credentials split-config setup, bcrypt-backed password validation, a new `POST /api/auth/register` route, and preserved GitHub OAuth support
 - Auth UI - Sign In, Register & Sign Out completed with custom route-grouped auth pages, server-rendered auth shells plus client form components, reusable user avatar handling, a shadcn dropdown menu for sidebar sign-out, and a Sonner success toast after registration redirect
 - Email Verification on Register completed with Resend-backed verification emails, hashed verification tokens, a resend verification endpoint, and credentials sign-in blocked until `emailVerified` is set
+- Toggle Email Verification completed with an `EMAIL_VERIFICATION_ENABLED` env flag, auth flow gating for registration and credentials sign-in, and auth UI updates that hide resend verification when disabled
