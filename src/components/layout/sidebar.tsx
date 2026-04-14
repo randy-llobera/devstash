@@ -11,6 +11,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Star,
+  User,
 } from "lucide-react";
 
 import type { SidebarCollection } from "@/lib/db/collections";
@@ -23,8 +24,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
@@ -266,11 +265,12 @@ export const Sidebar = ({
             side="top"
             className="w-56"
           >
-            <DropdownMenuLabel>
-              <div className="truncate text-sm font-medium">{displayName}</div>
-              <div className="truncate text-xs text-muted-foreground">{user?.email ?? ""}</div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/profile" onClick={onNavigate}>
+                <User className="size-4 shrink-0" />
+                <span>Profile</span>
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuItem onSelect={handleSignOut} variant="destructive">
               <LogOut className="size-4 shrink-0" />
               <span>Sign out</span>
