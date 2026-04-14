@@ -1,16 +1,25 @@
-# Current Feature
+# Current Feature: Forgot Password Flow
 
 ## Status
 
 <!-- Not Started|In Progress|Completed -->
+Completed
 
 ## Goals
 
 <!-- Goals & requirements -->
+- Add a forgot password link from the sign-in flow.
+- Let users request a password reset email for credentials accounts.
+- Reuse the existing `VerificationToken` model for password reset tokens.
+- Let users reset their password from a tokenized email link.
+- Invalidate expired and used reset tokens.
 
 ## Notes
 
 <!-- Any extra notes -->
+- Keep the existing email verification flow unchanged.
+- Namespace password reset token identifiers so they do not conflict with verification tokens stored in the same table.
+- Avoid leaking whether an account exists when requesting a reset link.
 
 ## History
 

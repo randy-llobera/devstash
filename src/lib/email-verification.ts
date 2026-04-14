@@ -6,8 +6,13 @@ import { isEmailVerificationEnabled } from "@/lib/email-verification-settings";
 import { prisma } from "@/lib/prisma";
 
 const VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
+const PASSWORD_RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
+const PASSWORD_RESET_IDENTIFIER_PREFIX = "password-reset:";
 
 const getEmailVerificationSubject = () => "Verify your DevStash email";
+const getPasswordResetSubject = () => "Reset your DevStash password";
+const EMAIL_IDEMPOTENCY_KEY_PREFIX = "verify-email";
+const PASSWORD_RESET_IDEMPOTENCY_KEY_PREFIX = "password-reset";
 
 const getEmailVerificationHtml = ({
   name,
@@ -28,6 +33,25 @@ const getEmailVerificationHtml = ({
   `;
 };
 
+const getPasswordResetHtml = ({
+  name,
+  resetUrl,
+}: {
+  name: string | null;
+  resetUrl: string;
+}) => {
+  const greeting = name ? `Hi ${name},` : "Hi,";
+
+  return `
+    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827;">
+      <p>${greeting}</p>
+      <p>Click the link below to reset your DevStash password.</p>
+      <p><a href="${resetUrl}">Reset your password</a></p>
+      <p>If you did not request this, you can ignore this message.</p>
+    </div>
+  `;
+};
+
 export const hashVerificationToken = (token: string) =>
   createHash("sha256").update(token).digest("hex");
 
@@ -41,6 +65,53 @@ const createVerificationUrl = ({
   const url = new URL("/verify-email", baseUrl);
   url.searchParams.set("token", token);
   return url.toString();
+};
+
+const createPasswordResetUrl = ({
+  baseUrl,
+  token,
+}: {
+  baseUrl: string;
+  token: string;
+}) => {
+  const url = new URL("/reset-password", baseUrl);
+  url.searchParams.set("token", token);
+  return url.toString();
+};
+
+const sendAuthEmail = async ({
+  email,
+  hashedToken,
+  html,
+  idempotencyKeyPrefix,
+  subject,
+}: {
+  email: string;
+  hashedToken: string;
+  html: string;
+  idempotencyKeyPrefix: string;
+  subject: string;
+}) => {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY is required to send auth emails.");
+  }
+
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const { error } = await resend.emails.send(
+    {
+      from: "onboarding@resend.dev",
+      to: [email],
+      subject,
+      html,
+    },
+    {
+      idempotencyKey: `${idempotencyKeyPrefix}/${hashedToken}`,
+    },
+  );
+
+  if (error) {
+    throw new Error(error.message);
+  }
 };
 
 export const issueEmailVerification = async ({
@@ -77,24 +148,59 @@ export const issueEmailVerification = async ({
     token: rawToken,
   });
 
-  if (!process.env.RESEND_API_KEY) {
-    throw new Error("RESEND_API_KEY is required to send verification emails.");
-  }
+  await sendAuthEmail({
+    email,
+    hashedToken,
+    html: getEmailVerificationHtml({ name, verificationUrl }),
+    idempotencyKeyPrefix: EMAIL_IDEMPOTENCY_KEY_PREFIX,
+    subject: getEmailVerificationSubject(),
+  });
+};
 
-  const resend = new Resend(process.env.RESEND_API_KEY);
-  const { error } = await resend.emails.send(
-    {
-      from: "onboarding@resend.dev",
-      to: [email],
-      subject: getEmailVerificationSubject(),
-      html: getEmailVerificationHtml({ name, verificationUrl }),
-    },
-    {
-      idempotencyKey: `verify-email/${hashedToken}`,
-    },
-  );
+const getPasswordResetIdentifier = (email: string) =>
+  `${PASSWORD_RESET_IDENTIFIER_PREFIX}${email}`;
 
-  if (error) {
-    throw new Error(error.message);
-  }
+export const getPasswordResetEmail = (identifier: string) =>
+  identifier.startsWith(PASSWORD_RESET_IDENTIFIER_PREFIX)
+    ? identifier.slice(PASSWORD_RESET_IDENTIFIER_PREFIX.length)
+    : null;
+
+export const issuePasswordReset = async ({
+  email,
+  name,
+  baseUrl,
+}: {
+  email: string;
+  name: string | null;
+  baseUrl: string;
+}) => {
+  const rawToken = randomBytes(32).toString("hex");
+  const hashedToken = hashVerificationToken(rawToken);
+  const expires = new Date(Date.now() + PASSWORD_RESET_TOKEN_TTL_MS);
+  const identifier = getPasswordResetIdentifier(email);
+
+  await prisma.verificationToken.deleteMany({
+    where: { identifier },
+  });
+
+  await prisma.verificationToken.create({
+    data: {
+      identifier,
+      token: hashedToken,
+      expires,
+    },
+  });
+
+  const resetUrl = createPasswordResetUrl({
+    baseUrl,
+    token: rawToken,
+  });
+
+  await sendAuthEmail({
+    email,
+    hashedToken,
+    html: getPasswordResetHtml({ name, resetUrl }),
+    idempotencyKeyPrefix: PASSWORD_RESET_IDEMPOTENCY_KEY_PREFIX,
+    subject: getPasswordResetSubject(),
+  });
 };

@@ -37,6 +37,7 @@ export const SignInForm = ({ emailVerificationEnabled }: SignInFormProps) => {
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
   const oauthError = searchParams.get("error");
   const registered = searchParams.get("registered") === "1";
+  const reset = searchParams.get("reset") === "1";
   const verified = searchParams.get("verified") === "1";
   const verificationState = searchParams.get("verification");
   const initialEmail = searchParams.get("email") ?? "";
@@ -50,7 +51,7 @@ export const SignInForm = ({ emailVerificationEnabled }: SignInFormProps) => {
   const pageError = useMemo(() => getErrorMessage(oauthError), [oauthError]);
 
   useEffect(() => {
-    if (!registered && !verified && verificationState !== "invalid") {
+    if (!registered && !reset && !verified && verificationState !== "invalid") {
       return;
     }
 
@@ -66,12 +67,17 @@ export const SignInForm = ({ emailVerificationEnabled }: SignInFormProps) => {
       toast.success("Email verified. You can now sign in.");
     }
 
+    if (reset) {
+      toast.success("Password updated. You can now sign in.");
+    }
+
     if (verificationState === "invalid") {
       toast.error("That verification link is invalid or has expired.");
     }
 
     const nextParams = new URLSearchParams(searchParams.toString());
     nextParams.delete("registered");
+    nextParams.delete("reset");
     nextParams.delete("verified");
     nextParams.delete("verification");
     nextParams.delete("email");
@@ -82,6 +88,7 @@ export const SignInForm = ({ emailVerificationEnabled }: SignInFormProps) => {
     emailVerificationEnabled,
     pathname,
     registered,
+    reset,
     router,
     searchParams,
     verificationState,
@@ -235,6 +242,15 @@ export const SignInForm = ({ emailVerificationEnabled }: SignInFormProps) => {
         <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? "Signing in..." : "Sign in"}
         </Button>
+
+        <div className="text-right">
+          <Link
+            href={`/reset-password?email=${encodeURIComponent(email.trim().toLowerCase())}`}
+            className="text-sm font-medium text-foreground hover:underline"
+          >
+            Forgot password?
+          </Link>
+        </div>
       </form>
 
       {emailVerificationEnabled ? (
