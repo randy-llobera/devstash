@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { issueEmailVerification } from "@/lib/email-verification";
+import { isEmailVerificationEnabled } from "@/lib/email-verification-settings";
 import { prisma } from "@/lib/prisma";
 
 interface ResendVerificationRequestBody {
@@ -12,6 +13,10 @@ const BAD_REQUEST_STATUS = 400;
 const isValidEmail = (email: string) => email.includes("@");
 
 export const POST = async (request: Request) => {
+  if (!isEmailVerificationEnabled()) {
+    return NextResponse.json({ success: true });
+  }
+
   let body: ResendVerificationRequestBody;
 
   try {

@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 
 import { issueEmailVerification } from "@/lib/email-verification";
+import { isEmailVerificationEnabled } from "@/lib/email-verification-settings";
 import { prisma } from "@/lib/prisma";
 
 interface RegisterRequestBody {
@@ -66,6 +67,8 @@ export const POST = async (request: Request) => {
   }
 
   try {
+    const emailVerificationEnabled = isEmailVerificationEnabled();
+
     const existingUser = await prisma.user.findUnique({
       where: { email },
       select: { id: true },
@@ -83,6 +86,7 @@ export const POST = async (request: Request) => {
     const createdUser = await prisma.user.create({
       data: {
         email,
+        emailVerified: emailVerificationEnabled ? undefined : new Date(),
         name,
         password: hashedPassword,
       },

@@ -2,6 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 
 import { Resend } from "resend";
 
+import { isEmailVerificationEnabled } from "@/lib/email-verification-settings";
 import { prisma } from "@/lib/prisma";
 
 const VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
@@ -51,6 +52,10 @@ export const issueEmailVerification = async ({
   name: string | null;
   baseUrl: string;
 }) => {
+  if (!isEmailVerificationEnabled()) {
+    return;
+  }
+
   const rawToken = randomBytes(32).toString("hex");
   const hashedToken = hashVerificationToken(rawToken);
   const expires = new Date(Date.now() + VERIFICATION_TOKEN_TTL_MS);

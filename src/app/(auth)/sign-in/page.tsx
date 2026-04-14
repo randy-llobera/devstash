@@ -2,6 +2,7 @@ import { Suspense } from "react";
 
 import { SignInForm } from "@/components/auth/sign-in-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { isEmailVerificationEnabled } from "@/lib/email-verification-settings";
 
 const SignInPageShell = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -48,10 +49,12 @@ const SignInFallback = () => {
 };
 
 const SignInPage = () => {
+  const emailVerificationEnabled = isEmailVerificationEnabled();
+
   return (
     <SignInPageShell>
       <Suspense fallback={<SignInFallback />}>
-        <SignInForm />
+        <SignInForm emailVerificationEnabled={emailVerificationEnabled} />
       </Suspense>
     </SignInPageShell>
   );

@@ -1,16 +1,21 @@
-# Current Feature
+# Current Feature: Toggle Email Verification
 
 ## Status
 
-<!-- Not Started|In Progress|Completed -->
+In Progress
 
 ## Goals
 
-<!-- Goals & requirements -->
+- Add a simple flag to enable or disable email verification during registration
+- Keep the flag easy to change without code edits, preferably via environment configuration
+- Preserve the existing verification flow when the flag is enabled
+- Allow registration and sign-in without verification when the flag is disabled
 
 ## Notes
 
-<!-- Any extra notes -->
+- Current blocker: no verified sending domain is linked to Resend, so verification emails can only reliably come from the Resend test sender
+- User is open to an env variable or another minimal configuration approach
+- Keep the change incremental and avoid unnecessary auth refactors
 
 ## History
 

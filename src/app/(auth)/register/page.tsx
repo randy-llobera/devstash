@@ -1,7 +1,10 @@
 import { RegisterForm } from "@/components/auth/register-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { isEmailVerificationEnabled } from "@/lib/email-verification-settings";
 
 const RegisterPage = () => {
+  const emailVerificationEnabled = isEmailVerificationEnabled();
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-background text-foreground">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.06),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.08),transparent_26%)]" />
@@ -17,7 +20,9 @@ const RegisterPage = () => {
                 Create your DevStash account.
               </h1>
               <p className="max-w-lg text-base leading-7 text-muted-foreground">
-                Start with email and password, then keep GitHub sign-in available for later sessions.
+                {emailVerificationEnabled
+                  ? "Start with email and password, then verify your address before signing in."
+                  : "Start with email and password, then keep GitHub sign-in available for later sessions."}
               </p>
             </div>
           </section>
@@ -26,7 +31,9 @@ const RegisterPage = () => {
             <CardHeader className="border-b border-border/70 py-6">
               <CardTitle className="text-2xl">Register</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Set up your account and continue to sign in.
+                {emailVerificationEnabled
+                  ? "Set up your account and check your email for the verification link."
+                  : "Set up your account and continue to sign in."}
               </p>
             </CardHeader>
             <CardContent className="space-y-5 py-6">
