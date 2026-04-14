@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 
+import { issueEmailVerification } from "@/lib/email-verification";
 import { prisma } from "@/lib/prisma";
 
 interface RegisterRequestBody {
@@ -79,13 +80,22 @@ export const POST = async (request: Request) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await prisma.user.create({
+    const createdUser = await prisma.user.create({
       data: {
         email,
         name,
         password: hashedPassword,
       },
-      select: { id: true },
+      select: {
+        email: true,
+        name: true,
+      },
+    });
+
+    await issueEmailVerification({
+      email: createdUser.email,
+      name: createdUser.name,
+      baseUrl: new URL(request.url).origin,
     });
 
     return NextResponse.json({ success: true });

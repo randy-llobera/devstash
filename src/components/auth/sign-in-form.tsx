@@ -33,27 +33,44 @@ export const SignInForm = () => {
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
   const oauthError = searchParams.get("error");
   const registered = searchParams.get("registered") === "1";
+  const verified = searchParams.get("verified") === "1";
+  const verificationState = searchParams.get("verification");
+  const initialEmail = searchParams.get("email") ?? "";
 
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResendingVerification, setIsResendingVerification] = useState(false);
   const [error, setError] = useState("");
 
   const pageError = useMemo(() => getErrorMessage(oauthError), [oauthError]);
 
   useEffect(() => {
-    if (!registered) {
+    if (!registered && !verified && verificationState !== "invalid") {
       return;
     }
 
-    toast.success("Account created. You can now log in.");
+    if (registered) {
+      toast.success("Check your email to verify your account.");
+    }
+
+    if (verified) {
+      toast.success("Email verified. You can now sign in.");
+    }
+
+    if (verificationState === "invalid") {
+      toast.error("That verification link is invalid or has expired.");
+    }
 
     const nextParams = new URLSearchParams(searchParams.toString());
     nextParams.delete("registered");
+    nextParams.delete("verified");
+    nextParams.delete("verification");
+    nextParams.delete("email");
     const nextSearch = nextParams.toString();
 
     router.replace(nextSearch ? `${pathname}?${nextSearch}` : pathname);
-  }, [pathname, registered, router, searchParams]);
+  }, [pathname, registered, router, searchParams, verificationState, verified]);
 
   const handleCredentialsSignIn = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -94,6 +111,41 @@ export const SignInForm = () => {
   const handleGithubSignIn = async () => {
     setIsSubmitting(true);
     await signIn("github", { callbackUrl });
+  };
+
+  const handleResendVerification = async () => {
+    const trimmedEmail = email.trim().toLowerCase();
+
+    if (!trimmedEmail) {
+      setError("Enter your email to resend the verification link.");
+      return;
+    }
+
+    if (!trimmedEmail.includes("@")) {
+      setError("Enter a valid email address.");
+      return;
+    }
+
+    setIsResendingVerification(true);
+    setError("");
+
+    const response = await fetch("/api/auth/verification/resend", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: trimmedEmail }),
+    });
+
+    setIsResendingVerification(false);
+
+    if (!response.ok) {
+      const result = (await response.json()) as { error?: string };
+      setError(result.error ?? "Unable to resend verification email.");
+      return;
+    }
+
+    toast.success("If your account exists and still needs verification, we sent a new link.");
   };
 
   return (
@@ -168,6 +220,19 @@ export const SignInForm = () => {
           {isSubmitting ? "Signing in..." : "Sign in"}
         </Button>
       </form>
+
+      <div className="rounded-xl border border-border/70 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+        Need a new verification email?
+        <Button
+          type="button"
+          variant="link"
+          className="h-auto px-1 align-baseline"
+          onClick={handleResendVerification}
+          disabled={isResendingVerification || isSubmitting}
+        >
+          {isResendingVerification ? "Sending..." : "Resend verification email"}
+        </Button>
+      </div>
 
       <p className="text-sm text-muted-foreground">
         New here?{" "}

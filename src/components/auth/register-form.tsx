@@ -71,7 +71,7 @@ export const RegisterForm = () => {
     }
 
     setError("");
-    router.push("/sign-in?registered=1");
+    router.push(`/sign-in?registered=1&email=${encodeURIComponent(trimmedEmail)}`);
   };
 
   return (
