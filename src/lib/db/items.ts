@@ -25,6 +25,31 @@ export interface DashboardItem {
   collection: DashboardItemCollection | null;
 }
 
+export interface ItemDrawerCollection {
+  id: string;
+  name: string;
+}
+
+export interface ItemDrawerDetail {
+  id: string;
+  title: string;
+  description: string;
+  contentType: "TEXT" | "FILE" | "URL";
+  content: string | null;
+  fileName: string | null;
+  fileSize: number | null;
+  fileUrl: string | null;
+  url: string | null;
+  isFavorite: boolean;
+  isPinned: boolean;
+  language: string | null;
+  createdAt: string;
+  updatedAt: string;
+  tags: string[];
+  itemType: DashboardItemType;
+  collections: ItemDrawerCollection[];
+}
+
 export interface ItemTypeSummary {
   id: string;
   name: string;
@@ -88,6 +113,46 @@ const mapDashboardItem = (item: {
     collection: primaryCollection?.collection ?? null,
   };
 };
+
+const mapItemDrawerDetail = (item: {
+  id: string;
+  title: string;
+  description: string | null;
+  contentType: "TEXT" | "FILE" | "URL";
+  content: string | null;
+  fileName: string | null;
+  fileSize: number | null;
+  fileUrl: string | null;
+  url: string | null;
+  isFavorite: boolean;
+  isPinned: boolean;
+  language: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  tags: { name: string }[];
+  itemType: DashboardItemType;
+  collections: {
+    collection: ItemDrawerCollection;
+  }[];
+}): ItemDrawerDetail => ({
+  id: item.id,
+  title: item.title,
+  description: item.description ?? "No description yet.",
+  contentType: item.contentType,
+  content: item.content,
+  fileName: item.fileName,
+  fileSize: item.fileSize,
+  fileUrl: item.fileUrl,
+  url: item.url,
+  isFavorite: item.isFavorite,
+  isPinned: item.isPinned,
+  language: item.language,
+  createdAt: item.createdAt.toISOString(),
+  updatedAt: item.updatedAt.toISOString(),
+  tags: item.tags.map((tag) => tag.name),
+  itemType: item.itemType,
+  collections: item.collections.map(({ collection }) => collection),
+});
 
 const getDashboardItems = async () => {
   const user = await getDashboardUser();
@@ -257,6 +322,62 @@ export const getSidebarItemTypes = async (): Promise<SidebarItemType[]> => {
       color: itemType.color,
       count: user ? itemType._count.items : 0,
     }));
+};
+
+export const getItemDrawerDetail = async (
+  itemId: string,
+  userId: string
+): Promise<ItemDrawerDetail | null> => {
+  const item = await prisma.item.findFirst({
+    where: {
+      id: itemId,
+      userId,
+    },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      contentType: true,
+      content: true,
+      fileName: true,
+      fileSize: true,
+      fileUrl: true,
+      url: true,
+      isFavorite: true,
+      isPinned: true,
+      language: true,
+      createdAt: true,
+      updatedAt: true,
+      tags: {
+        select: {
+          name: true,
+        },
+      },
+      itemType: {
+        select: {
+          id: true,
+          name: true,
+          icon: true,
+          color: true,
+        },
+      },
+      collections: {
+        select: {
+          collection: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+        orderBy: {
+          addedAt: "asc",
+        },
+      },
+    },
+  });
+
+  return item ? mapItemDrawerDetail(item) : null;
 };
 
 export const getItemsByTypeSlug = async (
