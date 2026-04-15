@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 
 import { issuePasswordReset } from "@/lib/email-verification";
 import { prisma } from "@/lib/prisma";
+import {
+  checkAuthRateLimit,
+  createRateLimitErrorResponse,
+} from "@/lib/rate-limit";
 
 interface ForgotPasswordRequestBody {
   email?: string;
@@ -30,6 +34,16 @@ export const POST = async (request: Request) => {
       { error: "A valid email address is required." },
       { status: BAD_REQUEST_STATUS },
     );
+  }
+
+  const rateLimitResult = await checkAuthRateLimit({
+    keyBy: "ip",
+    request,
+    type: "passwordForgot",
+  });
+
+  if (!rateLimitResult.success) {
+    return createRateLimitErrorResponse(rateLimitResult);
   }
 
   const user = await prisma.user.findUnique({

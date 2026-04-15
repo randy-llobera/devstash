@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, LockKeyhole, Mail, User } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,7 +67,13 @@ export const RegisterForm = () => {
     setIsSubmitting(false);
 
     if (!response.ok) {
-      setError(result.error ?? "Unable to register user.");
+      const message = result.error ?? "Unable to register user.";
+      setError(message);
+
+      if (response.status === 429) {
+        toast.error(message);
+      }
+
       return;
     }
 
