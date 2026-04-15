@@ -1,8 +1,11 @@
+"use client";
+
 import { createElement } from "react";
-import Link from "next/link";
 import { Star } from "lucide-react";
 
 import type { DashboardItem } from "@/lib/db/items";
+
+import { useItemDrawer } from "@/components/dashboard/item-drawer-provider";
 import { formatUpdatedAt } from "@/components/utils/date";
 import { getItemTypeIcon } from "@/components/utils/item-type";
 import { Badge } from "@/components/ui/badge";
@@ -12,10 +15,13 @@ interface DashboardRecentItemRowProps {
 }
 
 export const DashboardRecentItemRow = ({ item }: DashboardRecentItemRowProps) => {
+  const { openItem } = useItemDrawer();
+
   return (
-    <Link
-      href="#"
-      className="grid gap-4 px-5 py-4 transition-colors hover:bg-muted/30 md:grid-cols-[minmax(0,1.6fr)_minmax(0,0.8fr)_auto] md:items-center"
+    <button
+      type="button"
+      className="grid w-full border-0 bg-transparent px-5 py-4 text-left transition-colors hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/60 md:grid-cols-[minmax(0,1.6fr)_minmax(0,0.8fr)_auto] md:items-center"
+      onClick={() => openItem(item)}
     >
       <div className="flex min-w-0 items-start gap-3">
         <div
@@ -64,6 +70,6 @@ export const DashboardRecentItemRow = ({ item }: DashboardRecentItemRowProps) =>
       <div className="text-sm text-muted-foreground">
         {formatUpdatedAt(item.updatedAt)}
       </div>
-    </Link>
+    </button>
   );
 };

@@ -1,8 +1,11 @@
+"use client";
+
 import { createElement } from "react";
-import Link from "next/link";
 import { Pin, Star } from "lucide-react";
 
 import type { DashboardItem } from "@/lib/db/items";
+
+import { useItemDrawer } from "@/components/dashboard/item-drawer-provider";
 import { formatUpdatedAt } from "@/components/utils/date";
 import { getItemTypeIcon } from "@/components/utils/item-type";
 import { Badge } from "@/components/ui/badge";
@@ -10,21 +13,24 @@ import { Card, CardContent } from "@/components/ui/card";
 
 interface DashboardItemCardProps {
   item: DashboardItem;
-  href?: string;
   showPinnedIndicator?: boolean;
   variant?: "default" | "items";
 }
 
 export const DashboardItemCard = ({
   item,
-  href = "#",
   showPinnedIndicator = false,
   variant = "default",
 }: DashboardItemCardProps) => {
+  const { openItem } = useItemDrawer();
   const isItemsVariant = variant === "items";
 
   return (
-    <Link href={href} className="block">
+    <button
+      type="button"
+      className="block w-full rounded-[1.25rem] border-0 bg-transparent p-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+      onClick={() => openItem(item)}
+    >
       <Card
         className={
           isItemsVariant
@@ -126,6 +132,6 @@ export const DashboardItemCard = ({
           </div>
         </CardContent>
       </Card>
-    </Link>
+    </button>
   );
 };
