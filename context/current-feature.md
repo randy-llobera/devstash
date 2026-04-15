@@ -1,27 +1,16 @@
-# Current Feature: Items List View
+# Current Feature
 
 ## Status
 
 <!-- Not Started|In Progress|Completed -->
-Completed
 
 ## Goals
 
 <!-- Goals & requirements -->
-- Create dynamic route `/items/[type]` for item-type pages like `/items/snippets` and `/items/notes`
-- Fetch and display items filtered by the route type
-- Render items in a responsive grid using existing `ItemCard` components
-- Use a two-column layout on medium screens and up
-- Show a left border on each card using the item type color
-- Follow existing codebase patterns
 
 ## Notes
 
 <!-- Any extra notes -->
-Source spec: `context/features/item-list-view-spec.md`
-
-Overview:
-Dynamic items listing page at `/items/[type]` that displays type-filtered items.
 
 ## History
 
@@ -48,3 +37,4 @@ Dynamic items listing page at `/items/[type]` that displays type-filtered items.
 - Forgot Password Flow completed with a sign-in reset link, password reset request and reset routes, a reset-password auth page and form, and shared `VerificationToken` reuse for reset tokens
 - Profile Page completed with a protected `/profile` route, server-rendered account and usage data, client-side profile info and stats sections, password and delete-account modals backed by profile API routes, sidebar profile navigation, and shared avatar/date helpers
 - Rate Limiting for Auth completed with Upstash Redis sliding-window limits for credentials login, register, forgot-password, reset-password, and verification resend flows, shared `429` responses with `Retry-After`, and auth UI messaging that shows the wait time before retry
+- Items List View completed with a protected dynamic `/items/[type]` route, type-filtered Prisma-backed item queries, a shared dashboard item card abstraction, and an items-page-specific grid/list presentation that keeps the current theme while matching the approved reference direction
