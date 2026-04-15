@@ -2,17 +2,15 @@
 
 ## Status
 
-Completed
+<!-- Not Started|In Progress|Completed -->
 
 ## Goals
 
-- Change the `/items/[type]` listing view to 3 columns on large screens
-- Keep the view responsive with 2 columns on medium screens and 1 on small screens
-- Keep the change isolated to the items listing layout
+<!-- Goals & requirements -->
 
 ## Notes
 
-- Working branch: `vitest-unit-tests`
+<!-- Any extra notes -->
 
 ## History
 
