@@ -104,6 +104,29 @@ export const ItemDrawerProvider = ({ children }: { children: ReactNode }) => {
     await navigator.clipboard.writeText(value);
   }, [item]);
 
+  const handleItemUpdated = useCallback((updatedItem: ItemDrawerDetail) => {
+    cacheRef.current.set(updatedItem.id, updatedItem);
+    setItem(updatedItem);
+    setError(null);
+    setPreview((currentPreview) => {
+      if (!currentPreview || currentPreview.id !== updatedItem.id) {
+        return currentPreview;
+      }
+
+      return {
+        ...currentPreview,
+        title: updatedItem.title,
+        description: updatedItem.description ?? "No description yet.",
+        isFavorite: updatedItem.isFavorite,
+        isPinned: updatedItem.isPinned,
+        updatedAt: updatedItem.updatedAt,
+        tags: updatedItem.tags,
+        itemType: updatedItem.itemType,
+        collection: updatedItem.collections[0] ?? currentPreview.collection,
+      };
+    });
+  }, []);
+
   const contextValue = useMemo<ItemDrawerContextValue>(
     () => ({
       openItem,
@@ -118,7 +141,9 @@ export const ItemDrawerProvider = ({ children }: { children: ReactNode }) => {
         error={error}
         isLoading={isLoading}
         item={item}
+        key={`${item?.id ?? preview?.id ?? "empty"}:${item?.updatedAt ?? "stale"}:${open ? "open" : "closed"}`}
         onCopy={handleCopy}
+        onItemUpdated={handleItemUpdated}
         onOpenChange={handleOpenChange}
         open={open}
         preview={preview}

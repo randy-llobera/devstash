@@ -1,8 +1,17 @@
 'use client';
 
-import { createElement, type ComponentProps, type CSSProperties } from 'react';
+import {
+  createElement,
+  useState,
+  type ComponentProps,
+  type CSSProperties,
+  type FormEvent,
+} from 'react';
 import { Copy, FileText, Link2, Pencil, Pin, Star, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
+import { updateItem, type UpdateItemActionError } from '@/actions/items';
 import type { DashboardItem, ItemDrawerDetail } from '@/lib/db/items';
 
 import { cn } from '@/lib/utils';
@@ -11,6 +20,7 @@ import { formatDate, formatUpdatedAt } from '@/components/utils/date';
 import { getItemTypeIcon } from '@/components/utils/item-type';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Sheet,
   SheetContent,
@@ -18,6 +28,23 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import { Textarea } from '@/components/ui/textarea';
+
+const CONTENT_ITEM_TYPES = new Set(['snippet', 'prompt', 'command', 'note']);
+const LANGUAGE_ITEM_TYPES = new Set(['snippet', 'command']);
+const URL_ITEM_TYPES = new Set(['link']);
+
+interface EditFormState {
+  title: string;
+  description: string;
+  tags: string;
+  content: string;
+  language: string;
+  url: string;
+}
+
+type EditFormField = keyof EditFormState;
+type EditFormErrors = Partial<Record<EditFormField, string[]>>;
 
 const formatFileSize = (value: number | null) => {
   if (!value || value <= 0) {
@@ -55,6 +82,34 @@ const getCopyValue = (item: ItemDrawerDetail | null) => {
   return item.title;
 };
 
+const getInitialFormState = (item: ItemDrawerDetail | null): EditFormState => ({
+  title: item?.title ?? '',
+  description: item?.description ?? '',
+  tags: item?.tags.join(', ') ?? '',
+  content: item?.content ?? '',
+  language: item?.language ?? '',
+  url: item?.url ?? '',
+});
+
+const parseTagsInput = (value: string) =>
+  Array.from(
+    new Set(
+      value
+        .split(',')
+        .map((tag) => tag.trim())
+        .filter(Boolean),
+    ),
+  );
+
+const isContentEditable = (item: ItemDrawerDetail) =>
+  CONTENT_ITEM_TYPES.has(item.itemType.name.toLowerCase());
+
+const isLanguageEditable = (item: ItemDrawerDetail) =>
+  LANGUAGE_ITEM_TYPES.has(item.itemType.name.toLowerCase());
+
+const isUrlEditable = (item: ItemDrawerDetail) =>
+  URL_ITEM_TYPES.has(item.itemType.name.toLowerCase());
+
 const DrawerActionButton = ({
   active = false,
   children,
@@ -77,6 +132,14 @@ const DrawerActionButton = ({
     {children}
   </Button>
 );
+
+const FieldErrorText = ({ errors }: { errors?: string[] }) => {
+  if (!errors?.length) {
+    return null;
+  }
+
+  return <p className='text-sm text-destructive'>{errors[0]}</p>;
+};
 
 const ItemDrawerLoading = ({ preview }: { preview: DashboardItem | null }) => (
   <div className='space-y-6'>
@@ -268,11 +331,190 @@ const ItemDrawerBody = ({ item }: { item: ItemDrawerDetail }) => {
   );
 };
 
+interface ItemDrawerEditBodyProps {
+  fieldErrors: EditFormErrors;
+  formState: EditFormState;
+  item: ItemDrawerDetail;
+  onFieldChange: (field: EditFormField, value: string) => void;
+  submitError: string | null;
+}
+
+const ItemDrawerEditBody = ({
+  fieldErrors,
+  formState,
+  item,
+  onFieldChange,
+  submitError,
+}: ItemDrawerEditBodyProps) => {
+  const showContentField = isContentEditable(item);
+  const showLanguageField = isLanguageEditable(item);
+  const showUrlField = isUrlEditable(item);
+
+  return (
+    <div className='space-y-6'>
+      {submitError ? (
+        <div className='rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive'>
+          {submitError}
+        </div>
+      ) : null}
+
+      <div className='space-y-2'>
+        <label htmlFor='item-title' className='text-sm font-medium'>
+          Title
+        </label>
+        <Input
+          id='item-title'
+          value={formState.title}
+          onChange={(event) => onFieldChange('title', event.target.value)}
+          placeholder='Enter a title'
+          autoFocus
+        />
+        <FieldErrorText errors={fieldErrors.title} />
+      </div>
+
+      <div className='space-y-2'>
+        <label htmlFor='item-description' className='text-sm font-medium'>
+          Description
+        </label>
+        <Textarea
+          id='item-description'
+          value={formState.description}
+          onChange={(event) => onFieldChange('description', event.target.value)}
+          className='min-h-24 resize-y py-3'
+          placeholder='Add a description'
+        />
+        <FieldErrorText errors={fieldErrors.description} />
+      </div>
+
+      <div className='grid gap-3 sm:grid-cols-2'>
+        <div className='rounded-2xl border border-border/60 bg-card/40 p-4'>
+          <p className='text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase'>
+            Item type
+          </p>
+          <div className='mt-2 flex items-center gap-2 text-sm text-foreground'>
+            <span
+              className='inline-block size-2 rounded-full'
+              style={{ backgroundColor: item.itemType.color }}
+            />
+            {item.itemType.name}
+          </div>
+        </div>
+        <div className='rounded-2xl border border-border/60 bg-card/40 p-4'>
+          <p className='text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase'>
+            Collections
+          </p>
+          <div className='mt-2 flex flex-wrap gap-2'>
+            {item.collections.length > 0 ? (
+              item.collections.map((collection) => (
+                <Badge
+                  key={collection.id}
+                  variant='outline'
+                  className='rounded-full px-3 py-1'
+                >
+                  {collection.name}
+                </Badge>
+              ))
+            ) : (
+              <p className='text-sm text-muted-foreground'>No collections yet.</p>
+            )}
+          </div>
+        </div>
+        <div className='rounded-2xl border border-border/60 bg-card/40 p-4'>
+          <p className='text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase'>
+            Updated
+          </p>
+          <p className='mt-2 text-sm text-foreground'>
+            {formatUpdatedAt(item.updatedAt)}
+          </p>
+          <p className='mt-1 text-xs text-muted-foreground'>
+            {formatDate(item.updatedAt)}
+          </p>
+        </div>
+        <div className='rounded-2xl border border-border/60 bg-card/40 p-4'>
+          <p className='text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase'>
+            Created
+          </p>
+          <p className='mt-2 text-sm text-foreground'>
+            {formatDate(item.createdAt)}
+          </p>
+          <p className='mt-1 text-xs text-muted-foreground'>
+            {item.contentType}
+          </p>
+        </div>
+      </div>
+
+      <div className='space-y-2'>
+        <label htmlFor='item-tags' className='text-sm font-medium'>
+          Tags
+        </label>
+        <Input
+          id='item-tags'
+          value={formState.tags}
+          onChange={(event) => onFieldChange('tags', event.target.value)}
+          placeholder='react, prisma, snippet'
+        />
+        <p className='text-xs text-muted-foreground'>
+          Separate tags with commas.
+        </p>
+        <FieldErrorText errors={fieldErrors.tags} />
+      </div>
+
+      {showContentField ? (
+        <div className='space-y-2'>
+          <label htmlFor='item-content' className='text-sm font-medium'>
+            Content
+          </label>
+          <Textarea
+            id='item-content'
+            value={formState.content}
+            onChange={(event) => onFieldChange('content', event.target.value)}
+            className='min-h-40 resize-y py-3 font-mono leading-6'
+            placeholder='Add item content'
+          />
+          <FieldErrorText errors={fieldErrors.content} />
+        </div>
+      ) : null}
+
+      {showLanguageField ? (
+        <div className='space-y-2'>
+          <label htmlFor='item-language' className='text-sm font-medium'>
+            Language
+          </label>
+          <Input
+            id='item-language'
+            value={formState.language}
+            onChange={(event) => onFieldChange('language', event.target.value)}
+            placeholder='Type a language'
+          />
+          <FieldErrorText errors={fieldErrors.language} />
+        </div>
+      ) : null}
+
+      {showUrlField ? (
+        <div className='space-y-2'>
+          <label htmlFor='item-url' className='text-sm font-medium'>
+            URL
+          </label>
+          <Input
+            id='item-url'
+            type='url'
+            value={formState.url}
+            onChange={(event) => onFieldChange('url', event.target.value)}
+            placeholder='https://example.com'
+          />
+          <FieldErrorText errors={fieldErrors.url} />
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
 interface ItemDrawerProps {
   error: string | null;
   isLoading: boolean;
   item: ItemDrawerDetail | null;
   onCopy: () => Promise<void> | void;
+  onItemUpdated: (item: ItemDrawerDetail) => void;
   onOpenChange: (open: boolean) => void;
   open: boolean;
   preview: DashboardItem | null;
@@ -283,12 +525,96 @@ export const ItemDrawer = ({
   isLoading,
   item,
   onCopy,
+  onItemUpdated,
   onOpenChange,
   open,
   preview,
 }: ItemDrawerProps) => {
+  const router = useRouter();
   const activeItem = item ?? preview;
   const canCopy = Boolean(getCopyValue(item));
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<EditFormErrors>({});
+  const [formState, setFormState] = useState<EditFormState>(() =>
+    getInitialFormState(item),
+  );
+
+  const handleFieldChange = (field: EditFormField, value: string) => {
+    setFormState((currentState) => ({
+      ...currentState,
+      [field]: value,
+    }));
+    setFieldErrors((currentErrors) => ({
+      ...currentErrors,
+      [field]: undefined,
+    }));
+    setSubmitError(null);
+  };
+
+  const handleEditStart = () => {
+    if (!item) {
+      return;
+    }
+
+    setFormState(getInitialFormState(item));
+    setFieldErrors({});
+    setSubmitError(null);
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setFormState(getInitialFormState(item));
+    setFieldErrors({});
+    setSubmitError(null);
+    setIsSaving(false);
+    setIsEditing(false);
+  };
+
+  const handleSave = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!item) {
+      return;
+    }
+
+    setIsSaving(true);
+    setSubmitError(null);
+    setFieldErrors({});
+
+    const payload = {
+      title: formState.title,
+      description: formState.description,
+      tags: parseTagsInput(formState.tags),
+      ...(isContentEditable(item) ? { content: formState.content } : {}),
+      ...(isLanguageEditable(item) ? { language: formState.language } : {}),
+      ...(isUrlEditable(item) ? { url: formState.url } : {}),
+    };
+
+    const result = await updateItem(item.id, payload);
+
+    setIsSaving(false);
+
+    if (!result.success || !result.data) {
+      const actionError =
+        typeof result.error === 'string'
+          ? ({ message: result.error } satisfies UpdateItemActionError)
+          : result.error;
+
+      setSubmitError(actionError?.message ?? 'Unable to update item.');
+      setFieldErrors(actionError?.fieldErrors ?? {});
+      toast.error(actionError?.message ?? 'Unable to update item.');
+      return;
+    }
+
+    onItemUpdated(result.data);
+    setIsEditing(false);
+    toast.success('Item updated.');
+    router.refresh();
+  };
+
+  const saveDisabled = isSaving || !formState.title.trim();
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -302,99 +628,134 @@ export const ItemDrawer = ({
           } as CSSProperties
         }
       >
-        <SheetHeader className='border-b border-border/70 px-6 py-5 sm:px-8'>
-          <div className='flex items-start gap-4'>
-            <div
-              className='rounded-2xl border border-border/60 bg-muted/35 p-3 text-muted-foreground'
-              style={
-                activeItem
-                  ? {
-                      borderColor: activeItem.itemType.color,
-                    }
-                  : undefined
-              }
-            >
-              {activeItem ? (
-                createElement(getItemTypeIcon(activeItem.itemType.icon), {
-                  className: 'size-5',
-                  style: { color: activeItem.itemType.color },
-                })
+        <form onSubmit={handleSave}>
+          <SheetHeader className='border-b border-border/70 px-6 py-5 sm:px-8'>
+            <div className='flex items-start gap-4'>
+              <div
+                className='rounded-2xl border border-border/60 bg-muted/35 p-3 text-muted-foreground'
+                style={
+                  activeItem
+                    ? {
+                        borderColor: activeItem.itemType.color,
+                      }
+                    : undefined
+                }
+              >
+                {activeItem ? (
+                  createElement(getItemTypeIcon(activeItem.itemType.icon), {
+                    className: 'size-5',
+                    style: { color: activeItem.itemType.color },
+                  })
+                ) : (
+                  <FileText className='size-5' />
+                )}
+              </div>
+
+              <div className='min-w-0 flex-1'>
+                <SheetTitle className='truncate text-left text-2xl font-semibold tracking-tight'>
+                  {activeItem?.title ?? 'Item details'}
+                </SheetTitle>
+                <SheetDescription className='mt-2 text-left text-sm leading-6'>
+                  {activeItem?.description ??
+                    'View item details without leaving the page.'}
+                </SheetDescription>
+              </div>
+            </div>
+
+            <div className='mt-5 flex flex-wrap items-center gap-2'>
+              {isEditing ? (
+                <>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    className='rounded-xl'
+                    onClick={handleCancel}
+                    disabled={isSaving}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type='submit' className='rounded-xl' disabled={saveDisabled}>
+                    {isSaving ? 'Saving...' : 'Save'}
+                  </Button>
+                </>
               ) : (
-                <FileText className='size-5' />
+                <>
+                  <DrawerActionButton
+                    active={Boolean(item?.isFavorite)}
+                    aria-label='Favorite'
+                    disabled
+                  >
+                    <Star
+                      className={cn(
+                        'size-4',
+                        item?.isFavorite ? 'fill-current text-yellow-400' : '',
+                      )}
+                    />
+                    Favorite
+                  </DrawerActionButton>
+                  <DrawerActionButton
+                    active={Boolean(item?.isPinned)}
+                    aria-label='Pin'
+                    disabled
+                  >
+                    <Pin
+                      className={cn('size-4', item?.isPinned ? 'fill-current' : '')}
+                    />
+                    Pin
+                  </DrawerActionButton>
+                  <DrawerActionButton
+                    aria-label='Copy'
+                    disabled={!canCopy}
+                    onClick={() => {
+                      void onCopy();
+                    }}
+                  >
+                    <Copy className='size-4' />
+                    Copy
+                  </DrawerActionButton>
+                  <DrawerActionButton
+                    aria-label='Edit'
+                    disabled={!item || isLoading}
+                    onClick={handleEditStart}
+                  >
+                    <Pencil className='size-4' />
+                    Edit
+                  </DrawerActionButton>
+                  <DrawerActionButton
+                    aria-label='Delete'
+                    className='ml-auto text-destructive hover:text-destructive'
+                    disabled
+                  >
+                    <Trash2 className='size-4' />
+                    Delete
+                  </DrawerActionButton>
+                </>
               )}
             </div>
+          </SheetHeader>
 
-            <div className='min-w-0 flex-1'>
-              <SheetTitle className='truncate text-left text-2xl font-semibold tracking-tight'>
-                {activeItem?.title ?? 'Item details'}
-              </SheetTitle>
-              <SheetDescription className='mt-2 text-left text-sm leading-6'>
-                {activeItem?.description ??
-                  'View item details without leaving the page.'}
-              </SheetDescription>
-            </div>
+          <div className='px-6 py-6 sm:px-8'>
+            {error ? (
+              <ItemDrawerError message={error} />
+            ) : isLoading ? (
+              <ItemDrawerLoading preview={preview} />
+            ) : item ? (
+              isEditing ? (
+                <ItemDrawerEditBody
+                  fieldErrors={fieldErrors}
+                  formState={formState}
+                  item={item}
+                  onFieldChange={handleFieldChange}
+                  submitError={submitError}
+                />
+              ) : (
+                <ItemDrawerBody item={item} />
+              )
+            ) : (
+              <ItemDrawerError message='Select an item to view its details.' />
+            )}
           </div>
-
-          <div className='mt-5 flex flex-wrap items-center gap-2'>
-            <DrawerActionButton
-              active={Boolean(item?.isFavorite)}
-              aria-label='Favorite'
-              disabled
-            >
-              <Star
-                className={cn(
-                  'size-4',
-                  item?.isFavorite ? 'fill-current text-yellow-400' : '',
-                )}
-              />
-              Favorite
-            </DrawerActionButton>
-            <DrawerActionButton
-              active={Boolean(item?.isPinned)}
-              aria-label='Pin'
-              disabled
-            >
-              <Pin
-                className={cn('size-4', item?.isPinned ? 'fill-current' : '')}
-              />
-              Pin
-            </DrawerActionButton>
-            <DrawerActionButton
-              aria-label='Copy'
-              disabled={!canCopy}
-              onClick={() => {
-                void onCopy();
-              }}
-            >
-              <Copy className='size-4' />
-              Copy
-            </DrawerActionButton>
-            <DrawerActionButton aria-label='Edit' disabled>
-              <Pencil className='size-4' />
-              Edit
-            </DrawerActionButton>
-            <DrawerActionButton
-              aria-label='Delete'
-              className='ml-auto text-destructive hover:text-destructive'
-              disabled
-            >
-              <Trash2 className='size-4' />
-              Delete
-            </DrawerActionButton>
-          </div>
-        </SheetHeader>
-
-        <div className='px-6 py-6 sm:px-8'>
-          {error ? (
-            <ItemDrawerError message={error} />
-          ) : isLoading ? (
-            <ItemDrawerLoading preview={preview} />
-          ) : item ? (
-            <ItemDrawerBody item={item} />
-          ) : (
-            <ItemDrawerError message='Select an item to view its details.' />
-          )}
-        </div>
+        </form>
       </SheetContent>
     </Sheet>
   );

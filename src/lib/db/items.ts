@@ -33,7 +33,7 @@ export interface ItemDrawerCollection {
 export interface ItemDrawerDetail {
   id: string;
   title: string;
-  description: string;
+  description: string | null;
   contentType: "TEXT" | "FILE" | "URL";
   content: string | null;
   fileName: string | null;
@@ -77,6 +77,15 @@ export interface SidebarItemType {
   icon: string;
   color: string;
   count: number;
+}
+
+export interface UpdateItemInput {
+  title: string;
+  description?: string | null;
+  content?: string | null;
+  url?: string | null;
+  language?: string | null;
+  tags: string[];
 }
 
 const capitalize = (value: string) => `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
@@ -137,7 +146,7 @@ const mapItemDrawerDetail = (item: {
 }): ItemDrawerDetail => ({
   id: item.id,
   title: item.title,
-  description: item.description ?? "No description yet.",
+  description: item.description,
   contentType: item.contentType,
   content: item.content,
   fileName: item.fileName,
@@ -153,6 +162,49 @@ const mapItemDrawerDetail = (item: {
   itemType: item.itemType,
   collections: item.collections.map(({ collection }) => collection),
 });
+
+const itemDrawerDetailSelect = {
+  id: true,
+  title: true,
+  description: true,
+  contentType: true,
+  content: true,
+  fileName: true,
+  fileSize: true,
+  fileUrl: true,
+  url: true,
+  isFavorite: true,
+  isPinned: true,
+  language: true,
+  createdAt: true,
+  updatedAt: true,
+  tags: {
+    select: {
+      name: true,
+    },
+  },
+  itemType: {
+    select: {
+      id: true,
+      name: true,
+      icon: true,
+      color: true,
+    },
+  },
+  collections: {
+    select: {
+      collection: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+    orderBy: {
+      addedAt: "asc" as const,
+    },
+  },
+};
 
 const getDashboardItems = async () => {
   const user = await getDashboardUser();
@@ -333,48 +385,78 @@ export const getItemDrawerDetail = async (
       id: itemId,
       userId,
     },
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      contentType: true,
-      content: true,
-      fileName: true,
-      fileSize: true,
-      fileUrl: true,
-      url: true,
-      isFavorite: true,
-      isPinned: true,
-      language: true,
-      createdAt: true,
-      updatedAt: true,
-      tags: {
-        select: {
-          name: true,
+    select: itemDrawerDetailSelect,
+  });
+
+  return item ? mapItemDrawerDetail(item) : null;
+};
+
+export const updateItem = async (
+  itemId: string,
+  data: UpdateItemInput
+): Promise<ItemDrawerDetail | null> => {
+  const scalarData = {
+    title: data.title,
+    ...(Object.prototype.hasOwnProperty.call(data, "description")
+      ? { description: data.description ?? null }
+      : {}),
+    ...(Object.prototype.hasOwnProperty.call(data, "content")
+      ? { content: data.content ?? null }
+      : {}),
+    ...(Object.prototype.hasOwnProperty.call(data, "url")
+      ? { url: data.url ?? null }
+      : {}),
+    ...(Object.prototype.hasOwnProperty.call(data, "language")
+      ? { language: data.language ?? null }
+      : {}),
+  };
+
+  const item = await prisma.$transaction(async (tx) => {
+    const existingItem = await tx.item.findUnique({
+      where: {
+        id: itemId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!existingItem) {
+      return null;
+    }
+
+    await tx.item.update({
+      where: {
+        id: itemId,
+      },
+      data: {
+        ...scalarData,
+        tags: {
+          set: [],
         },
       },
-      itemType: {
-        select: {
-          id: true,
-          name: true,
-          icon: true,
-          color: true,
-        },
+    });
+
+    const updatedItem = await tx.item.update({
+      where: {
+        id: itemId,
       },
-      collections: {
-        select: {
-          collection: {
-            select: {
-              id: true,
-              name: true,
+      data: {
+        tags: {
+          connectOrCreate: data.tags.map((tag) => ({
+            where: {
+              name: tag,
             },
-          },
-        },
-        orderBy: {
-          addedAt: "asc",
+            create: {
+              name: tag,
+            },
+          })),
         },
       },
-    },
+      select: itemDrawerDetailSelect,
+    });
+
+    return updatedItem;
   });
 
   return item ? mapItemDrawerDetail(item) : null;
