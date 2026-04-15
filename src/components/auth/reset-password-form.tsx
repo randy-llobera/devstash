@@ -51,7 +51,13 @@ export const ResetPasswordForm = () => {
 
     if (!response.ok) {
       const result = (await response.json()) as { error?: string };
-      setError(result.error ?? "Unable to send a reset email.");
+      const message = result.error ?? "Unable to send a reset email.";
+      setError(message);
+
+      if (response.status === 429) {
+        toast.error(message);
+      }
+
       return;
     }
 
@@ -91,7 +97,13 @@ export const ResetPasswordForm = () => {
     const result = (await response.json()) as { email?: string; error?: string };
 
     if (!response.ok) {
-      setError(result.error ?? "Unable to reset your password.");
+      const message = result.error ?? "Unable to reset your password.";
+      setError(message);
+
+      if (response.status === 429) {
+        toast.error(message);
+      }
+
       return;
     }
 

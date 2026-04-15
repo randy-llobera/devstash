@@ -3,6 +3,10 @@ import { NextResponse } from "next/server";
 
 import { getPasswordResetEmail, hashVerificationToken } from "@/lib/email-verification";
 import { prisma } from "@/lib/prisma";
+import {
+  checkAuthRateLimit,
+  createRateLimitErrorResponse,
+} from "@/lib/rate-limit";
 
 interface ResetPasswordRequestBody {
   confirmPassword?: string;
@@ -49,6 +53,16 @@ export const POST = async (request: Request) => {
       { error: "Passwords do not match." },
       { status: BAD_REQUEST_STATUS },
     );
+  }
+
+  const rateLimitResult = await checkAuthRateLimit({
+    keyBy: "ip",
+    request,
+    type: "passwordReset",
+  });
+
+  if (!rateLimitResult.success) {
+    return createRateLimitErrorResponse(rateLimitResult);
   }
 
   const hashedToken = hashVerificationToken(token);

@@ -4,6 +4,10 @@ import { NextResponse } from "next/server";
 import { issueEmailVerification } from "@/lib/email-verification";
 import { isEmailVerificationEnabled } from "@/lib/email-verification-settings";
 import { prisma } from "@/lib/prisma";
+import {
+  checkAuthRateLimit,
+  createRateLimitErrorResponse,
+} from "@/lib/rate-limit";
 
 interface RegisterRequestBody {
   confirmPassword?: string;
@@ -64,6 +68,16 @@ export const POST = async (request: Request) => {
       { error: "Passwords do not match." },
       { status: BAD_REQUEST_STATUS },
     );
+  }
+
+  const rateLimitResult = await checkAuthRateLimit({
+    keyBy: "ip",
+    request,
+    type: "register",
+  });
+
+  if (!rateLimitResult.success) {
+    return createRateLimitErrorResponse(rateLimitResult);
   }
 
   try {

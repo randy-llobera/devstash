@@ -9,8 +9,15 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getRateLimitMessageFromCode } from "@/lib/rate-limit";
 
-const getErrorMessage = (error: string | null) => {
+const getErrorMessage = (error: string | null, code?: string | null) => {
+  const rateLimitMessage = getRateLimitMessageFromCode(code);
+
+  if (rateLimitMessage) {
+    return rateLimitMessage;
+  }
+
   if (!error) {
     return "";
   }
@@ -36,6 +43,7 @@ export const SignInForm = ({ emailVerificationEnabled }: SignInFormProps) => {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
   const oauthError = searchParams.get("error");
+  const oauthCode = searchParams.get("code");
   const registered = searchParams.get("registered") === "1";
   const reset = searchParams.get("reset") === "1";
   const verified = searchParams.get("verified") === "1";
@@ -48,7 +56,10 @@ export const SignInForm = ({ emailVerificationEnabled }: SignInFormProps) => {
   const [isResendingVerification, setIsResendingVerification] = useState(false);
   const [error, setError] = useState("");
 
-  const pageError = useMemo(() => getErrorMessage(oauthError), [oauthError]);
+  const pageError = useMemo(
+    () => getErrorMessage(oauthError, oauthCode),
+    [oauthCode, oauthError],
+  );
 
   useEffect(() => {
     if (!registered && !reset && !verified && verificationState !== "invalid") {
@@ -81,6 +92,7 @@ export const SignInForm = ({ emailVerificationEnabled }: SignInFormProps) => {
     nextParams.delete("verified");
     nextParams.delete("verification");
     nextParams.delete("email");
+    nextParams.delete("code");
     const nextSearch = nextParams.toString();
 
     router.replace(nextSearch ? `${pathname}?${nextSearch}` : pathname);
@@ -123,7 +135,13 @@ export const SignInForm = ({ emailVerificationEnabled }: SignInFormProps) => {
     setIsSubmitting(false);
 
     if (result?.error) {
-      setError("Invalid email or password.");
+      const message = getErrorMessage(result.error, result.code);
+      setError(message);
+
+      if (getRateLimitMessageFromCode(result.code)) {
+        toast.error(message);
+      }
+
       return;
     }
 
@@ -164,7 +182,13 @@ export const SignInForm = ({ emailVerificationEnabled }: SignInFormProps) => {
 
     if (!response.ok) {
       const result = (await response.json()) as { error?: string };
-      setError(result.error ?? "Unable to resend verification email.");
+      const message = result.error ?? "Unable to resend verification email.";
+      setError(message);
+
+      if (response.status === 429) {
+        toast.error(message);
+      }
+
       return;
     }
 

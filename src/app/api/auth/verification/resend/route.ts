@@ -3,6 +3,10 @@ import { NextResponse } from "next/server";
 import { issueEmailVerification } from "@/lib/email-verification";
 import { isEmailVerificationEnabled } from "@/lib/email-verification-settings";
 import { prisma } from "@/lib/prisma";
+import {
+  checkAuthRateLimit,
+  createRateLimitErrorResponse,
+} from "@/lib/rate-limit";
 
 interface ResendVerificationRequestBody {
   email?: string;
@@ -35,6 +39,17 @@ export const POST = async (request: Request) => {
       { error: "A valid email address is required." },
       { status: BAD_REQUEST_STATUS },
     );
+  }
+
+  const rateLimitResult = await checkAuthRateLimit({
+    identifier: email,
+    keyBy: "ip-email",
+    request,
+    type: "verificationResend",
+  });
+
+  if (!rateLimitResult.success) {
+    return createRateLimitErrorResponse(rateLimitResult);
   }
 
   const user = await prisma.user.findUnique({
