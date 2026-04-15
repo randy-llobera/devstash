@@ -97,3 +97,10 @@ Example v4 configuration:
 - No commented-out code unless specified
 - No unused imports or variables
 - Keep functions under 50 lines when possible
+
+## Testing
+
+- Use Vitest for unit tests
+- Scope unit tests to server actions and `src/lib` utilities unless a task explicitly requires something else
+- Co-locate `*.test.ts` files with the code they cover
+- Do not add component test tooling unless requested
