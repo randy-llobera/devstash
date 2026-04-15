@@ -1,28 +1,16 @@
-# Current Feature: Item Drawer
+# Current Feature
 
 ## Status
 
 <!-- Not Started|In Progress|Completed -->
-In Progress
 
 ## Goals
 
 <!-- Goals & requirements -->
-- Add a right-side shadcn `Sheet` drawer as the item detail view with no separate item page.
-- Open the drawer when an `ItemCard` is clicked on both the dashboard and items list pages.
-- Add a client wrapper to manage drawer state around existing server-rendered pages.
-- Fetch full item detail on click from `/api/items/[id]` while keeping existing card data loading unchanged.
-- Show a skeleton or loading state while the item detail request is in flight.
-- Render an action bar with Favorite, Pin, Copy, Edit, and right-aligned Delete actions.
-- Keep the interaction snappy with no page navigation.
 
 ## Notes
 
 <!-- Any extra notes -->
-- Full item detail should include fields like content, collections, and language.
-- The API route should call a query function in `lib/db/items.ts` and enforce auth.
-- Item-specific extras like a code editor are intentionally out of scope for this pass.
-- Visual reference: `context/screenshots/dashboard-ui-drawer.png`.
 
 ## History
 
@@ -52,3 +40,4 @@ In Progress
 - Items List View completed with a protected dynamic `/items/[type]` route, type-filtered Prisma-backed item queries, a shared dashboard item card abstraction, and an items-page-specific grid/list presentation that keeps the current theme while matching the approved reference direction
 - Vitest unit testing setup completed with Node-based test config, scripts for run/watch/coverage, colocated utility tests, and workflow/docs updated to keep unit coverage focused on server actions and utilities
 - Items listing layout updated to use 3 columns on large screens while keeping the existing responsive 1-column and 2-column behavior on smaller breakpoints
+- Item Drawer completed with a right-side sheet detail view opened from dashboard and items list cards, auth-scoped item detail fetching via `/api/items/[id]`, shared drawer state in the dashboard shell, loading states for on-click fetches, and shared sheet width overrides to support the wider drawer layout
