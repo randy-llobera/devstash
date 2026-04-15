@@ -2,15 +2,17 @@
 
 ## Status
 
-<!-- Not Started|In Progress|Completed -->
+Completed
 
 ## Goals
 
-<!-- Goals & requirements -->
+- Change the `/items/[type]` listing view to 3 columns on large screens
+- Keep the view responsive with 2 columns on medium screens and 1 on small screens
+- Keep the change isolated to the items listing layout
 
 ## Notes
 
-<!-- Any extra notes -->
+- Working branch: `vitest-unit-tests`
 
 ## History
 
@@ -38,3 +40,5 @@
 - Profile Page completed with a protected `/profile` route, server-rendered account and usage data, client-side profile info and stats sections, password and delete-account modals backed by profile API routes, sidebar profile navigation, and shared avatar/date helpers
 - Rate Limiting for Auth completed with Upstash Redis sliding-window limits for credentials login, register, forgot-password, reset-password, and verification resend flows, shared `429` responses with `Retry-After`, and auth UI messaging that shows the wait time before retry
 - Items List View completed with a protected dynamic `/items/[type]` route, type-filtered Prisma-backed item queries, a shared dashboard item card abstraction, and an items-page-specific grid/list presentation that keeps the current theme while matching the approved reference direction
+- Vitest unit testing setup completed with Node-based test config, scripts for run/watch/coverage, colocated utility tests, and workflow/docs updated to keep unit coverage focused on server actions and utilities
+- Items listing layout updated to use 3 columns on large screens while keeping the existing responsive 1-column and 2-column behavior on smaller breakpoints

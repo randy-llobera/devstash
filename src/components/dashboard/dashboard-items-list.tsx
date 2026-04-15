@@ -18,7 +18,7 @@ export const DashboardItemsList = ({
   return (
     <>
       {items.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2 md:gap-5">
+        <div className="grid gap-4 md:grid-cols-2 md:gap-5 lg:grid-cols-3">
           {items.map((item) => (
             <DashboardItemCard key={item.id} item={item} variant="items" />
           ))}
