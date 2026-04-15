@@ -25,6 +25,19 @@ export interface DashboardItem {
   collection: DashboardItemCollection | null;
 }
 
+export interface ItemTypeSummary {
+  id: string;
+  name: string;
+  slug: string;
+  icon: string;
+  color: string;
+}
+
+export interface ItemsByTypeResult {
+  itemType: ItemTypeSummary;
+  items: DashboardItem[];
+}
+
 export interface DashboardStats {
   itemCount: number;
   collectionCount: number;
@@ -40,6 +53,10 @@ export interface SidebarItemType {
   color: string;
   count: number;
 }
+
+const capitalize = (value: string) => `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
+export const getItemTypeSlug = (name: string) => `${name.toLowerCase()}s`;
+export const getItemTypeLabel = (name: string) => `${capitalize(name)}s`;
 
 const mapDashboardItem = (item: {
   id: string;
@@ -181,9 +198,6 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
   };
 };
 
-const getItemTypeSlug = (name: string) => `${name.toLowerCase()}s`;
-const getItemTypeLabel = (name: string) =>
-  `${name.charAt(0).toUpperCase()}${name.slice(1)}s`;
 const SIDEBAR_ITEM_TYPE_ORDER = [
   "snippet",
   "prompt",
@@ -243,4 +257,82 @@ export const getSidebarItemTypes = async (): Promise<SidebarItemType[]> => {
       color: itemType.color,
       count: user ? itemType._count.items : 0,
     }));
+};
+
+export const getItemsByTypeSlug = async (
+  slug: string
+): Promise<ItemsByTypeResult | null> => {
+  const user = await getDashboardUser();
+
+  if (!user) {
+    return null;
+  }
+
+  const itemTypes = await prisma.itemType.findMany({
+    where: {
+      isSystem: true,
+    },
+    select: {
+      id: true,
+      name: true,
+      icon: true,
+      color: true,
+    },
+  });
+
+  const matchedItemType = itemTypes.find((itemType) => getItemTypeSlug(itemType.name) === slug);
+
+  if (!matchedItemType) {
+    return null;
+  }
+
+  const items = await prisma.item.findMany({
+    where: {
+      userId: user.id,
+      itemTypeId: matchedItemType.id,
+    },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      isFavorite: true,
+      isPinned: true,
+      updatedAt: true,
+      tags: {
+        select: {
+          name: true,
+        },
+      },
+      itemType: {
+        select: {
+          id: true,
+          name: true,
+          icon: true,
+          color: true,
+        },
+      },
+      collections: {
+        select: {
+          addedAt: true,
+          collection: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      updatedAt: "desc",
+    },
+  });
+
+  return {
+    itemType: {
+      ...matchedItemType,
+      slug,
+    },
+    items: items.map(mapDashboardItem),
+  };
 };
