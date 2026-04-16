@@ -1,27 +1,16 @@
-# Current Feature: Item Create
+# Current Feature
 
 ## Status
 
-In Progress
+<!-- Not Started|In Progress|Completed -->
 
 ## Goals
 
-- Add new items via a modal dialog opened from the top bar `New Item` button
-- Use the shadcn `Dialog` component for the create flow
-- Provide a type selector for `snippet`, `prompt`, `command`, `note`, and `link`
-- Show fields by selected type:
-- All types include `title` (required), `description`, and `tags`
-- `snippet` and `command` include `content` and `language`
-- `prompt` and `note` include `content`
-- `link` includes `URL` (required)
-- Add a `createItem` server action with Zod validation
-- Add a `createItem` query function in `lib/db/items.ts`
-- Show a success toast, close the modal, and refresh data after create
+<!-- Goals & requirements -->
 
 ## Notes
 
-- Spec source: `context/features/item-create-spec.md`
-- Feature name: `Item Create`
+<!-- Any extra notes -->
 
 ## History
 
@@ -54,3 +43,4 @@ In Progress
 - Item Drawer completed with a right-side sheet detail view opened from dashboard and items list cards, auth-scoped item detail fetching via `/api/items/[id]`, shared drawer state in the dashboard shell, loading states for on-click fetches, and shared sheet width overrides to support the wider drawer layout
 - Item Drawer Edit Mode completed with inline editing in the existing drawer, a Zod-validated `updateItem` server action, Prisma-backed tag replacement, the shadcn CLI `Textarea` component, cache refresh after save, and focused unit coverage for the new action
 - Item Delete Functionality completed with a drawer delete server action, shadcn confirmation dialog, success toast and local drawer state cleanup after deletion, plus test script renaming to `test`, `test:watch`, and `test:coverage`
+- Item Create completed with a shadcn `Dialog` flow opened from the top bar, type-specific create fields for snippets, prompts, commands, notes, and links, a Zod-validated `createItem` server action, a Prisma-backed `createItem` query, success toast plus refresh behavior, and focused unit coverage for the new action
