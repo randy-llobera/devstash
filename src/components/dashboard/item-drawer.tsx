@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { deleteItem, updateItem, type UpdateItemActionError } from '@/actions/items';
 import type { DashboardItem, ItemDrawerDetail } from '@/lib/db/items';
 import { isCodeEditorItemType } from '@/lib/code-editor';
+import { isMarkdownEditorItemType } from '@/lib/markdown-editor';
 
 import { cn } from '@/lib/utils';
 
@@ -23,6 +24,7 @@ import { getItemTypeIcon } from '@/components/utils/item-type';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { MarkdownEditor } from '@/components/ui/markdown-editor';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -124,6 +126,7 @@ const isUrlEditable = (item: ItemDrawerDetail) =>
   URL_ITEM_TYPES.has(item.itemType.name.toLowerCase());
 
 const usesCodeEditor = (itemTypeName: string) => isCodeEditorItemType(itemTypeName);
+const usesMarkdownEditor = (itemTypeName: string) => isMarkdownEditorItemType(itemTypeName);
 
 const DrawerActionButton = ({
   active = false,
@@ -301,6 +304,8 @@ const ItemDrawerBody = ({ item }: { item: ItemDrawerDetail }) => {
               readOnly
               value={item.content}
             />
+          ) : usesMarkdownEditor(item.itemType.name) ? (
+            <MarkdownEditor readOnly value={item.content} />
           ) : (
             <div className='overflow-x-auto rounded-[1.5rem] border border-border/60 bg-card/45 p-4'>
               <pre className='font-mono text-sm leading-6 whitespace-pre-wrap text-foreground'>
@@ -495,6 +500,17 @@ const ItemDrawerEditBody = ({
               language={formState.language}
               value={formState.content}
               onChange={(value) => onFieldChange('content', value)}
+            />
+          ) : usesMarkdownEditor(item.itemType.name) ? (
+            <MarkdownEditor
+              id='item-content'
+              value={formState.content}
+              onChange={(value) => onFieldChange('content', value)}
+              placeholder={
+                item.itemType.name.toLowerCase() === 'prompt'
+                  ? 'Write the prompt text'
+                  : 'Write your note'
+              }
             />
           ) : (
             <Textarea
