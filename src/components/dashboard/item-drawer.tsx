@@ -13,9 +13,11 @@ import { toast } from 'sonner';
 
 import { deleteItem, updateItem, type UpdateItemActionError } from '@/actions/items';
 import type { DashboardItem, ItemDrawerDetail } from '@/lib/db/items';
+import { isCodeEditorItemType } from '@/lib/code-editor';
 
 import { cn } from '@/lib/utils';
 
+import { CodeEditor } from '@/components/ui/code-editor';
 import { formatDate, formatUpdatedAt } from '@/components/utils/date';
 import { getItemTypeIcon } from '@/components/utils/item-type';
 import { Badge } from '@/components/ui/badge';
@@ -120,6 +122,8 @@ const isLanguageEditable = (item: ItemDrawerDetail) =>
 
 const isUrlEditable = (item: ItemDrawerDetail) =>
   URL_ITEM_TYPES.has(item.itemType.name.toLowerCase());
+
+const usesCodeEditor = (itemTypeName: string) => isCodeEditorItemType(itemTypeName);
 
 const DrawerActionButton = ({
   active = false,
@@ -290,11 +294,20 @@ const ItemDrawerBody = ({ item }: { item: ItemDrawerDetail }) => {
         </div>
 
         {item.content ? (
-          <div className='overflow-x-auto rounded-[1.5rem] border border-border/60 bg-card/45 p-4'>
-            <pre className='font-mono text-sm leading-6 whitespace-pre-wrap text-foreground'>
-              {item.content}
-            </pre>
-          </div>
+          usesCodeEditor(item.itemType.name) ? (
+            <CodeEditor
+              itemType={item.itemType.name}
+              language={item.language}
+              readOnly
+              value={item.content}
+            />
+          ) : (
+            <div className='overflow-x-auto rounded-[1.5rem] border border-border/60 bg-card/45 p-4'>
+              <pre className='font-mono text-sm leading-6 whitespace-pre-wrap text-foreground'>
+                {item.content}
+              </pre>
+            </div>
+          )
         ) : null}
 
         {item.url ? (
@@ -475,13 +488,23 @@ const ItemDrawerEditBody = ({
           <label htmlFor='item-content' className='text-sm font-medium'>
             Content
           </label>
-          <Textarea
-            id='item-content'
-            value={formState.content}
-            onChange={(event) => onFieldChange('content', event.target.value)}
-            className='min-h-40 resize-y py-3 font-mono leading-6'
-            placeholder='Add item content'
-          />
+          {usesCodeEditor(item.itemType.name) ? (
+            <CodeEditor
+              id='item-content'
+              itemType={item.itemType.name}
+              language={formState.language}
+              value={formState.content}
+              onChange={(value) => onFieldChange('content', value)}
+            />
+          ) : (
+            <Textarea
+              id='item-content'
+              value={formState.content}
+              onChange={(event) => onFieldChange('content', event.target.value)}
+              className='min-h-40 resize-y py-3 font-mono leading-6'
+              placeholder='Add item content'
+            />
+          )}
           <FieldErrorText errors={fieldErrors.content} />
         </div>
       ) : null}
