@@ -11,7 +11,7 @@ import { Copy, FileText, Link2, Pencil, Pin, Star, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
-import { updateItem, type UpdateItemActionError } from '@/actions/items';
+import { deleteItem, updateItem, type UpdateItemActionError } from '@/actions/items';
 import type { DashboardItem, ItemDrawerDetail } from '@/lib/db/items';
 
 import { cn } from '@/lib/utils';
@@ -21,6 +21,17 @@ import { getItemTypeIcon } from '@/components/utils/item-type';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import {
   Sheet,
   SheetContent,
@@ -514,6 +525,7 @@ interface ItemDrawerProps {
   isLoading: boolean;
   item: ItemDrawerDetail | null;
   onCopy: () => Promise<void> | void;
+  onItemDeleted: (itemId: string) => void;
   onItemUpdated: (item: ItemDrawerDetail) => void;
   onOpenChange: (open: boolean) => void;
   open: boolean;
@@ -525,6 +537,7 @@ export const ItemDrawer = ({
   isLoading,
   item,
   onCopy,
+  onItemDeleted,
   onItemUpdated,
   onOpenChange,
   open,
@@ -534,6 +547,8 @@ export const ItemDrawer = ({
   const activeItem = item ?? preview;
   const canCopy = Boolean(getCopyValue(item));
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<EditFormErrors>({});
@@ -570,6 +585,31 @@ export const ItemDrawer = ({
     setSubmitError(null);
     setIsSaving(false);
     setIsEditing(false);
+  };
+
+  const handleDelete = async () => {
+    if (!item) {
+      return;
+    }
+
+    setIsDeleting(true);
+
+    const result = await deleteItem(item.id);
+
+    setIsDeleting(false);
+
+    if (!result.success) {
+      toast.error(result.error ?? 'Unable to delete item.');
+      return;
+    }
+
+    setIsDeleteDialogOpen(false);
+    setIsEditing(false);
+    setFieldErrors({});
+    setSubmitError(null);
+    onItemDeleted(item.id);
+    toast.success('Item deleted.');
+    router.refresh();
   };
 
   const handleSave = async (event: FormEvent<HTMLFormElement>) => {
@@ -614,7 +654,7 @@ export const ItemDrawer = ({
     router.refresh();
   };
 
-  const saveDisabled = isSaving || !formState.title.trim();
+  const saveDisabled = isSaving || isDeleting || !formState.title.trim();
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -715,20 +755,53 @@ export const ItemDrawer = ({
                   </DrawerActionButton>
                   <DrawerActionButton
                     aria-label='Edit'
-                    disabled={!item || isLoading}
+                    disabled={!item || isLoading || isDeleting}
                     onClick={handleEditStart}
                   >
                     <Pencil className='size-4' />
                     Edit
                   </DrawerActionButton>
-                  <DrawerActionButton
-                    aria-label='Delete'
-                    className='ml-auto text-destructive hover:text-destructive'
-                    disabled
+                  <AlertDialog
+                    open={isDeleteDialogOpen}
+                    onOpenChange={setIsDeleteDialogOpen}
                   >
-                    <Trash2 className='size-4' />
-                    Delete
-                  </DrawerActionButton>
+                    <AlertDialogTrigger asChild>
+                      <DrawerActionButton
+                        aria-label='Delete'
+                        className='ml-auto text-destructive hover:text-destructive'
+                        disabled={!item || isLoading || isDeleting}
+                      >
+                        <Trash2 className='size-4' />
+                        Delete
+                      </DrawerActionButton>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete this item?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This permanently deletes {item?.title ?? 'this item'} from your
+                          library. This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel type='button' disabled={isDeleting}>
+                          Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction asChild>
+                          <Button
+                            type='button'
+                            variant='destructive'
+                            onClick={() => {
+                              void handleDelete();
+                            }}
+                            disabled={isDeleting}
+                          >
+                            {isDeleting ? 'Deleting...' : 'Delete item'}
+                          </Button>
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </>
               )}
             </div>

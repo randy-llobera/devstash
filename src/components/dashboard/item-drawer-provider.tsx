@@ -127,6 +127,16 @@ export const ItemDrawerProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
+  const handleItemDeleted = useCallback((itemId: string) => {
+    cacheRef.current.delete(itemId);
+    requestIdRef.current += 1;
+    setOpen(false);
+    setPreview(null);
+    setItem(null);
+    setIsLoading(false);
+    setError(null);
+  }, []);
+
   const contextValue = useMemo<ItemDrawerContextValue>(
     () => ({
       openItem,
@@ -143,6 +153,7 @@ export const ItemDrawerProvider = ({ children }: { children: ReactNode }) => {
         item={item}
         key={`${item?.id ?? preview?.id ?? "empty"}:${item?.updatedAt ?? "stale"}:${open ? "open" : "closed"}`}
         onCopy={handleCopy}
+        onItemDeleted={handleItemDeleted}
         onItemUpdated={handleItemUpdated}
         onOpenChange={handleOpenChange}
         open={open}

@@ -3,7 +3,11 @@
 import { z } from "zod";
 
 import { auth } from "@/auth";
-import { getItemDrawerDetail, updateItem as updateItemRecord } from "@/lib/db/items";
+import {
+  deleteItem as deleteItemRecord,
+  getItemDrawerDetail,
+  updateItem as updateItemRecord,
+} from "@/lib/db/items";
 
 const itemUpdateSchema = z.object({
   title: z
@@ -47,6 +51,11 @@ interface UpdateItemActionResult {
   success: boolean;
   data?: Awaited<ReturnType<typeof updateItemRecord>>;
   error?: UpdateItemActionError | string;
+}
+
+interface DeleteItemActionResult {
+  success: boolean;
+  error?: string;
 }
 
 const normalizeOptionalText = (value: string | null | undefined) => {
@@ -130,6 +139,48 @@ export const updateItem = async (
     return {
       success: false,
       error: "Unable to update item.",
+    };
+  }
+};
+
+export const deleteItem = async (itemId: string): Promise<DeleteItemActionResult> => {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return {
+      success: false,
+      error: "You must be signed in to delete items.",
+    };
+  }
+
+  const existingItem = await getItemDrawerDetail(itemId, session.user.id);
+
+  if (!existingItem) {
+    return {
+      success: false,
+      error: "Item not found.",
+    };
+  }
+
+  try {
+    const deleted = await deleteItemRecord(itemId, session.user.id);
+
+    if (!deleted) {
+      return {
+        success: false,
+        error: "Item not found.",
+      };
+    }
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error("Failed to delete item.", error);
+
+    return {
+      success: false,
+      error: "Unable to delete item.",
     };
   }
 };

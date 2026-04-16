@@ -88,6 +88,17 @@ export interface UpdateItemInput {
   tags: string[];
 }
 
+export const deleteItem = async (itemId: string, userId: string): Promise<boolean> => {
+  const result = await prisma.item.deleteMany({
+    where: {
+      id: itemId,
+      userId,
+    },
+  });
+
+  return result.count > 0;
+};
+
 const capitalize = (value: string) => `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
 export const getItemTypeSlug = (name: string) => `${name.toLowerCase()}s`;
 export const getItemTypeLabel = (name: string) => `${capitalize(name)}s`;
