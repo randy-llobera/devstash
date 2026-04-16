@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { createItem, type CreateItemActionError } from '@/actions/items';
 import type { SidebarItemType } from '@/lib/db/items';
 import { isCodeEditorItemType } from '@/lib/code-editor';
+import { isMarkdownEditorItemType } from '@/lib/markdown-editor';
 
 import { cn } from '@/lib/utils';
 
@@ -21,6 +22,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { MarkdownEditor } from '@/components/ui/markdown-editor';
 import { Textarea } from '@/components/ui/textarea';
 
 const CREATE_ITEM_TYPES = ['snippet', 'prompt', 'command', 'note', 'link'] as const;
@@ -204,6 +206,7 @@ export const CreateItemDialog = ({
   const requiresUrl = formState.itemType === 'link';
   const showsContent = CONTENT_ITEM_TYPES.has(formState.itemType);
   const usesCodeEditor = isCodeEditorItemType(formState.itemType);
+  const usesMarkdownEditor = isMarkdownEditorItemType(formState.itemType);
   const showsLanguage = LANGUAGE_ITEM_TYPES.has(formState.itemType);
   const saveDisabled =
     isSubmitting ||
@@ -313,6 +316,17 @@ export const CreateItemDialog = ({
                       language={formState.language}
                       value={formState.content}
                       onChange={(value) => handleFieldChange('content', value)}
+                    />
+                  ) : usesMarkdownEditor ? (
+                    <MarkdownEditor
+                      id='create-item-content'
+                      value={formState.content}
+                      onChange={(value) => handleFieldChange('content', value)}
+                      placeholder={
+                        formState.itemType === 'prompt'
+                          ? 'Write the prompt text'
+                          : 'Write your note'
+                      }
                     />
                   ) : (
                     <Textarea
