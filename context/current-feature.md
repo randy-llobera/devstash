@@ -1,32 +1,16 @@
-# Current Feature: Markdown Editor
+# Current Feature
 
 ## Status
 
 <!-- Not Started|In Progress|Completed -->
 
-In Progress
-
 ## Goals
 
 <!-- Goals & requirements -->
 
-- Create a `MarkdownEditor` component for notes and prompts with `Write` and `Preview` tabs
-- Replace `Textarea` with `MarkdownEditor` for notes and prompts only
-- Keep the existing `CodeEditor` flow for snippets and commands unchanged
-- Use `react-markdown` with `remark-gfm` for GitHub Flavored Markdown support
-- Match the existing dark editor styling, including container, header, copy button, and fluid height capped at 400px
-- Support both readonly and edit modes, showing only `Preview` in readonly mode and defaulting to `Write` in edit mode
-- Render markdown with distinct styling for headings, code, lists, blockquotes, links, and tables
-- Integrate the editor into `NewItemDialog` and `ItemDrawer` for note and prompt create, edit, and view flows
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Scope is limited to notes and prompts
-- Readonly mode is required for `ItemDrawer` view mode
-- Edit mode is required for `NewItemDialog` and `ItemDrawer` edit mode
-- Use a dedicated markdown preview class for reliable dark theme styling
 
 ## History
 
@@ -61,3 +45,4 @@ In Progress
 - Item Delete Functionality completed with a drawer delete server action, shadcn confirmation dialog, success toast and local drawer state cleanup after deletion, plus test script renaming to `test`, `test:watch`, and `test:coverage`
 - Item Create completed with a shadcn `Dialog` flow opened from the top bar, type-specific create fields for snippets, prompts, commands, notes, and links, a Zod-validated `createItem` server action, a Prisma-backed `createItem` query, success toast plus refresh behavior, and focused unit coverage for the new action
 - Code Editor completed with a shared Monaco-based editor for snippets and commands in create and drawer flows, macOS-style header controls with copy and language display, read-only and edit support, fluid height capped at 400px, and utility coverage for language/item-type mapping
+- Markdown Editor completed with a shared markdown editor for notes and prompts, write/preview tabs in edit mode, preview-only rendering in readonly mode, GitHub Flavored Markdown support via `react-markdown` and `remark-gfm`, direct renderer styling for dark-theme markdown content, and integration into the create dialog and item drawer flows
