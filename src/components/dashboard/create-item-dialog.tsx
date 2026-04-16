@@ -6,11 +6,13 @@ import { toast } from 'sonner';
 
 import { createItem, type CreateItemActionError } from '@/actions/items';
 import type { SidebarItemType } from '@/lib/db/items';
+import { isCodeEditorItemType } from '@/lib/code-editor';
 
 import { cn } from '@/lib/utils';
 
 import { getItemTypeIcon } from '@/components/utils/item-type';
 import { Button } from '@/components/ui/button';
+import { CodeEditor } from '@/components/ui/code-editor';
 import {
   Dialog,
   DialogContent,
@@ -201,6 +203,7 @@ export const CreateItemDialog = ({
 
   const requiresUrl = formState.itemType === 'link';
   const showsContent = CONTENT_ITEM_TYPES.has(formState.itemType);
+  const usesCodeEditor = isCodeEditorItemType(formState.itemType);
   const showsLanguage = LANGUAGE_ITEM_TYPES.has(formState.itemType);
   const saveDisabled =
     isSubmitting ||
@@ -303,19 +306,29 @@ export const CreateItemDialog = ({
                   <label className='text-sm font-medium' htmlFor='create-item-content'>
                     Content
                   </label>
-                  <Textarea
-                    id='create-item-content'
-                    value={formState.content}
-                    onChange={(event) => handleFieldChange('content', event.target.value)}
-                    placeholder={
-                      formState.itemType === 'prompt'
-                        ? 'Write the prompt text'
-                        : formState.itemType === 'note'
-                          ? 'Write your note'
-                          : 'Paste the content here'
-                    }
-                    className='min-h-48 font-mono text-sm'
-                  />
+                  {usesCodeEditor ? (
+                    <CodeEditor
+                      id='create-item-content'
+                      itemType={formState.itemType}
+                      language={formState.language}
+                      value={formState.content}
+                      onChange={(value) => handleFieldChange('content', value)}
+                    />
+                  ) : (
+                    <Textarea
+                      id='create-item-content'
+                      value={formState.content}
+                      onChange={(event) => handleFieldChange('content', event.target.value)}
+                      placeholder={
+                        formState.itemType === 'prompt'
+                          ? 'Write the prompt text'
+                          : formState.itemType === 'note'
+                            ? 'Write your note'
+                            : 'Paste the content here'
+                      }
+                      className='min-h-48 font-mono text-sm'
+                    />
+                  )}
                   <FieldErrorText errors={fieldErrors.content} />
                 </div>
               ) : null}
