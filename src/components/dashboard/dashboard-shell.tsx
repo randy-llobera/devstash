@@ -8,6 +8,7 @@ import type { SidebarItemType } from '@/lib/db/items';
 
 import { cn } from '@/lib/utils';
 
+import { CreateItemDialog } from '@/components/dashboard/create-item-dialog';
 import { ItemDrawerProvider } from '@/components/dashboard/item-drawer-provider';
 import { TopBar } from '@/components/layout/top-bar';
 import { MobileSidebarTrigger } from '@/components/layout/mobile-sidebar-trigger';
@@ -29,12 +30,14 @@ export const DashboardShell = ({
   children,
 }: DashboardShellProps) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   return (
     <ItemDrawerProvider>
       <main className='min-h-screen bg-background text-foreground'>
         <div className='grid min-h-screen grid-rows-[auto_1fr]'>
           <TopBar
+            onCreateItem={() => setIsCreateDialogOpen(true)}
             mobileSidebar={
               <MobileSidebarTrigger
                 user={user}
@@ -73,6 +76,11 @@ export const DashboardShell = ({
           </div>
         </div>
       </main>
+      <CreateItemDialog
+        itemTypes={itemTypes}
+        onOpenChange={setIsCreateDialogOpen}
+        open={isCreateDialogOpen}
+      />
     </ItemDrawerProvider>
   );
 };

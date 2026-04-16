@@ -1,28 +1,139 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { authMock, deleteItemRecordMock, getItemDrawerDetailMock, updateItemRecordMock } =
-  vi.hoisted(() => ({
+const {
+  authMock,
+  createItemRecordMock,
+  deleteItemRecordMock,
+  getItemDrawerDetailMock,
+  updateItemRecordMock,
+} = vi.hoisted(() => ({
   authMock: vi.fn(),
+  createItemRecordMock: vi.fn(),
   deleteItemRecordMock: vi.fn(),
   getItemDrawerDetailMock: vi.fn(),
   updateItemRecordMock: vi.fn(),
-  }));
+}));
 
 vi.mock("@/auth", () => ({
   auth: authMock,
 }));
 
 vi.mock("@/lib/db/items", () => ({
+  createItem: createItemRecordMock,
   deleteItem: deleteItemRecordMock,
   getItemDrawerDetail: getItemDrawerDetailMock,
   updateItem: updateItemRecordMock,
 }));
 
-import { deleteItem, updateItem } from "@/actions/items";
+import { createItem, deleteItem, updateItem } from "@/actions/items";
+
+describe("createItem action", () => {
+  beforeEach(() => {
+    authMock.mockReset();
+    createItemRecordMock.mockReset();
+    deleteItemRecordMock.mockReset();
+    getItemDrawerDetailMock.mockReset();
+    updateItemRecordMock.mockReset();
+  });
+
+  it("rejects unauthenticated create requests", async () => {
+    authMock.mockResolvedValue(null);
+
+    const result = await createItem({
+      itemType: "snippet",
+      title: "New item",
+      tags: [],
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "You must be signed in to create items.",
+    });
+    expect(createItemRecordMock).not.toHaveBeenCalled();
+  });
+
+  it("returns field errors for invalid payloads", async () => {
+    const result = await createItem({
+      itemType: "link",
+      title: "   ",
+      url: "not-a-url",
+      tags: [],
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toEqual({
+      message: "Please fix the highlighted fields.",
+      fieldErrors: {
+        title: ["Title is required."],
+        url: ["Enter a valid URL."],
+      },
+    });
+    expect(authMock).not.toHaveBeenCalled();
+    expect(createItemRecordMock).not.toHaveBeenCalled();
+  });
+
+  it("normalizes optional values and deduplicates tags before creating", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    createItemRecordMock.mockResolvedValue({
+      id: "item-1",
+      title: "New item",
+    });
+
+    const result = await createItem({
+      itemType: "command",
+      title: "  New item  ",
+      description: "   ",
+      content: "  npm run lint  ",
+      language: "  Bash  ",
+      tags: ["react", "react", " prisma "],
+    });
+
+    expect(createItemRecordMock).toHaveBeenCalledWith("user-1", {
+      itemType: "command",
+      title: "New item",
+      description: null,
+      content: "npm run lint",
+      language: "Bash",
+      tags: ["react", "prisma"],
+    });
+    expect(result).toEqual({
+      success: true,
+      data: {
+        id: "item-1",
+        title: "New item",
+      },
+    });
+  });
+
+  it("returns a generic error when create fails", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    createItemRecordMock.mockRejectedValue(new Error("db failure"));
+
+    const result = await createItem({
+      itemType: "note",
+      title: "New item",
+      tags: [],
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "Unable to create item.",
+    });
+  });
+});
 
 describe("updateItem action", () => {
   beforeEach(() => {
     authMock.mockReset();
+    createItemRecordMock.mockReset();
     deleteItemRecordMock.mockReset();
     getItemDrawerDetailMock.mockReset();
     updateItemRecordMock.mockReset();
@@ -150,6 +261,7 @@ describe("updateItem action", () => {
 describe("deleteItem action", () => {
   beforeEach(() => {
     authMock.mockReset();
+    createItemRecordMock.mockReset();
     deleteItemRecordMock.mockReset();
     getItemDrawerDetailMock.mockReset();
     updateItemRecordMock.mockReset();

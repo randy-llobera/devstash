@@ -88,6 +88,16 @@ export interface UpdateItemInput {
   tags: string[];
 }
 
+export interface CreateItemInput {
+  itemType: "snippet" | "prompt" | "command" | "note" | "link";
+  title: string;
+  description?: string | null;
+  content?: string | null;
+  url?: string | null;
+  language?: string | null;
+  tags: string[];
+}
+
 export const deleteItem = async (itemId: string, userId: string): Promise<boolean> => {
   const result = await prisma.item.deleteMany({
     where: {
@@ -400,6 +410,54 @@ export const getItemDrawerDetail = async (
   });
 
   return item ? mapItemDrawerDetail(item) : null;
+};
+
+export const createItem = async (
+  userId: string,
+  data: CreateItemInput
+): Promise<ItemDrawerDetail | null> => {
+  const itemType = await prisma.itemType.findFirst({
+    where: {
+      name: data.itemType,
+      isSystem: true,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!itemType) {
+    return null;
+  }
+
+  const item = await prisma.item.create({
+    data: {
+      userId,
+      itemTypeId: itemType.id,
+      title: data.title,
+      description: data.description ?? null,
+      contentType: data.itemType === "link" ? "URL" : "TEXT",
+      content: data.itemType === "link" ? null : (data.content ?? null),
+      url: data.itemType === "link" ? (data.url ?? null) : null,
+      language:
+        data.itemType === "snippet" || data.itemType === "command"
+          ? (data.language ?? null)
+          : null,
+      tags: {
+        connectOrCreate: data.tags.map((tag) => ({
+          where: {
+            name: tag,
+          },
+          create: {
+            name: tag,
+          },
+        })),
+      },
+    },
+    select: itemDrawerDetailSelect,
+  });
+
+  return mapItemDrawerDetail(item);
 };
 
 export const updateItem = async (
