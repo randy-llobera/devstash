@@ -1,26 +1,16 @@
-# Current Feature: Code Editor
+# Current Feature
 
 ## Status
 
-In Progress
+<!-- Not Started|In Progress|Completed -->
 
 ## Goals
 
-- Add a Monaco-based `CodeEditor` component for snippet and command content.
-- Use the code editor instead of `Textarea` for snippets and commands only.
-- Keep `Textarea` for notes, prompts, and other non-code item types.
-- Support both read-only display mode and editable mode in the code editor.
-- Show macOS-style window dots in the editor header.
-- Show the detected language in the editor header.
-- Add a quick copy action in the editor header.
-- Keep editor height fluid with a max height of 400px.
-- Style the editor scrollbar to match the existing theme.
+<!-- Goals & requirements -->
 
 ## Notes
 
-- Source spec: `context/features/code-editor-spec.md`
-- Use a dark Monaco theme.
-- The editor styling should feel like a code window, not a plain form field.
+<!-- Any extra notes -->
 
 ## History
 
@@ -54,3 +44,4 @@ In Progress
 - Item Drawer Edit Mode completed with inline editing in the existing drawer, a Zod-validated `updateItem` server action, Prisma-backed tag replacement, the shadcn CLI `Textarea` component, cache refresh after save, and focused unit coverage for the new action
 - Item Delete Functionality completed with a drawer delete server action, shadcn confirmation dialog, success toast and local drawer state cleanup after deletion, plus test script renaming to `test`, `test:watch`, and `test:coverage`
 - Item Create completed with a shadcn `Dialog` flow opened from the top bar, type-specific create fields for snippets, prompts, commands, notes, and links, a Zod-validated `createItem` server action, a Prisma-backed `createItem` query, success toast plus refresh behavior, and focused unit coverage for the new action
+- Code Editor completed with a shared Monaco-based editor for snippets and commands in create and drawer flows, macOS-style header controls with copy and language display, read-only and edit support, fluid height capped at 400px, and utility coverage for language/item-type mapping
