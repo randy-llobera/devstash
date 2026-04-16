@@ -42,3 +42,4 @@
 - Items listing layout updated to use 3 columns on large screens while keeping the existing responsive 1-column and 2-column behavior on smaller breakpoints
 - Item Drawer completed with a right-side sheet detail view opened from dashboard and items list cards, auth-scoped item detail fetching via `/api/items/[id]`, shared drawer state in the dashboard shell, loading states for on-click fetches, and shared sheet width overrides to support the wider drawer layout
 - Item Drawer Edit Mode completed with inline editing in the existing drawer, a Zod-validated `updateItem` server action, Prisma-backed tag replacement, the shadcn CLI `Textarea` component, cache refresh after save, and focused unit coverage for the new action
+- Item Delete Functionality completed with a drawer delete server action, shadcn confirmation dialog, success toast and local drawer state cleanup after deletion, plus test script renaming to `test`, `test:watch`, and `test:coverage`
