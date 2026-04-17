@@ -1,23 +1,15 @@
-# Current Feature: Image Gallery View
+# Current Feature
 
 ## Status
 
-In Progress
 <!-- Not Started|In Progress|Completed -->
 
 ## Goals
 
-- Create an image thumbnail card to replace the current item card.
-- Show images in a 3-column grid/gallery layout.
-- Display image thumbnails with a 16:9 aspect ratio.
-- Use `object-cover` so thumbnails fill the card area.
-- Add a subtle hover zoom effect with 5% scale and a 300ms transition.
 <!-- Goals & requirements -->
 
 ## Notes
 
-- Source spec: `context/features/image-display-spec.md`
-- Scope is limited to the image list/gallery presentation.
 <!-- Any extra notes -->
 
 ## History
@@ -55,3 +47,4 @@ In Progress
 - Code Editor completed with a shared Monaco-based editor for snippets and commands in create and drawer flows, macOS-style header controls with copy and language display, read-only and edit support, fluid height capped at 400px, and utility coverage for language/item-type mapping
 - Markdown Editor completed with a shared markdown editor for notes and prompts, write/preview tabs in edit mode, preview-only rendering in readonly mode, GitHub Flavored Markdown support via `react-markdown` and `remark-gfm`, direct renderer styling for dark-theme markdown content, and integration into the create dialog and item drawer flows
 - File Upload with Cloudflare R2 completed with authenticated R2-backed upload and download proxy routes, drag-and-drop file and image creation flows with progress UI, Prisma-backed file metadata persistence in `lib/db/items.ts`, R2 cleanup on item deletion, SVG download hardening, and unit coverage for actions, helpers, and route handlers
+- Image Gallery View completed with a dedicated image thumbnail card on `/items/images`, 16:9 gallery thumbnails using `object-cover`, a subtle hover zoom effect, and preserved SVG attachment-only handling in the gallery preview path
