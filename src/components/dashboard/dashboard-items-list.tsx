@@ -3,6 +3,7 @@ import type { DashboardItem, ItemTypeSummary } from "@/lib/db/items";
 import { getItemTypeLabel } from "@/lib/db/items";
 
 import { DashboardItemCard } from "@/components/dashboard/dashboard-item-card";
+import { DashboardImageCard } from "@/components/dashboard/dashboard-image-card";
 
 interface DashboardItemsListProps {
   itemType: ItemTypeSummary;
@@ -14,13 +15,18 @@ export const DashboardItemsList = ({
   items,
 }: DashboardItemsListProps) => {
   const itemTypeLabel = getItemTypeLabel(itemType.name);
+  const isImageGallery = itemType.slug === "images";
 
   return (
     <>
       {items.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 md:gap-5 lg:grid-cols-3">
           {items.map((item) => (
-            <DashboardItemCard key={item.id} item={item} variant="items" />
+            isImageGallery ? (
+              <DashboardImageCard key={item.id} item={item} />
+            ) : (
+              <DashboardItemCard key={item.id} item={item} variant="items" />
+            )
           ))}
         </div>
       ) : (
