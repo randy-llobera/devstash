@@ -7,13 +7,14 @@ import {
   type CSSProperties,
   type FormEvent,
 } from 'react';
-import { Copy, FileText, Link2, Pencil, Pin, Star, Trash2 } from 'lucide-react';
+import { Copy, Download, FileText, Link2, Pencil, Pin, Star, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 import { deleteItem, updateItem, type UpdateItemActionError } from '@/actions/items';
 import type { DashboardItem, ItemDrawerDetail } from '@/lib/db/items';
 import { isCodeEditorItemType } from '@/lib/code-editor';
+import { isSvgFileName } from '@/lib/file-upload';
 import { isMarkdownEditorItemType } from '@/lib/markdown-editor';
 
 import { cn } from '@/lib/utils';
@@ -127,6 +128,10 @@ const isUrlEditable = (item: ItemDrawerDetail) =>
 
 const usesCodeEditor = (itemTypeName: string) => isCodeEditorItemType(itemTypeName);
 const usesMarkdownEditor = (itemTypeName: string) => isMarkdownEditorItemType(itemTypeName);
+const isImageItem = (item: ItemDrawerDetail) => item.itemType.name.toLowerCase() === 'image';
+const isFileItem = (item: ItemDrawerDetail) => item.itemType.name.toLowerCase() === 'file';
+const supportsInlineImagePreview = (item: ItemDrawerDetail) =>
+  isImageItem(item) && !isSvgFileName(item.fileName);
 
 const DrawerActionButton = ({
   active = false,
@@ -212,6 +217,8 @@ const ItemDrawerBody = ({ item }: { item: ItemDrawerDetail }) => {
     className: 'size-5',
     style: { color: item.itemType.color },
   });
+  const downloadHref = `/api/items/${item.id}/download`;
+  const inlinePreviewHref = `${downloadHref}?inline=1`;
 
   return (
     <div className='space-y-6'>
@@ -336,21 +343,47 @@ const ItemDrawerBody = ({ item }: { item: ItemDrawerDetail }) => {
             <p className='text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase'>
               File
             </p>
+            {supportsInlineImagePreview(item) ? (
+              <div className='mt-3 overflow-hidden rounded-2xl border border-border/60 bg-background/80'>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={inlinePreviewHref}
+                  alt={item.title}
+                  className='max-h-[28rem] w-full object-contain'
+                />
+              </div>
+            ) : null}
             <p className='mt-2 text-sm text-foreground'>
               {item.fileName ?? 'Attached file'}
             </p>
             {fileSize ? (
               <p className='mt-1 text-sm text-muted-foreground'>{fileSize}</p>
             ) : null}
-            {item.fileUrl ? (
+            {item.fileUrl ? isFileItem(item) ? (
               <a
-                href={item.fileUrl}
+                href={downloadHref}
+                className='mt-2 inline-flex items-center gap-2 text-sm text-primary underline-offset-4 hover:underline'
+              >
+                <Download className='size-4' />
+                Download file
+              </a>
+            ) : supportsInlineImagePreview(item) ? (
+              <a
+                href={inlinePreviewHref}
                 target='_blank'
                 rel='noreferrer'
                 className='mt-2 inline-flex items-center gap-2 text-sm text-primary underline-offset-4 hover:underline'
               >
                 <Link2 className='size-4' />
-                Open file
+                Open image
+              </a>
+            ) : (
+              <a
+                href={downloadHref}
+                className='mt-2 inline-flex items-center gap-2 text-sm text-primary underline-offset-4 hover:underline'
+              >
+                <Download className='size-4' />
+                Download image
               </a>
             ) : null}
           </div>
@@ -759,6 +792,14 @@ export const ItemDrawer = ({
                 </>
               ) : (
                 <>
+                  {item && item.fileUrl && isFileItem(item) ? (
+                    <DrawerActionButton asChild aria-label='Download file'>
+                      <a href={`/api/items/${item.id}/download`}>
+                        <Download className='size-4' />
+                        Download
+                      </a>
+                    </DrawerActionButton>
+                  ) : null}
                   <DrawerActionButton
                     active={Boolean(item?.isFavorite)}
                     aria-label='Favorite'

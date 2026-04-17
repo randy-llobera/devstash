@@ -3,6 +3,8 @@
 import { z } from "zod";
 
 import { auth } from "@/auth";
+import { deleteR2Object } from "@/lib/r2";
+import { getObjectKeyFromFileUrl } from "@/lib/file-upload";
 import {
   createItem as createItemRecord,
   deleteItem as deleteItemRecord,
@@ -10,7 +12,15 @@ import {
   updateItem as updateItemRecord,
 } from "@/lib/db/items";
 
-const createItemTypeSchema = z.enum(["snippet", "prompt", "command", "note", "link"]);
+const createItemTypeSchema = z.enum([
+  "snippet",
+  "prompt",
+  "command",
+  "note",
+  "file",
+  "image",
+  "link",
+]);
 
 const itemCreateSchema = z
   .object({
@@ -40,6 +50,24 @@ const itemCreateSchema = z
       .trim()
       .nullable()
       .optional(),
+    fileName: z
+      .string()
+      .trim()
+      .min(1, "File name is required.")
+      .nullable()
+      .optional(),
+    fileSize: z
+      .number()
+      .int()
+      .positive("File size is required.")
+      .nullable()
+      .optional(),
+    fileUrl: z
+      .string()
+      .trim()
+      .url("Enter a valid file URL.")
+      .nullable()
+      .optional(),
     tags: z
       .array(z.string().trim().min(1, "Tags cannot be empty."))
       .transform((tags) => Array.from(new Set(tags))),
@@ -50,6 +78,30 @@ const itemCreateSchema = z
         code: z.ZodIssueCode.custom,
         path: ["url"],
         message: "URL is required for links.",
+      });
+    }
+
+    if ((value.itemType === "file" || value.itemType === "image") && !value.fileUrl) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["fileUrl"],
+        message: "A file upload is required.",
+      });
+    }
+
+    if ((value.itemType === "file" || value.itemType === "image") && !value.fileName) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["fileName"],
+        message: "File name is required.",
+      });
+    }
+
+    if ((value.itemType === "file" || value.itemType === "image") && !value.fileSize) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["fileSize"],
+        message: "File size is required.",
       });
     }
   });
@@ -142,6 +194,15 @@ export const createItem = async (data: CreateItemPayload): Promise<CreateItemAct
     ...(Object.prototype.hasOwnProperty.call(data, "language")
       ? { language: normalizeOptionalText(data.language) }
       : {}),
+    ...(Object.prototype.hasOwnProperty.call(data, "fileName")
+      ? { fileName: normalizeOptionalText(data.fileName) }
+      : {}),
+    ...(Object.prototype.hasOwnProperty.call(data, "fileSize")
+      ? { fileSize: data.fileSize ?? null }
+      : {}),
+    ...(Object.prototype.hasOwnProperty.call(data, "fileUrl")
+      ? { fileUrl: normalizeOptionalText(data.fileUrl) }
+      : {}),
   });
 
   if (!parsedPayload.success) {
@@ -163,6 +224,25 @@ export const createItem = async (data: CreateItemPayload): Promise<CreateItemAct
       success: false,
       error: "You must be signed in to create items.",
     };
+  }
+
+  if (
+    (parsedPayload.data.itemType === "file" || parsedPayload.data.itemType === "image") &&
+    parsedPayload.data.fileUrl
+  ) {
+    const objectKey = getObjectKeyFromFileUrl(parsedPayload.data.fileUrl);
+
+    if (!objectKey || !objectKey.startsWith(`users/${session.user.id}/`)) {
+      return {
+        success: false,
+        error: {
+          message: "Please fix the highlighted fields.",
+          fieldErrors: {
+            fileUrl: ["Uploaded file must belong to your storage bucket."],
+          },
+        },
+      };
+    }
   }
 
   try {
@@ -284,6 +364,14 @@ export const deleteItem = async (itemId: string): Promise<DeleteItemActionResult
   }
 
   try {
+    if (existingItem.fileUrl) {
+      const objectKey = getObjectKeyFromFileUrl(existingItem.fileUrl);
+
+      if (objectKey) {
+        await deleteR2Object(objectKey);
+      }
+    }
+
     const deleted = await deleteItemRecord(itemId, session.user.id);
 
     if (!deleted) {

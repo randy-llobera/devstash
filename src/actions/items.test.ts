@@ -4,12 +4,14 @@ const {
   authMock,
   createItemRecordMock,
   deleteItemRecordMock,
+  deleteR2ObjectMock,
   getItemDrawerDetailMock,
   updateItemRecordMock,
 } = vi.hoisted(() => ({
   authMock: vi.fn(),
   createItemRecordMock: vi.fn(),
   deleteItemRecordMock: vi.fn(),
+  deleteR2ObjectMock: vi.fn(),
   getItemDrawerDetailMock: vi.fn(),
   updateItemRecordMock: vi.fn(),
 }));
@@ -25,6 +27,21 @@ vi.mock("@/lib/db/items", () => ({
   updateItem: updateItemRecordMock,
 }));
 
+vi.mock("@/lib/file-upload", () => ({
+  getObjectKeyFromFileUrl: (fileUrl: string) =>
+    fileUrl === "https://files.example.com/users/user-1/file/file.txt"
+      ? "users/user-1/file/file.txt"
+      : fileUrl === "https://files.example.com/users/user-1/file/spec.pdf"
+        ? "users/user-1/file/spec.pdf"
+      : fileUrl === "https://files.example.com/users/other-user/file/file.txt"
+        ? "users/other-user/file/file.txt"
+        : null,
+}));
+
+vi.mock("@/lib/r2", () => ({
+  deleteR2Object: deleteR2ObjectMock,
+}));
+
 import { createItem, deleteItem, updateItem } from "@/actions/items";
 
 describe("createItem action", () => {
@@ -32,6 +49,7 @@ describe("createItem action", () => {
     authMock.mockReset();
     createItemRecordMock.mockReset();
     deleteItemRecordMock.mockReset();
+    deleteR2ObjectMock.mockReset();
     getItemDrawerDetailMock.mockReset();
     updateItemRecordMock.mockReset();
   });
@@ -109,6 +127,84 @@ describe("createItem action", () => {
     });
   });
 
+  it("requires uploaded file fields for file items", async () => {
+    const result = await createItem({
+      itemType: "file",
+      title: "Docs",
+      tags: [],
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toEqual({
+      message: "Please fix the highlighted fields.",
+      fieldErrors: {
+        fileName: ["File name is required."],
+        fileSize: ["File size is required."],
+        fileUrl: ["A file upload is required."],
+      },
+    });
+    expect(authMock).not.toHaveBeenCalled();
+    expect(createItemRecordMock).not.toHaveBeenCalled();
+  });
+
+  it("passes uploaded file metadata through for file items", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    createItemRecordMock.mockResolvedValue({
+      id: "item-1",
+      title: "API Spec",
+    });
+
+    await createItem({
+      itemType: "file",
+      title: " API Spec ",
+      fileName: " api-spec.pdf ",
+      fileSize: 2048,
+      fileUrl: " https://files.example.com/users/user-1/file/spec.pdf ",
+      tags: [],
+    });
+
+    expect(createItemRecordMock).toHaveBeenCalledWith("user-1", {
+      itemType: "file",
+      title: "API Spec",
+      fileName: "api-spec.pdf",
+      fileSize: 2048,
+      fileUrl: "https://files.example.com/users/user-1/file/spec.pdf",
+      tags: [],
+    });
+  });
+
+  it("rejects uploaded file URLs outside the current user's namespace", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+
+    const result = await createItem({
+      itemType: "file",
+      title: "API Spec",
+      fileName: "api-spec.pdf",
+      fileSize: 2048,
+      fileUrl: "https://files.example.com/users/other-user/file/file.txt",
+      tags: [],
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: {
+        message: "Please fix the highlighted fields.",
+        fieldErrors: {
+          fileUrl: ["Uploaded file must belong to your storage bucket."],
+        },
+      },
+    });
+    expect(createItemRecordMock).not.toHaveBeenCalled();
+  });
+
   it("returns a generic error when create fails", async () => {
     authMock.mockResolvedValue({
       user: {
@@ -135,6 +231,7 @@ describe("updateItem action", () => {
     authMock.mockReset();
     createItemRecordMock.mockReset();
     deleteItemRecordMock.mockReset();
+    deleteR2ObjectMock.mockReset();
     getItemDrawerDetailMock.mockReset();
     updateItemRecordMock.mockReset();
   });
@@ -263,6 +360,7 @@ describe("deleteItem action", () => {
     authMock.mockReset();
     createItemRecordMock.mockReset();
     deleteItemRecordMock.mockReset();
+    deleteR2ObjectMock.mockReset();
     getItemDrawerDetailMock.mockReset();
     updateItemRecordMock.mockReset();
   });
@@ -305,11 +403,55 @@ describe("deleteItem action", () => {
     });
     getItemDrawerDetailMock.mockResolvedValue({
       id: "item-1",
+      fileUrl: null,
     });
     deleteItemRecordMock.mockResolvedValue(true);
 
     const result = await deleteItem("item-1");
 
+    expect(deleteR2ObjectMock).not.toHaveBeenCalled();
+    expect(deleteItemRecordMock).toHaveBeenCalledWith("item-1", "user-1");
+    expect(result).toEqual({
+      success: true,
+    });
+  });
+
+  it("deletes the attached R2 object before removing the item", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    getItemDrawerDetailMock.mockResolvedValue({
+      id: "item-1",
+      fileUrl: "https://files.example.com/users/user-1/file/file.txt",
+    });
+    deleteItemRecordMock.mockResolvedValue(true);
+
+    const result = await deleteItem("item-1");
+
+    expect(deleteR2ObjectMock).toHaveBeenCalledWith("users/user-1/file/file.txt");
+    expect(deleteItemRecordMock).toHaveBeenCalledWith("item-1", "user-1");
+    expect(result).toEqual({
+      success: true,
+    });
+  });
+
+  it("still deletes the item when the attached file key cannot be derived", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    getItemDrawerDetailMock.mockResolvedValue({
+      id: "item-1",
+      fileUrl: "https://example.com/not-r2.txt",
+    });
+    deleteItemRecordMock.mockResolvedValue(true);
+
+    const result = await deleteItem("item-1");
+
+    expect(deleteR2ObjectMock).not.toHaveBeenCalled();
     expect(deleteItemRecordMock).toHaveBeenCalledWith("item-1", "user-1");
     expect(result).toEqual({
       success: true,

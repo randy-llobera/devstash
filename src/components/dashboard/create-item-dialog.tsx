@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 import { createItem, type CreateItemActionError } from '@/actions/items';
+import { isFileUploadItemType, type FileUploadItemType } from '@/lib/file-upload';
 import type { SidebarItemType } from '@/lib/db/items';
 import { isCodeEditorItemType } from '@/lib/code-editor';
 import { isMarkdownEditorItemType } from '@/lib/markdown-editor';
 
 import { cn } from '@/lib/utils';
 
+import { FileUpload } from '@/components/dashboard/file-upload';
 import { getItemTypeIcon } from '@/components/utils/item-type';
 import { Button } from '@/components/ui/button';
 import { CodeEditor } from '@/components/ui/code-editor';
@@ -25,16 +27,19 @@ import { Input } from '@/components/ui/input';
 import { MarkdownEditor } from '@/components/ui/markdown-editor';
 import { Textarea } from '@/components/ui/textarea';
 
-const CREATE_ITEM_TYPES = ['snippet', 'prompt', 'command', 'note', 'link'] as const;
+const CREATE_ITEM_TYPES = ['snippet', 'prompt', 'command', 'note', 'file', 'image', 'link'] as const;
 type CreateItemType = (typeof CREATE_ITEM_TYPES)[number];
 
 const CONTENT_ITEM_TYPES = new Set<CreateItemType>(['snippet', 'prompt', 'command', 'note']);
+const FILE_ITEM_TYPES = new Set<CreateItemType>(['file', 'image']);
 const LANGUAGE_ITEM_TYPES = new Set<CreateItemType>(['snippet', 'command']);
 const TYPE_LABELS: Record<CreateItemType, string> = {
   snippet: 'Snippet',
   prompt: 'Prompt',
   command: 'Command',
   note: 'Note',
+  file: 'File',
+  image: 'Image',
   link: 'Link',
 };
 const TYPE_ICON_FALLBACKS: Record<CreateItemType, string> = {
@@ -42,6 +47,8 @@ const TYPE_ICON_FALLBACKS: Record<CreateItemType, string> = {
   prompt: 'Sparkles',
   command: 'Terminal',
   note: 'StickyNote',
+  file: 'File',
+  image: 'Image',
   link: 'Link',
 };
 const TYPE_SLUGS: Record<CreateItemType, string> = {
@@ -49,6 +56,8 @@ const TYPE_SLUGS: Record<CreateItemType, string> = {
   prompt: 'prompts',
   command: 'commands',
   note: 'notes',
+  file: 'files',
+  image: 'images',
   link: 'links',
 };
 
@@ -70,6 +79,12 @@ interface CreateItemFormState {
 
 type CreateItemFormField = keyof CreateItemFormState;
 type CreateItemFormErrors = Partial<Record<CreateItemFormField, string[]>>;
+
+interface UploadedFilePayload {
+  fileName: string;
+  fileSize: number;
+  fileUrl: string;
+}
 
 const INITIAL_FORM_STATE: CreateItemFormState = {
   itemType: 'snippet',
@@ -99,6 +114,55 @@ const FieldErrorText = ({ errors }: { errors?: string[] }) => {
   return <p className='text-sm text-destructive'>{errors[0]}</p>;
 };
 
+const uploadSelectedFile = (
+  file: File,
+  itemType: FileUploadItemType,
+  onProgress: (value: number) => void,
+) =>
+  new Promise<UploadedFilePayload>((resolve, reject) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('itemType', itemType);
+
+    const request = new XMLHttpRequest();
+    request.open('POST', '/api/uploads');
+    request.responseType = 'json';
+    request.upload.addEventListener('progress', (event) => {
+      if (!event.lengthComputable) {
+        return;
+      }
+
+      onProgress(Math.round((event.loaded / event.total) * 100));
+    });
+    request.addEventListener('load', () => {
+      const response =
+        typeof request.response === 'object' && request.response
+          ? request.response
+          : JSON.parse(request.responseText || '{}');
+
+      if (request.status >= 200 && request.status < 300) {
+        resolve(response as UploadedFilePayload);
+        return;
+      }
+
+      reject(new Error((response as { error?: string }).error ?? 'Unable to upload file.'));
+    });
+    request.addEventListener('error', () => {
+      reject(new Error('Unable to upload file.'));
+    });
+    request.send(formData);
+  });
+
+const cleanupUploadedFile = async (fileUrl: string) => {
+  await fetch('/api/uploads', {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ fileUrl }),
+  });
+};
+
 export const CreateItemDialog = ({
   itemTypes,
   onOpenChange,
@@ -110,6 +174,9 @@ export const CreateItemDialog = ({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<CreateItemFormErrors>({});
   const [formState, setFormState] = useState<CreateItemFormState>(INITIAL_FORM_STATE);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const typeOptions = useMemo(() => {
     const itemTypesBySlug = new Map(itemTypes.map((itemType) => [itemType.slug, itemType]));
@@ -131,6 +198,9 @@ export const CreateItemDialog = ({
     setFieldErrors({});
     setSubmitError(null);
     setIsSubmitting(false);
+    setSelectedFile(null);
+    setFileError(null);
+    setUploadProgress(0);
   };
 
   const handleOpenChange = (nextOpen: boolean) => {
@@ -151,6 +221,9 @@ export const CreateItemDialog = ({
       [field]: undefined,
     }));
     setSubmitError(null);
+    if (field === 'title') {
+      setFileError(null);
+    }
   };
 
   const handleTypeChange = (itemType: CreateItemType) => {
@@ -163,14 +236,42 @@ export const CreateItemDialog = ({
     }));
     setFieldErrors({});
     setSubmitError(null);
+    setSelectedFile(null);
+    setFileError(null);
+    setUploadProgress(0);
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    const requiresFileUpload = FILE_ITEM_TYPES.has(formState.itemType);
+
+    if (requiresFileUpload && !selectedFile) {
+      setFileError('Select a file before creating this item.');
+      toast.error('Select a file before creating this item.');
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitError(null);
     setFieldErrors({});
+    setFileError(null);
+
+    let uploadedFile: UploadedFilePayload | null = null;
+
+    if (requiresFileUpload && selectedFile && isFileUploadItemType(formState.itemType)) {
+      try {
+        uploadedFile = await uploadSelectedFile(selectedFile, formState.itemType, setUploadProgress);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Unable to upload file.';
+
+        setIsSubmitting(false);
+        setFileError(message);
+        toast.error(message);
+        return;
+      }
+    }
 
     const result = await createItem({
       itemType: formState.itemType,
@@ -179,12 +280,24 @@ export const CreateItemDialog = ({
       tags: parseTagsInput(formState.tags),
       ...(CONTENT_ITEM_TYPES.has(formState.itemType) ? { content: formState.content } : {}),
       ...(LANGUAGE_ITEM_TYPES.has(formState.itemType) ? { language: formState.language } : {}),
+      ...(uploadedFile
+        ? {
+            fileName: uploadedFile.fileName,
+            fileSize: uploadedFile.fileSize,
+            fileUrl: uploadedFile.fileUrl,
+          }
+        : {}),
       ...(formState.itemType === 'link' ? { url: formState.url } : {}),
     });
 
     setIsSubmitting(false);
+    setUploadProgress(0);
 
     if (!result.success || !result.data) {
+      if (uploadedFile?.fileUrl) {
+        void cleanupUploadedFile(uploadedFile.fileUrl);
+      }
+
       const actionError =
         typeof result.error === 'string'
           ? ({ message: result.error } satisfies CreateItemActionError)
@@ -204,6 +317,7 @@ export const CreateItemDialog = ({
   };
 
   const requiresUrl = formState.itemType === 'link';
+  const requiresFileUpload = FILE_ITEM_TYPES.has(formState.itemType);
   const showsContent = CONTENT_ITEM_TYPES.has(formState.itemType);
   const usesCodeEditor = isCodeEditorItemType(formState.itemType);
   const usesMarkdownEditor = isMarkdownEditorItemType(formState.itemType);
@@ -212,6 +326,7 @@ export const CreateItemDialog = ({
     isSubmitting ||
     isRefreshPending ||
     !formState.title.trim() ||
+    (requiresFileUpload && !selectedFile) ||
     (requiresUrl && !formState.url.trim());
 
   return (
@@ -220,7 +335,7 @@ export const CreateItemDialog = ({
         <DialogHeader className='border-b border-border/70 px-6 py-5'>
           <DialogTitle>Create a new item</DialogTitle>
           <DialogDescription>
-            Add a snippet, prompt, command, note, or link without leaving the page.
+            Add a snippet, prompt, command, note, file, image, or link without leaving the page.
           </DialogDescription>
         </DialogHeader>
 
@@ -238,7 +353,7 @@ export const CreateItemDialog = ({
 
               <div
                 id='item-type-selector'
-                className='grid gap-3 sm:grid-cols-2 lg:grid-cols-5'
+                className='grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7'
                 role='radiogroup'
                 aria-label='Item type'
               >
@@ -303,6 +418,27 @@ export const CreateItemDialog = ({
                 />
                 <FieldErrorText errors={fieldErrors.description} />
               </div>
+
+              {requiresFileUpload ? (
+                <div className='space-y-2 sm:col-span-2'>
+                  <FileUpload
+                    itemType={formState.itemType as FileUploadItemType}
+                    file={selectedFile}
+                    error={fileError ?? undefined}
+                    isUploading={isSubmitting}
+                    progress={uploadProgress}
+                    onChange={(file) => {
+                      setSelectedFile(file);
+                      setFileError(null);
+
+                      if (!formState.title.trim() && file) {
+                        const titleWithoutExtension = file.name.replace(/\.[^.]+$/, '');
+                        handleFieldChange('title', titleWithoutExtension || file.name);
+                      }
+                    }}
+                  />
+                </div>
+              ) : null}
 
               {showsContent ? (
                 <div className='space-y-2 sm:col-span-2'>
