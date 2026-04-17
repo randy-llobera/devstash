@@ -15,6 +15,7 @@ import {
   type FileUploadItemType,
   validateUploadFile,
 } from '@/lib/file-upload';
+import { formatFileSize } from '@/lib/file-size';
 import { cn } from '@/lib/utils';
 
 import { Button } from '@/components/ui/button';
@@ -27,18 +28,6 @@ interface FileUploadProps {
   onChange: (file: File | null) => void;
   progress?: number;
 }
-
-const formatFileSize = (value: number) => {
-  if (value < 1024) {
-    return `${value} B`;
-  }
-
-  if (value < 1024 * 1024) {
-    return `${(value / 1024).toFixed(1)} KB`;
-  }
-
-  return `${(value / (1024 * 1024)).toFixed(1)} MB`;
-};
 
 export const FileUpload = ({
   error,

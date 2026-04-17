@@ -167,6 +167,8 @@ interface DeleteItemActionResult {
   error?: string;
 }
 
+const VALIDATION_ERROR_MESSAGE = "Please fix the highlighted fields.";
+
 const normalizeOptionalText = (value: string | null | undefined) => {
   if (typeof value !== "string") {
     return value ?? null;
@@ -177,49 +179,82 @@ const normalizeOptionalText = (value: string | null | undefined) => {
   return trimmedValue.length > 0 ? trimmedValue : null;
 };
 
+const buildParsedPayload = <T extends CreateItemPayload | UpdateItemPayload>(
+  data: T,
+) => ({
+  tags: data.tags,
+  title: data.title,
+  ...(Object.prototype.hasOwnProperty.call(data, "description")
+    ? { description: normalizeOptionalText(data.description) }
+    : {}),
+  ...(Object.prototype.hasOwnProperty.call(data, "content")
+    ? { content: normalizeOptionalText(data.content) }
+    : {}),
+  ...(Object.prototype.hasOwnProperty.call(data, "url")
+    ? { url: normalizeOptionalText(data.url) }
+    : {}),
+  ...(Object.prototype.hasOwnProperty.call(data, "language")
+    ? { language: normalizeOptionalText(data.language) }
+    : {}),
+});
+
+const buildCreateItemPayload = (data: CreateItemPayload) => ({
+  itemType: data.itemType,
+  ...buildParsedPayload(data),
+  ...(Object.prototype.hasOwnProperty.call(data, "fileName")
+    ? { fileName: normalizeOptionalText(data.fileName) }
+    : {}),
+  ...(Object.prototype.hasOwnProperty.call(data, "fileSize")
+    ? { fileSize: data.fileSize ?? null }
+    : {}),
+  ...(Object.prototype.hasOwnProperty.call(data, "fileUrl")
+    ? { fileUrl: normalizeOptionalText(data.fileUrl) }
+    : {}),
+});
+
+const getFieldValidationError = (
+  error: z.ZodError<CreateItemPayload | UpdateItemPayload>,
+): CreateItemActionError | UpdateItemActionError => ({
+  message: VALIDATION_ERROR_MESSAGE,
+  fieldErrors: error.flatten().fieldErrors,
+});
+
+const getSessionUserId = async () => {
+  const session = await auth();
+
+  return session?.user?.id ?? null;
+};
+
+const getOwnedItem = async (itemId: string, userId: string) => getItemDrawerDetail(itemId, userId);
+
+const validateUploadedFileOwnership = (userId: string, fileUrl: string) => {
+  const objectKey = getObjectKeyFromFileUrl(fileUrl);
+
+  if (!objectKey || !objectKey.startsWith(`users/${userId}/`)) {
+    return {
+      message: VALIDATION_ERROR_MESSAGE,
+      fieldErrors: {
+        fileUrl: ["Uploaded file must belong to your storage bucket."],
+      },
+    } satisfies CreateItemActionError;
+  }
+
+  return null;
+};
+
 export const createItem = async (data: CreateItemPayload): Promise<CreateItemActionResult> => {
-  const parsedPayload = itemCreateSchema.safeParse({
-    itemType: data.itemType,
-    title: data.title,
-    tags: data.tags,
-    ...(Object.prototype.hasOwnProperty.call(data, "description")
-      ? { description: normalizeOptionalText(data.description) }
-      : {}),
-    ...(Object.prototype.hasOwnProperty.call(data, "content")
-      ? { content: normalizeOptionalText(data.content) }
-      : {}),
-    ...(Object.prototype.hasOwnProperty.call(data, "url")
-      ? { url: normalizeOptionalText(data.url) }
-      : {}),
-    ...(Object.prototype.hasOwnProperty.call(data, "language")
-      ? { language: normalizeOptionalText(data.language) }
-      : {}),
-    ...(Object.prototype.hasOwnProperty.call(data, "fileName")
-      ? { fileName: normalizeOptionalText(data.fileName) }
-      : {}),
-    ...(Object.prototype.hasOwnProperty.call(data, "fileSize")
-      ? { fileSize: data.fileSize ?? null }
-      : {}),
-    ...(Object.prototype.hasOwnProperty.call(data, "fileUrl")
-      ? { fileUrl: normalizeOptionalText(data.fileUrl) }
-      : {}),
-  });
+  const parsedPayload = itemCreateSchema.safeParse(buildCreateItemPayload(data));
 
   if (!parsedPayload.success) {
-    const flattenedError = parsedPayload.error.flatten();
-
     return {
       success: false,
-      error: {
-        message: "Please fix the highlighted fields.",
-        fieldErrors: flattenedError.fieldErrors,
-      },
+      error: getFieldValidationError(parsedPayload.error),
     };
   }
 
-  const session = await auth();
+  const userId = await getSessionUserId();
 
-  if (!session?.user?.id) {
+  if (!userId) {
     return {
       success: false,
       error: "You must be signed in to create items.",
@@ -230,23 +265,18 @@ export const createItem = async (data: CreateItemPayload): Promise<CreateItemAct
     (parsedPayload.data.itemType === "file" || parsedPayload.data.itemType === "image") &&
     parsedPayload.data.fileUrl
   ) {
-    const objectKey = getObjectKeyFromFileUrl(parsedPayload.data.fileUrl);
+    const ownershipError = validateUploadedFileOwnership(userId, parsedPayload.data.fileUrl);
 
-    if (!objectKey || !objectKey.startsWith(`users/${session.user.id}/`)) {
+    if (ownershipError) {
       return {
         success: false,
-        error: {
-          message: "Please fix the highlighted fields.",
-          fieldErrors: {
-            fileUrl: ["Uploaded file must belong to your storage bucket."],
-          },
-        },
+        error: ownershipError,
       };
     }
   }
 
   try {
-    const createdItem = await createItemRecord(session.user.id, parsedPayload.data);
+    const createdItem = await createItemRecord(userId, parsedPayload.data);
 
     if (!createdItem) {
       return {
@@ -273,45 +303,25 @@ export const updateItem = async (
   itemId: string,
   data: UpdateItemPayload
 ): Promise<UpdateItemActionResult> => {
-  const parsedPayload = itemUpdateSchema.safeParse({
-    title: data.title,
-    tags: data.tags,
-    ...(Object.prototype.hasOwnProperty.call(data, "description")
-      ? { description: normalizeOptionalText(data.description) }
-      : {}),
-    ...(Object.prototype.hasOwnProperty.call(data, "content")
-      ? { content: normalizeOptionalText(data.content) }
-      : {}),
-    ...(Object.prototype.hasOwnProperty.call(data, "url")
-      ? { url: normalizeOptionalText(data.url) }
-      : {}),
-    ...(Object.prototype.hasOwnProperty.call(data, "language")
-      ? { language: normalizeOptionalText(data.language) }
-      : {}),
-  });
+  const parsedPayload = itemUpdateSchema.safeParse(buildParsedPayload(data));
 
   if (!parsedPayload.success) {
-    const flattenedError = parsedPayload.error.flatten();
-
     return {
       success: false,
-      error: {
-        message: "Please fix the highlighted fields.",
-        fieldErrors: flattenedError.fieldErrors,
-      },
+      error: getFieldValidationError(parsedPayload.error),
     };
   }
 
-  const session = await auth();
+  const userId = await getSessionUserId();
 
-  if (!session?.user?.id) {
+  if (!userId) {
     return {
       success: false,
       error: "You must be signed in to update items.",
     };
   }
 
-  const existingItem = await getItemDrawerDetail(itemId, session.user.id);
+  const existingItem = await getOwnedItem(itemId, userId);
 
   if (!existingItem) {
     return {
@@ -345,16 +355,16 @@ export const updateItem = async (
 };
 
 export const deleteItem = async (itemId: string): Promise<DeleteItemActionResult> => {
-  const session = await auth();
+  const userId = await getSessionUserId();
 
-  if (!session?.user?.id) {
+  if (!userId) {
     return {
       success: false,
       error: "You must be signed in to delete items.",
     };
   }
 
-  const existingItem = await getItemDrawerDetail(itemId, session.user.id);
+  const existingItem = await getOwnedItem(itemId, userId);
 
   if (!existingItem) {
     return {
@@ -372,7 +382,7 @@ export const deleteItem = async (itemId: string): Promise<DeleteItemActionResult
       }
     }
 
-    const deleted = await deleteItemRecord(itemId, session.user.id);
+    const deleted = await deleteItemRecord(itemId, userId);
 
     if (!deleted) {
       return {

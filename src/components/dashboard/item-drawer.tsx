@@ -14,7 +14,9 @@ import { toast } from 'sonner';
 import { deleteItem, updateItem, type UpdateItemActionError } from '@/actions/items';
 import type { DashboardItem, ItemDrawerDetail } from '@/lib/db/items';
 import { isCodeEditorItemType } from '@/lib/code-editor';
+import { formatFileSize } from '@/lib/file-size';
 import { isSvgFileName } from '@/lib/file-upload';
+import { isContentItemType, isFileItemType, isLanguageItemType, isUrlItemType, parseItemTagsInput } from '@/lib/item-form';
 import { isMarkdownEditorItemType } from '@/lib/markdown-editor';
 
 import { cn } from '@/lib/utils';
@@ -46,10 +48,6 @@ import {
 } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
 
-const CONTENT_ITEM_TYPES = new Set(['snippet', 'prompt', 'command', 'note']);
-const LANGUAGE_ITEM_TYPES = new Set(['snippet', 'command']);
-const URL_ITEM_TYPES = new Set(['link']);
-
 interface EditFormState {
   title: string;
   description: string;
@@ -61,22 +59,6 @@ interface EditFormState {
 
 type EditFormField = keyof EditFormState;
 type EditFormErrors = Partial<Record<EditFormField, string[]>>;
-
-const formatFileSize = (value: number | null) => {
-  if (!value || value <= 0) {
-    return null;
-  }
-
-  if (value < 1024) {
-    return `${value} B`;
-  }
-
-  if (value < 1024 * 1024) {
-    return `${(value / 1024).toFixed(1)} KB`;
-  }
-
-  return `${(value / (1024 * 1024)).toFixed(1)} MB`;
-};
 
 const getCopyValue = (item: ItemDrawerDetail | null) => {
   if (!item) {
@@ -107,29 +89,9 @@ const getInitialFormState = (item: ItemDrawerDetail | null): EditFormState => ({
   url: item?.url ?? '',
 });
 
-const parseTagsInput = (value: string) =>
-  Array.from(
-    new Set(
-      value
-        .split(',')
-        .map((tag) => tag.trim())
-        .filter(Boolean),
-    ),
-  );
-
-const isContentEditable = (item: ItemDrawerDetail) =>
-  CONTENT_ITEM_TYPES.has(item.itemType.name.toLowerCase());
-
-const isLanguageEditable = (item: ItemDrawerDetail) =>
-  LANGUAGE_ITEM_TYPES.has(item.itemType.name.toLowerCase());
-
-const isUrlEditable = (item: ItemDrawerDetail) =>
-  URL_ITEM_TYPES.has(item.itemType.name.toLowerCase());
-
 const usesCodeEditor = (itemTypeName: string) => isCodeEditorItemType(itemTypeName);
 const usesMarkdownEditor = (itemTypeName: string) => isMarkdownEditorItemType(itemTypeName);
 const isImageItem = (item: ItemDrawerDetail) => item.itemType.name.toLowerCase() === 'image';
-const isFileItem = (item: ItemDrawerDetail) => item.itemType.name.toLowerCase() === 'file';
 const supportsInlineImagePreview = (item: ItemDrawerDetail) =>
   isImageItem(item) && !isSvgFileName(item.fileName);
 
@@ -211,84 +173,209 @@ const ItemDrawerError = ({ message }: { message: string }) => (
   </div>
 );
 
-const ItemDrawerBody = ({ item }: { item: ItemDrawerDetail }) => {
+interface ItemMetadataCardProps {
+  label: string;
+  secondaryValue?: string | null;
+  value: string;
+}
+
+const ItemMetadataCard = ({
+  label,
+  secondaryValue,
+  value,
+}: ItemMetadataCardProps) => (
+  <div className='rounded-2xl border border-border/60 bg-card/40 p-4'>
+    <p className='text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase'>
+      {label}
+    </p>
+    <p className='mt-2 text-sm text-foreground'>{value}</p>
+    {secondaryValue ? (
+      <p className='mt-1 text-xs text-muted-foreground'>{secondaryValue}</p>
+    ) : null}
+  </div>
+);
+
+const ItemDrawerMetadata = ({ item }: { item: ItemDrawerDetail }) => (
+  <div className='grid gap-3 sm:grid-cols-2'>
+    <ItemMetadataCard
+      label='Updated'
+      value={formatUpdatedAt(item.updatedAt)}
+      secondaryValue={formatDate(item.updatedAt)}
+    />
+    <ItemMetadataCard
+      label='Created'
+      value={formatDate(item.createdAt)}
+      secondaryValue={item.contentType}
+    />
+  </div>
+);
+
+const ItemDrawerCollections = ({ item }: { item: ItemDrawerDetail }) => (
+  <div className='flex flex-wrap items-center gap-2'>
+    <Badge variant='outline' className='rounded-full px-3 py-1'>
+      <span
+        className='mr-2 inline-block size-2 rounded-full'
+        style={{ backgroundColor: item.itemType.color }}
+      />
+      {item.itemType.name}
+    </Badge>
+    {item.language ? (
+      <Badge variant='outline' className='rounded-full px-3 py-1'>
+        {item.language}
+      </Badge>
+    ) : null}
+    {item.collections.map((collection) => (
+      <Badge key={collection.id} variant='outline' className='rounded-full px-3 py-1'>
+        {collection.name}
+      </Badge>
+    ))}
+  </div>
+);
+
+const ItemDrawerTags = ({ tags }: { tags: string[] }) => {
+  if (tags.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className='space-y-2'>
+      <p className='text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase'>
+        Tags
+      </p>
+      <div className='flex flex-wrap gap-2'>
+        {tags.map((tag) => (
+          <Badge key={tag} variant='outline' className='rounded-full px-3 py-1'>
+            #{tag}
+          </Badge>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const ItemDrawerContent = ({ item }: { item: ItemDrawerDetail }) => {
+  if (!item.content) {
+    return null;
+  }
+
+  if (usesCodeEditor(item.itemType.name)) {
+    return (
+      <CodeEditor
+        itemType={item.itemType.name}
+        language={item.language}
+        readOnly
+        value={item.content}
+      />
+    );
+  }
+
+  if (usesMarkdownEditor(item.itemType.name)) {
+    return <MarkdownEditor readOnly value={item.content} />;
+  }
+
+  return (
+    <div className='overflow-x-auto rounded-[1.5rem] border border-border/60 bg-card/45 p-4'>
+      <pre className='font-mono text-sm leading-6 whitespace-pre-wrap text-foreground'>
+        {item.content}
+      </pre>
+    </div>
+  );
+};
+
+const ItemDrawerUrl = ({ url }: { url: string | null }) => {
+  if (!url) {
+    return null;
+  }
+
+  return (
+    <div className='rounded-[1.5rem] border border-border/60 bg-card/45 p-4'>
+      <p className='text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase'>
+        URL
+      </p>
+      <a
+        href={url}
+        target='_blank'
+        rel='noreferrer'
+        className='mt-2 block break-all text-sm text-primary underline-offset-4 hover:underline'
+      >
+        {url}
+      </a>
+    </div>
+  );
+};
+
+const ItemDrawerFile = ({ item }: { item: ItemDrawerDetail }) => {
+  if (!item.fileUrl && !item.fileName) {
+    return null;
+  }
+
   const fileSize = formatFileSize(item.fileSize);
+  const downloadHref = `/api/items/${item.id}/download`;
+  const inlinePreviewHref = `${downloadHref}?inline=1`;
+  const showsInlineImage = supportsInlineImagePreview(item);
+  const isFile = isFileItemType(item.itemType.name);
+
+  return (
+    <div className='rounded-[1.5rem] border border-border/60 bg-card/45 p-4'>
+      <p className='text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase'>
+        File
+      </p>
+      {showsInlineImage ? (
+        <div className='mt-3 overflow-hidden rounded-2xl border border-border/60 bg-background/80'>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={inlinePreviewHref}
+            alt={item.title}
+            className='max-h-[28rem] w-full object-contain'
+          />
+        </div>
+      ) : null}
+      <p className='mt-2 text-sm text-foreground'>{item.fileName ?? 'Attached file'}</p>
+      {fileSize ? <p className='mt-1 text-sm text-muted-foreground'>{fileSize}</p> : null}
+      {item.fileUrl ? (
+        isFile ? (
+          <a
+            href={downloadHref}
+            className='mt-2 inline-flex items-center gap-2 text-sm text-primary underline-offset-4 hover:underline'
+          >
+            <Download className='size-4' />
+            Download file
+          </a>
+        ) : showsInlineImage ? (
+          <a
+            href={inlinePreviewHref}
+            target='_blank'
+            rel='noreferrer'
+            className='mt-2 inline-flex items-center gap-2 text-sm text-primary underline-offset-4 hover:underline'
+          >
+            <Link2 className='size-4' />
+            Open image
+          </a>
+        ) : (
+          <a
+            href={downloadHref}
+            className='mt-2 inline-flex items-center gap-2 text-sm text-primary underline-offset-4 hover:underline'
+          >
+            <Download className='size-4' />
+            Download image
+          </a>
+        )
+      ) : null}
+    </div>
+  );
+};
+
+const ItemDrawerBody = ({ item }: { item: ItemDrawerDetail }) => {
   const itemTypeIcon = createElement(getItemTypeIcon(item.itemType.icon), {
     className: 'size-5',
     style: { color: item.itemType.color },
   });
-  const downloadHref = `/api/items/${item.id}/download`;
-  const inlinePreviewHref = `${downloadHref}?inline=1`;
 
   return (
     <div className='space-y-6'>
-      <div className='flex flex-wrap items-center gap-2'>
-        <Badge variant='outline' className='rounded-full px-3 py-1'>
-          <span
-            className='mr-2 inline-block size-2 rounded-full'
-            style={{ backgroundColor: item.itemType.color }}
-          />
-          {item.itemType.name}
-        </Badge>
-        {item.language ? (
-          <Badge variant='outline' className='rounded-full px-3 py-1'>
-            {item.language}
-          </Badge>
-        ) : null}
-        {item.collections.map((collection) => (
-          <Badge
-            key={collection.id}
-            variant='outline'
-            className='rounded-full px-3 py-1'
-          >
-            {collection.name}
-          </Badge>
-        ))}
-      </div>
-
-      <div className='grid gap-3 sm:grid-cols-2'>
-        <div className='rounded-2xl border border-border/60 bg-card/40 p-4'>
-          <p className='text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase'>
-            Updated
-          </p>
-          <p className='mt-2 text-sm text-foreground'>
-            {formatUpdatedAt(item.updatedAt)}
-          </p>
-          <p className='mt-1 text-xs text-muted-foreground'>
-            {formatDate(item.updatedAt)}
-          </p>
-        </div>
-        <div className='rounded-2xl border border-border/60 bg-card/40 p-4'>
-          <p className='text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase'>
-            Created
-          </p>
-          <p className='mt-2 text-sm text-foreground'>
-            {formatDate(item.createdAt)}
-          </p>
-          <p className='mt-1 text-xs text-muted-foreground'>
-            {item.contentType}
-          </p>
-        </div>
-      </div>
-
-      {item.tags.length > 0 ? (
-        <div className='space-y-2'>
-          <p className='text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase'>
-            Tags
-          </p>
-          <div className='flex flex-wrap gap-2'>
-            {item.tags.map((tag) => (
-              <Badge
-                key={tag}
-                variant='outline'
-                className='rounded-full px-3 py-1'
-              >
-                #{tag}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      ) : null}
+      <ItemDrawerCollections item={item} />
+      <ItemDrawerMetadata item={item} />
+      <ItemDrawerTags tags={item.tags} />
 
       <div className='space-y-3'>
         <div className='flex items-center gap-3'>
@@ -303,91 +390,9 @@ const ItemDrawerBody = ({ item }: { item: ItemDrawerDetail }) => {
           </div>
         </div>
 
-        {item.content ? (
-          usesCodeEditor(item.itemType.name) ? (
-            <CodeEditor
-              itemType={item.itemType.name}
-              language={item.language}
-              readOnly
-              value={item.content}
-            />
-          ) : usesMarkdownEditor(item.itemType.name) ? (
-            <MarkdownEditor readOnly value={item.content} />
-          ) : (
-            <div className='overflow-x-auto rounded-[1.5rem] border border-border/60 bg-card/45 p-4'>
-              <pre className='font-mono text-sm leading-6 whitespace-pre-wrap text-foreground'>
-                {item.content}
-              </pre>
-            </div>
-          )
-        ) : null}
-
-        {item.url ? (
-          <div className='rounded-[1.5rem] border border-border/60 bg-card/45 p-4'>
-            <p className='text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase'>
-              URL
-            </p>
-            <a
-              href={item.url}
-              target='_blank'
-              rel='noreferrer'
-              className='mt-2 block break-all text-sm text-primary underline-offset-4 hover:underline'
-            >
-              {item.url}
-            </a>
-          </div>
-        ) : null}
-
-        {item.fileUrl || item.fileName ? (
-          <div className='rounded-[1.5rem] border border-border/60 bg-card/45 p-4'>
-            <p className='text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase'>
-              File
-            </p>
-            {supportsInlineImagePreview(item) ? (
-              <div className='mt-3 overflow-hidden rounded-2xl border border-border/60 bg-background/80'>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={inlinePreviewHref}
-                  alt={item.title}
-                  className='max-h-[28rem] w-full object-contain'
-                />
-              </div>
-            ) : null}
-            <p className='mt-2 text-sm text-foreground'>
-              {item.fileName ?? 'Attached file'}
-            </p>
-            {fileSize ? (
-              <p className='mt-1 text-sm text-muted-foreground'>{fileSize}</p>
-            ) : null}
-            {item.fileUrl ? isFileItem(item) ? (
-              <a
-                href={downloadHref}
-                className='mt-2 inline-flex items-center gap-2 text-sm text-primary underline-offset-4 hover:underline'
-              >
-                <Download className='size-4' />
-                Download file
-              </a>
-            ) : supportsInlineImagePreview(item) ? (
-              <a
-                href={inlinePreviewHref}
-                target='_blank'
-                rel='noreferrer'
-                className='mt-2 inline-flex items-center gap-2 text-sm text-primary underline-offset-4 hover:underline'
-              >
-                <Link2 className='size-4' />
-                Open image
-              </a>
-            ) : (
-              <a
-                href={downloadHref}
-                className='mt-2 inline-flex items-center gap-2 text-sm text-primary underline-offset-4 hover:underline'
-              >
-                <Download className='size-4' />
-                Download image
-              </a>
-            ) : null}
-          </div>
-        ) : null}
+        <ItemDrawerContent item={item} />
+        <ItemDrawerUrl url={item.url} />
+        <ItemDrawerFile item={item} />
       </div>
     </div>
   );
@@ -408,9 +413,9 @@ const ItemDrawerEditBody = ({
   onFieldChange,
   submitError,
 }: ItemDrawerEditBodyProps) => {
-  const showContentField = isContentEditable(item);
-  const showLanguageField = isLanguageEditable(item);
-  const showUrlField = isUrlEditable(item);
+  const showContentField = isContentItemType(item.itemType.name);
+  const showLanguageField = isLanguageItemType(item.itemType.name);
+  const showUrlField = isUrlItemType(item.itemType.name);
 
   return (
     <div className='space-y-6'>
@@ -449,18 +454,7 @@ const ItemDrawerEditBody = ({
       </div>
 
       <div className='grid gap-3 sm:grid-cols-2'>
-        <div className='rounded-2xl border border-border/60 bg-card/40 p-4'>
-          <p className='text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase'>
-            Item type
-          </p>
-          <div className='mt-2 flex items-center gap-2 text-sm text-foreground'>
-            <span
-              className='inline-block size-2 rounded-full'
-              style={{ backgroundColor: item.itemType.color }}
-            />
-            {item.itemType.name}
-          </div>
-        </div>
+        <ItemMetadataCard label='Item type' value={item.itemType.name} />
         <div className='rounded-2xl border border-border/60 bg-card/40 p-4'>
           <p className='text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase'>
             Collections
@@ -468,11 +462,7 @@ const ItemDrawerEditBody = ({
           <div className='mt-2 flex flex-wrap gap-2'>
             {item.collections.length > 0 ? (
               item.collections.map((collection) => (
-                <Badge
-                  key={collection.id}
-                  variant='outline'
-                  className='rounded-full px-3 py-1'
-                >
+                <Badge key={collection.id} variant='outline' className='rounded-full px-3 py-1'>
                   {collection.name}
                 </Badge>
               ))
@@ -481,28 +471,16 @@ const ItemDrawerEditBody = ({
             )}
           </div>
         </div>
-        <div className='rounded-2xl border border-border/60 bg-card/40 p-4'>
-          <p className='text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase'>
-            Updated
-          </p>
-          <p className='mt-2 text-sm text-foreground'>
-            {formatUpdatedAt(item.updatedAt)}
-          </p>
-          <p className='mt-1 text-xs text-muted-foreground'>
-            {formatDate(item.updatedAt)}
-          </p>
-        </div>
-        <div className='rounded-2xl border border-border/60 bg-card/40 p-4'>
-          <p className='text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase'>
-            Created
-          </p>
-          <p className='mt-2 text-sm text-foreground'>
-            {formatDate(item.createdAt)}
-          </p>
-          <p className='mt-1 text-xs text-muted-foreground'>
-            {item.contentType}
-          </p>
-        </div>
+        <ItemMetadataCard
+          label='Updated'
+          value={formatUpdatedAt(item.updatedAt)}
+          secondaryValue={formatDate(item.updatedAt)}
+        />
+        <ItemMetadataCard
+          label='Created'
+          value={formatDate(item.createdAt)}
+          secondaryValue={item.contentType}
+        />
       </div>
 
       <div className='space-y-2'>
@@ -698,10 +676,10 @@ export const ItemDrawer = ({
     const payload = {
       title: formState.title,
       description: formState.description,
-      tags: parseTagsInput(formState.tags),
-      ...(isContentEditable(item) ? { content: formState.content } : {}),
-      ...(isLanguageEditable(item) ? { language: formState.language } : {}),
-      ...(isUrlEditable(item) ? { url: formState.url } : {}),
+      tags: parseItemTagsInput(formState.tags),
+      ...(isContentItemType(item.itemType.name) ? { content: formState.content } : {}),
+      ...(isLanguageItemType(item.itemType.name) ? { language: formState.language } : {}),
+      ...(isUrlItemType(item.itemType.name) ? { url: formState.url } : {}),
     };
 
     const result = await updateItem(item.id, payload);
@@ -792,7 +770,7 @@ export const ItemDrawer = ({
                 </>
               ) : (
                 <>
-                  {item && item.fileUrl && isFileItem(item) ? (
+                  {item && item.fileUrl && isFileItemType(item.itemType.name) ? (
                     <DrawerActionButton asChild aria-label='Download file'>
                       <a href={`/api/items/${item.id}/download`}>
                         <Download className='size-4' />
