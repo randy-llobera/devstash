@@ -9,7 +9,6 @@ import { prisma } from "@/lib/prisma";
 import {
   checkAuthRateLimit,
   getRateLimitErrorCode,
-  getRateLimitMessage,
 } from "@/lib/rate-limit";
 
 class RateLimitExceededError extends CredentialsSignin {
@@ -44,7 +43,6 @@ const credentialsProvider = Credentials({
     });
 
     if (!rateLimitResult.success) {
-      console.error(getRateLimitMessage(rateLimitResult.reset));
       throw new RateLimitExceededError(
         getRateLimitErrorCode(rateLimitResult.reset),
       );
