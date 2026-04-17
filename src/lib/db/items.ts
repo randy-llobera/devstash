@@ -1,3 +1,4 @@
+import { ContentType } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getDashboardUser } from "@/lib/db/dashboard-user";
 
@@ -104,6 +105,12 @@ export interface CreateItemInput {
   tags: string[];
 }
 
+const ITEM_CONTENT_TYPES: Partial<Record<CreateItemInput["itemType"], ContentType>> = {
+  file: ContentType.FILE,
+  image: ContentType.FILE,
+  link: ContentType.URL,
+};
+
 export const deleteItem = async (itemId: string, userId: string): Promise<boolean> => {
   const result = await prisma.item.deleteMany({
     where: {
@@ -118,6 +125,51 @@ export const deleteItem = async (itemId: string, userId: string): Promise<boolea
 const capitalize = (value: string) => `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
 export const getItemTypeSlug = (name: string) => `${name.toLowerCase()}s`;
 export const getItemTypeLabel = (name: string) => `${capitalize(name)}s`;
+
+const buildTagConnections = (tags: string[]) =>
+  tags.map((tag) => ({
+    where: {
+      name: tag,
+    },
+    create: {
+      name: tag,
+    },
+  }));
+
+const getCreateItemContentType = (itemType: CreateItemInput["itemType"]) =>
+  ITEM_CONTENT_TYPES[itemType] ?? ContentType.TEXT;
+
+const getCreateItemData = (userId: string, itemTypeId: string, data: CreateItemInput) => ({
+  userId,
+  itemTypeId,
+  title: data.title,
+  description: data.description ?? null,
+  contentType: getCreateItemContentType(data.itemType),
+  content: data.itemType === "link" || data.itemType === "file" || data.itemType === "image"
+    ? null
+    : (data.content ?? null),
+  fileName: data.itemType === "file" || data.itemType === "image" ? (data.fileName ?? null) : null,
+  fileSize: data.itemType === "file" || data.itemType === "image" ? (data.fileSize ?? null) : null,
+  fileUrl: data.itemType === "file" || data.itemType === "image" ? (data.fileUrl ?? null) : null,
+  url: data.itemType === "link" ? (data.url ?? null) : null,
+  language: data.itemType === "snippet" || data.itemType === "command"
+    ? (data.language ?? null)
+    : null,
+  tags: {
+    connectOrCreate: buildTagConnections(data.tags),
+  },
+});
+
+const findSystemItemType = async (name: CreateItemInput["itemType"]) =>
+  prisma.itemType.findFirst({
+    where: {
+      name,
+      isSystem: true,
+    },
+    select: {
+      id: true,
+    },
+  });
 
 const mapDashboardItem = (item: {
   id: string;
@@ -441,54 +493,14 @@ export const createItem = async (
   userId: string,
   data: CreateItemInput
 ): Promise<ItemDrawerDetail | null> => {
-  const itemType = await prisma.itemType.findFirst({
-    where: {
-      name: data.itemType,
-      isSystem: true,
-    },
-    select: {
-      id: true,
-    },
-  });
+  const itemType = await findSystemItemType(data.itemType);
 
   if (!itemType) {
     return null;
   }
 
   const item = await prisma.item.create({
-    data: {
-      userId,
-      itemTypeId: itemType.id,
-      title: data.title,
-      description: data.description ?? null,
-      contentType:
-        data.itemType === "link" ? "URL" : data.itemType === "file" || data.itemType === "image" ? "FILE" : "TEXT",
-      content:
-        data.itemType === "link" || data.itemType === "file" || data.itemType === "image"
-          ? null
-          : (data.content ?? null),
-      fileName:
-        data.itemType === "file" || data.itemType === "image" ? (data.fileName ?? null) : null,
-      fileSize:
-        data.itemType === "file" || data.itemType === "image" ? (data.fileSize ?? null) : null,
-      fileUrl:
-        data.itemType === "file" || data.itemType === "image" ? (data.fileUrl ?? null) : null,
-      url: data.itemType === "link" ? (data.url ?? null) : null,
-      language:
-        data.itemType === "snippet" || data.itemType === "command"
-          ? (data.language ?? null)
-          : null,
-      tags: {
-        connectOrCreate: data.tags.map((tag) => ({
-          where: {
-            name: tag,
-          },
-          create: {
-            name: tag,
-          },
-        })),
-      },
-    },
+    data: getCreateItemData(userId, itemType.id, data),
     select: itemDrawerDetailSelect,
   });
 
@@ -547,14 +559,7 @@ export const updateItem = async (
       },
       data: {
         tags: {
-          connectOrCreate: data.tags.map((tag) => ({
-            where: {
-              name: tag,
-            },
-            create: {
-              name: tag,
-            },
-          })),
+          connectOrCreate: buildTagConnections(data.tags),
         },
       },
       select: itemDrawerDetailSelect,

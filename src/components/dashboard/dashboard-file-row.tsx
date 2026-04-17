@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import type { DashboardItem } from "@/lib/db/items";
+import { formatFileSize } from "@/lib/file-size";
 import { getFileExtension } from "@/lib/file-upload";
 
 import { useItemDrawer } from "@/components/dashboard/item-drawer-provider";
@@ -56,29 +57,6 @@ const FILE_ICON_BY_EXTENSION: Record<string, LucideIcon> = {
   ".xls": FileSpreadsheet,
   ".xlsx": FileSpreadsheet,
   ".zip": FileArchive,
-};
-
-const formatFileSize = (value: number | null) => {
-  if (!value || Number.isNaN(value)) {
-    return "Unknown size";
-  }
-
-  if (value < 1024) {
-    return `${value} B`;
-  }
-
-  const units = ["KB", "MB", "GB", "TB"];
-  let size = value / 1024;
-  let unitIndex = 0;
-
-  while (size >= 1024 && unitIndex < units.length - 1) {
-    size /= 1024;
-    unitIndex += 1;
-  }
-
-  const digits = size >= 10 || unitIndex === 0 ? 0 : 1;
-
-  return `${size.toFixed(digits)} ${units[unitIndex]}`;
 };
 
 const getFileIcon = (fileName: string | null, fallbackIcon: string) => {
@@ -123,7 +101,7 @@ export const DashboardFileRow = ({ item }: DashboardFileRowProps) => {
             </div>
 
             <div className="flex flex-col gap-1 text-xs text-muted-foreground sm:min-w-[220px] sm:items-end sm:text-sm">
-              <span>{formatFileSize(item.fileSize)}</span>
+              <span>{formatFileSize(item.fileSize) ?? "Unknown size"}</span>
               <span>Uploaded {formatDate(item.createdAt)}</span>
             </div>
           </div>
