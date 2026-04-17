@@ -89,10 +89,13 @@ export interface UpdateItemInput {
 }
 
 export interface CreateItemInput {
-  itemType: "snippet" | "prompt" | "command" | "note" | "link";
+  itemType: "snippet" | "prompt" | "command" | "note" | "file" | "image" | "link";
   title: string;
   description?: string | null;
   content?: string | null;
+  fileName?: string | null;
+  fileSize?: number | null;
+  fileUrl?: string | null;
   url?: string | null;
   language?: string | null;
   tags: string[];
@@ -436,8 +439,18 @@ export const createItem = async (
       itemTypeId: itemType.id,
       title: data.title,
       description: data.description ?? null,
-      contentType: data.itemType === "link" ? "URL" : "TEXT",
-      content: data.itemType === "link" ? null : (data.content ?? null),
+      contentType:
+        data.itemType === "link" ? "URL" : data.itemType === "file" || data.itemType === "image" ? "FILE" : "TEXT",
+      content:
+        data.itemType === "link" || data.itemType === "file" || data.itemType === "image"
+          ? null
+          : (data.content ?? null),
+      fileName:
+        data.itemType === "file" || data.itemType === "image" ? (data.fileName ?? null) : null,
+      fileSize:
+        data.itemType === "file" || data.itemType === "image" ? (data.fileSize ?? null) : null,
+      fileUrl:
+        data.itemType === "file" || data.itemType === "image" ? (data.fileUrl ?? null) : null,
       url: data.itemType === "link" ? (data.url ?? null) : null,
       language:
         data.itemType === "snippet" || data.itemType === "command"
