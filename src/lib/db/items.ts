@@ -18,8 +18,10 @@ export interface DashboardItem {
   title: string;
   description: string;
   fileName: string | null;
+  fileSize: number | null;
   isFavorite: boolean;
   isPinned: boolean;
+  createdAt: string;
   updatedAt: string;
   tags: string[];
   itemType: DashboardItemType;
@@ -122,8 +124,10 @@ const mapDashboardItem = (item: {
   title: string;
   description: string | null;
   fileName: string | null;
+  fileSize: number | null;
   isFavorite: boolean;
   isPinned: boolean;
+  createdAt: Date;
   updatedAt: Date;
   tags: { name: string }[];
   itemType: DashboardItemType;
@@ -141,8 +145,10 @@ const mapDashboardItem = (item: {
     title: item.title,
     description: item.description ?? "No description yet.",
     fileName: item.fileName ?? null,
+    fileSize: item.fileSize ?? null,
     isFavorite: item.isFavorite,
     isPinned: item.isPinned,
+    createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
     tags: item.tags.map((tag) => tag.name),
     itemType: item.itemType,
@@ -249,8 +255,10 @@ const getDashboardItems = async () => {
       title: true,
       description: true,
       fileName: true,
+      fileSize: true,
       isFavorite: true,
       isPinned: true,
+      createdAt: true,
       updatedAt: true,
       tags: {
         select: {
@@ -585,8 +593,10 @@ export const getItemsByTypeSlug = async (
       title: true,
       description: true,
       fileName: true,
+      fileSize: true,
       isFavorite: true,
       isPinned: true,
+      createdAt: true,
       updatedAt: true,
       tags: {
         select: {
