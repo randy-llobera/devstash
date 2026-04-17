@@ -6,6 +6,8 @@ import { prisma } from "@/lib/prisma";
 import {
   checkAuthRateLimit,
   createRateLimitErrorResponse,
+  createRateLimitUnavailableResponse,
+  isRateLimitUnavailable,
 } from "@/lib/rate-limit";
 
 interface ResendVerificationRequestBody {
@@ -49,6 +51,10 @@ export const POST = async (request: Request) => {
   });
 
   if (!rateLimitResult.success) {
+    if (isRateLimitUnavailable(rateLimitResult)) {
+      return createRateLimitUnavailableResponse();
+    }
+
     return createRateLimitErrorResponse(rateLimitResult);
   }
 
@@ -67,7 +73,6 @@ export const POST = async (request: Request) => {
       await issueEmailVerification({
         email: user.email,
         name: user.name,
-        baseUrl: new URL(request.url).origin,
       });
     } catch (error) {
       console.error("Verification resend failed", error);

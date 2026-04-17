@@ -239,7 +239,49 @@ const itemDrawerDetailSelect = {
   },
 };
 
-const getDashboardItems = async () => {
+const dashboardItemSelect = {
+  id: true,
+  title: true,
+  description: true,
+  fileName: true,
+  fileSize: true,
+  isFavorite: true,
+  isPinned: true,
+  createdAt: true,
+  updatedAt: true,
+  tags: {
+    select: {
+      name: true,
+    },
+  },
+  itemType: {
+    select: {
+      id: true,
+      name: true,
+      icon: true,
+      color: true,
+    },
+  },
+  collections: {
+    select: {
+      addedAt: true,
+      collection: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  },
+};
+
+const getDashboardItems = async ({
+  isPinned,
+  limit,
+}: {
+  isPinned?: boolean;
+  limit?: number;
+} = {}) => {
   const user = await getDashboardUser();
 
   if (!user) {
@@ -248,43 +290,11 @@ const getDashboardItems = async () => {
 
   return prisma.item.findMany({
     where: {
+      ...(typeof isPinned === "boolean" ? { isPinned } : {}),
       userId: user.id,
     },
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      fileName: true,
-      fileSize: true,
-      isFavorite: true,
-      isPinned: true,
-      createdAt: true,
-      updatedAt: true,
-      tags: {
-        select: {
-          name: true,
-        },
-      },
-      itemType: {
-        select: {
-          id: true,
-          name: true,
-          icon: true,
-          color: true,
-        },
-      },
-      collections: {
-        select: {
-          addedAt: true,
-          collection: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      },
-    },
+    select: dashboardItemSelect,
+    ...(typeof limit === "number" ? { take: limit } : {}),
     orderBy: {
       updatedAt: "desc",
     },
@@ -292,17 +302,17 @@ const getDashboardItems = async () => {
 };
 
 export const getPinnedDashboardItems = async (): Promise<DashboardItem[]> => {
-  const items = await getDashboardItems();
+  const items = await getDashboardItems({ isPinned: true });
 
-  return items.filter((item) => item.isPinned).map(mapDashboardItem);
+  return items.map(mapDashboardItem);
 };
 
 export const getRecentDashboardItems = async (
   limit = 10
 ): Promise<DashboardItem[]> => {
-  const items = await getDashboardItems();
+  const items = await getDashboardItems({ limit });
 
-  return items.slice(0, limit).map(mapDashboardItem);
+  return items.map(mapDashboardItem);
 };
 
 export const getDashboardStats = async (): Promise<DashboardStats> => {

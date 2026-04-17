@@ -8,11 +8,20 @@ import { prisma } from "@/lib/prisma";
 const VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 const PASSWORD_RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
 const PASSWORD_RESET_IDENTIFIER_PREFIX = "password-reset:";
+const AUTH_APP_URL_ENV_KEYS = ["AUTH_URL", "NEXTAUTH_URL"] as const;
 
 const getEmailVerificationSubject = () => "Verify your DevStash email";
 const getPasswordResetSubject = () => "Reset your DevStash password";
 const EMAIL_IDEMPOTENCY_KEY_PREFIX = "verify-email";
 const PASSWORD_RESET_IDEMPOTENCY_KEY_PREFIX = "password-reset";
+
+export const escapeHtml = (value: string) =>
+  value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 
 const getEmailVerificationHtml = ({
   name,
@@ -21,13 +30,14 @@ const getEmailVerificationHtml = ({
   name: string | null;
   verificationUrl: string;
 }) => {
-  const greeting = name ? `Hi ${name},` : "Hi,";
+  const greeting = name ? `Hi ${escapeHtml(name)},` : "Hi,";
+  const safeVerificationUrl = escapeHtml(verificationUrl);
 
   return `
     <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827;">
       <p>${greeting}</p>
       <p>Click the link below to verify your email address for DevStash.</p>
-      <p><a href="${verificationUrl}">Verify your email</a></p>
+      <p><a href="${safeVerificationUrl}">Verify your email</a></p>
       <p>If you did not create this account, you can ignore this message.</p>
     </div>
   `;
@@ -40,13 +50,14 @@ const getPasswordResetHtml = ({
   name: string | null;
   resetUrl: string;
 }) => {
-  const greeting = name ? `Hi ${name},` : "Hi,";
+  const greeting = name ? `Hi ${escapeHtml(name)},` : "Hi,";
+  const safeResetUrl = escapeHtml(resetUrl);
 
   return `
     <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827;">
       <p>${greeting}</p>
       <p>Click the link below to reset your DevStash password.</p>
-      <p><a href="${resetUrl}">Reset your password</a></p>
+      <p><a href="${safeResetUrl}">Reset your password</a></p>
       <p>If you did not request this, you can ignore this message.</p>
     </div>
   `;
@@ -54,6 +65,18 @@ const getPasswordResetHtml = ({
 
 export const hashVerificationToken = (token: string) =>
   createHash("sha256").update(token).digest("hex");
+
+export const getAuthEmailBaseUrl = () => {
+  const configuredBaseUrl = AUTH_APP_URL_ENV_KEYS
+    .map((key) => process.env[key])
+    .find((value) => typeof value === "string" && value.trim().length > 0);
+
+  if (!configuredBaseUrl) {
+    throw new Error("AUTH_URL or NEXTAUTH_URL is required to send auth emails.");
+  }
+
+  return new URL(configuredBaseUrl).origin;
+};
 
 const createVerificationUrl = ({
   baseUrl,
@@ -117,11 +140,9 @@ const sendAuthEmail = async ({
 export const issueEmailVerification = async ({
   email,
   name,
-  baseUrl,
 }: {
   email: string;
   name: string | null;
-  baseUrl: string;
 }) => {
   if (!isEmailVerificationEnabled()) {
     return;
@@ -144,7 +165,7 @@ export const issueEmailVerification = async ({
   });
 
   const verificationUrl = createVerificationUrl({
-    baseUrl,
+    baseUrl: getAuthEmailBaseUrl(),
     token: rawToken,
   });
 
@@ -168,11 +189,9 @@ export const getPasswordResetEmail = (identifier: string) =>
 export const issuePasswordReset = async ({
   email,
   name,
-  baseUrl,
 }: {
   email: string;
   name: string | null;
-  baseUrl: string;
 }) => {
   const rawToken = randomBytes(32).toString("hex");
   const hashedToken = hashVerificationToken(rawToken);
@@ -192,7 +211,7 @@ export const issuePasswordReset = async ({
   });
 
   const resetUrl = createPasswordResetUrl({
-    baseUrl,
+    baseUrl: getAuthEmailBaseUrl(),
     token: rawToken,
   });
 

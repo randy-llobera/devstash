@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
 
 import {
-  getFavoriteSidebarCollections,
-  getRecentSidebarCollections,
+  getSidebarCollectionsData,
 } from "@/lib/db/collections";
 import { getDashboardUser } from "@/lib/db/dashboard-user";
 import { getDashboardStats, getSidebarItemTypes } from "@/lib/db/items";
@@ -14,13 +13,12 @@ import { ProfileInfo } from "@/components/profile/profile-info";
 import { ProfileStats } from "@/components/profile/profile-stats";
 
 const ProfilePage = async () => {
-  const [user, stats, itemTypes, favoriteCollections, recentCollections] =
+  const [user, stats, itemTypes, sidebarCollections] =
     await Promise.all([
       getDashboardUser(),
       getDashboardStats(),
       getSidebarItemTypes(),
-      getFavoriteSidebarCollections(),
-      getRecentSidebarCollections(),
+      getSidebarCollectionsData(),
     ]);
 
   if (!user) {
@@ -31,8 +29,8 @@ const ProfilePage = async () => {
     <DashboardShell
       user={user}
       itemTypes={itemTypes}
-      favoriteCollections={favoriteCollections}
-      recentCollections={recentCollections}
+      favoriteCollections={sidebarCollections.favoriteCollections}
+      recentCollections={sidebarCollections.recentCollections}
     >
       <div className="space-y-1">
         <h1 className="text-3xl font-semibold tracking-tight">Profile</h1>

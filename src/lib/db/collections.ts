@@ -9,6 +9,23 @@ type DashboardCollectionItemType = {
   itemCount: number;
 };
 
+interface CollectionSummary {
+  id: string;
+  name: string;
+  description: string;
+  isFavorite: boolean;
+  itemCount: number;
+  typeCount: number;
+  updatedAt: string;
+  dominantTypeColor: string | null;
+  itemTypes: DashboardCollectionItemType[];
+}
+
+interface SidebarCollectionData {
+  favoriteCollections: SidebarCollection[];
+  recentCollections: SidebarCollection[];
+}
+
 export interface DashboardCollection {
   id: string;
   name: string;
@@ -29,20 +46,103 @@ export interface SidebarCollection {
   dominantTypeColor: string | null;
 }
 
-const getLatestUpdatedAt = (
-  collectionUpdatedAt: Date,
-  itemDates: Date[]
-): string => {
-  const latestItemDate = itemDates.sort(
-    (left, right) => right.getTime() - left.getTime()
-  )[0];
-
-  return (latestItemDate ?? collectionUpdatedAt).toISOString();
+const collectionSelect = {
+  id: true,
+  name: true,
+  description: true,
+  isFavorite: true,
+  updatedAt: true,
+  items: {
+    select: {
+      item: {
+        select: {
+          updatedAt: true,
+          itemType: {
+            select: {
+              id: true,
+              name: true,
+              icon: true,
+              color: true,
+            },
+          },
+        },
+      },
+    },
+  },
 };
 
-export const getRecentDashboardCollections = async (): Promise<
-  DashboardCollection[]
-> => {
+const mapSidebarCollection = (collection: CollectionSummary): SidebarCollection => ({
+  id: collection.id,
+  name: collection.name,
+  isFavorite: collection.isFavorite,
+  itemCount: collection.itemCount,
+  dominantTypeColor: collection.dominantTypeColor,
+});
+
+const buildCollectionSummary = (collection: {
+  id: string;
+  name: string;
+  description: string | null;
+  isFavorite: boolean;
+  updatedAt: Date;
+  items: {
+    item: {
+      updatedAt: Date;
+      itemType: {
+        id: string;
+        name: string;
+        icon: string;
+        color: string;
+      };
+    };
+  }[];
+}): CollectionSummary => {
+  const itemTypeCounts = new Map<string, DashboardCollectionItemType>();
+  let latestUpdatedAt = collection.updatedAt;
+
+  for (const { item } of collection.items) {
+    if (item.updatedAt > latestUpdatedAt) {
+      latestUpdatedAt = item.updatedAt;
+    }
+
+    const existingItemType = itemTypeCounts.get(item.itemType.id);
+
+    if (existingItemType) {
+      existingItemType.itemCount += 1;
+      continue;
+    }
+
+    itemTypeCounts.set(item.itemType.id, {
+      id: item.itemType.id,
+      name: item.itemType.name,
+      icon: item.itemType.icon,
+      color: item.itemType.color,
+      itemCount: 1,
+    });
+  }
+
+  const itemTypes = Array.from(itemTypeCounts.values()).sort((left, right) => {
+    if (right.itemCount !== left.itemCount) {
+      return right.itemCount - left.itemCount;
+    }
+
+    return left.name.localeCompare(right.name);
+  });
+
+  return {
+    id: collection.id,
+    name: collection.name,
+    description: collection.description ?? "No description yet.",
+    isFavorite: collection.isFavorite,
+    itemCount: collection.items.length,
+    typeCount: itemTypes.length,
+    updatedAt: latestUpdatedAt.toISOString(),
+    dominantTypeColor: itemTypes[0]?.color ?? null,
+    itemTypes,
+  };
+};
+
+const getCollectionSummaries = async (): Promise<CollectionSummary[]> => {
   const user = await getDashboardUser();
 
   if (!user) {
@@ -56,198 +156,34 @@ export const getRecentDashboardCollections = async (): Promise<
         some: {},
       },
     },
-    select: {
-      id: true,
-      name: true,
-      description: true,
-      isFavorite: true,
-      updatedAt: true,
-      items: {
-        select: {
-          item: {
-            select: {
-              updatedAt: true,
-              itemType: {
-                select: {
-                  id: true,
-                  name: true,
-                  icon: true,
-                  color: true,
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    select: collectionSelect,
   });
 
   return collections
-    .map((collection) => {
-      const itemTypeCounts = new Map<string, DashboardCollectionItemType>();
-      const itemDates = collection.items.map(({ item }) => item.updatedAt);
-
-      for (const { item } of collection.items) {
-        const existingItemType = itemTypeCounts.get(item.itemType.id);
-
-        if (existingItemType) {
-          existingItemType.itemCount += 1;
-          continue;
-        }
-
-        itemTypeCounts.set(item.itemType.id, {
-          id: item.itemType.id,
-          name: item.itemType.name,
-          icon: item.itemType.icon,
-          color: item.itemType.color,
-          itemCount: 1,
-        });
-      }
-
-      const itemTypes = Array.from(itemTypeCounts.values()).sort((left, right) => {
-        if (right.itemCount !== left.itemCount) {
-          return right.itemCount - left.itemCount;
-        }
-
-        return left.name.localeCompare(right.name);
-      });
-
-      return {
-        id: collection.id,
-        name: collection.name,
-        description: collection.description ?? "No description yet.",
-        isFavorite: collection.isFavorite,
-        itemCount: collection.items.length,
-        typeCount: itemTypes.length,
-        updatedAt: getLatestUpdatedAt(collection.updatedAt, itemDates),
-        dominantTypeColor: itemTypes[0]?.color ?? null,
-        itemTypes,
-      };
-    })
+    .map(buildCollectionSummary)
     .sort((left, right) => {
-      return (
-        new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime()
-      );
-    })
-    .slice(0, 6);
-};
-
-const getSidebarCollections = async (): Promise<DashboardCollection[]> => {
-  const user = await getDashboardUser();
-
-  if (!user) {
-    return [];
-  }
-
-  const collections = await prisma.collection.findMany({
-    where: {
-      userId: user.id,
-      items: {
-        some: {},
-      },
-    },
-    select: {
-      id: true,
-      name: true,
-      description: true,
-      isFavorite: true,
-      updatedAt: true,
-      items: {
-        select: {
-          item: {
-            select: {
-              updatedAt: true,
-              itemType: {
-                select: {
-                  id: true,
-                  name: true,
-                  icon: true,
-                  color: true,
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
-
-  return collections
-    .map((collection) => {
-      const itemTypeCounts = new Map<string, DashboardCollectionItemType>();
-      const itemDates = collection.items.map(({ item }) => item.updatedAt);
-
-      for (const { item } of collection.items) {
-        const existingItemType = itemTypeCounts.get(item.itemType.id);
-
-        if (existingItemType) {
-          existingItemType.itemCount += 1;
-          continue;
-        }
-
-        itemTypeCounts.set(item.itemType.id, {
-          id: item.itemType.id,
-          name: item.itemType.name,
-          icon: item.itemType.icon,
-          color: item.itemType.color,
-          itemCount: 1,
-        });
-      }
-
-      const itemTypes = Array.from(itemTypeCounts.values()).sort((left, right) => {
-        if (right.itemCount !== left.itemCount) {
-          return right.itemCount - left.itemCount;
-        }
-
-        return left.name.localeCompare(right.name);
-      });
-
-      return {
-        id: collection.id,
-        name: collection.name,
-        description: collection.description ?? "No description yet.",
-        isFavorite: collection.isFavorite,
-        itemCount: collection.items.length,
-        typeCount: itemTypes.length,
-        updatedAt: getLatestUpdatedAt(collection.updatedAt, itemDates),
-        dominantTypeColor: itemTypes[0]?.color ?? null,
-        itemTypes,
-      };
-    })
-    .sort((left, right) => {
-      return (
-        new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime()
-      );
+      return new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime();
     });
 };
 
-export const getFavoriteSidebarCollections = async (
-  limit = 4
-): Promise<SidebarCollection[]> => {
-  const collections = await getSidebarCollections();
+export const getRecentDashboardCollections = async (
+  limit = 6
+): Promise<DashboardCollection[]> => {
+  const collections = await getCollectionSummaries();
 
-  return collections
-    .filter((collection) => collection.isFavorite)
-    .slice(0, limit)
-    .map((collection) => ({
-      id: collection.id,
-      name: collection.name,
-      isFavorite: collection.isFavorite,
-      itemCount: collection.itemCount,
-      dominantTypeColor: collection.dominantTypeColor,
-    }));
+  return collections.slice(0, limit);
 };
 
-export const getRecentSidebarCollections = async (
+export const getSidebarCollectionsData = async (
   limit = 4
-): Promise<SidebarCollection[]> => {
-  const collections = await getSidebarCollections();
+): Promise<SidebarCollectionData> => {
+  const collections = await getCollectionSummaries();
 
-  return collections.slice(0, limit).map((collection) => ({
-    id: collection.id,
-    name: collection.name,
-    isFavorite: collection.isFavorite,
-    itemCount: collection.itemCount,
-    dominantTypeColor: collection.dominantTypeColor,
-  }));
+  return {
+    favoriteCollections: collections
+      .filter((collection) => collection.isFavorite)
+      .slice(0, limit)
+      .map(mapSidebarCollection),
+    recentCollections: collections.slice(0, limit).map(mapSidebarCollection),
+  };
 };

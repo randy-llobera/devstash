@@ -94,52 +94,46 @@ export const DashboardFileRow = ({ item }: DashboardFileRowProps) => {
 
   return (
     <div
-      role="button"
-      tabIndex={0}
       className="flex w-full items-start gap-3 rounded-[1.25rem] border border-border/60 bg-card/45 px-4 py-4 text-left shadow-sm shadow-black/5 transition-colors hover:border-foreground/15 hover:bg-card/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 sm:items-center sm:px-5"
-      onClick={() => openItem(item)}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          openItem(item);
-        }
-      }}
     >
-      <div className="rounded-2xl bg-muted/45 p-3 text-muted-foreground ring-1 ring-white/5">
-        {createElement(FileIcon, {
-          className: "size-5",
-          style: { color: item.itemType.color },
-        })}
-      </div>
+      <button
+        type="button"
+        className="flex min-w-0 flex-1 items-start gap-3 text-left sm:items-center"
+        onClick={() => openItem(item)}
+      >
+        <div className="rounded-2xl bg-muted/45 p-3 text-muted-foreground ring-1 ring-white/5">
+          {createElement(FileIcon, {
+            className: "size-5",
+            style: { color: item.itemType.color },
+          })}
+        </div>
 
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <p className="truncate text-sm font-semibold sm:text-base">{fileLabel}</p>
-              {item.isFavorite ? (
-                <Star className="size-3.5 shrink-0 fill-current text-yellow-400" />
-              ) : null}
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="truncate text-sm font-semibold sm:text-base">{fileLabel}</p>
+                {item.isFavorite ? (
+                  <Star className="size-3.5 shrink-0 fill-current text-yellow-400" />
+                ) : null}
+              </div>
+              <p className="mt-1 truncate text-xs text-muted-foreground sm:text-sm">
+                {item.description}
+              </p>
             </div>
-            <p className="mt-1 truncate text-xs text-muted-foreground sm:text-sm">
-              {item.description}
-            </p>
-          </div>
 
-          <div className="flex flex-col gap-1 text-xs text-muted-foreground sm:min-w-[220px] sm:items-end sm:text-sm">
-            <span>{formatFileSize(item.fileSize)}</span>
-            <span>Uploaded {formatDate(item.createdAt)}</span>
+            <div className="flex flex-col gap-1 text-xs text-muted-foreground sm:min-w-[220px] sm:items-end sm:text-sm">
+              <span>{formatFileSize(item.fileSize)}</span>
+              <span>Uploaded {formatDate(item.createdAt)}</span>
+            </div>
           </div>
         </div>
-      </div>
+      </button>
 
       <a
         href={`/api/items/${item.id}/download`}
         download
         className="inline-flex shrink-0 items-center gap-2 rounded-full border border-border/60 bg-background/70 px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
-        onClick={(event) => {
-          event.stopPropagation();
-        }}
         aria-label={`Download ${fileLabel}`}
       >
         <Download className="size-3.5" />
