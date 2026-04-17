@@ -1,23 +1,16 @@
-# Current Feature: File List View
+# Current Feature
 
 ## Status
 
-In Progress
+<!-- Not Started|In Progress|Completed -->
 
 ## Goals
 
-- Update `/items/files` to use a single-column list layout instead of grid cards
-- Show each file row with a file-type icon, file name, file size, upload date, and download button
-- Highlight rows on hover
-- Open `ItemDrawer` when a row is clicked
-- Make the download button trigger a direct download without opening the drawer
-- Stack row information vertically on mobile
+<!-- Goals & requirements -->
 
 ## Notes
 
-- Spec source: `context/features/file-display-spec.md`
-- Reference direction: Google Drive or Dropbox style file list
-- Download interaction must stop event propagation so row click behavior does not fire
+<!-- Any extra notes -->
 
 ## History
 
@@ -55,3 +48,4 @@ In Progress
 - Markdown Editor completed with a shared markdown editor for notes and prompts, write/preview tabs in edit mode, preview-only rendering in readonly mode, GitHub Flavored Markdown support via `react-markdown` and `remark-gfm`, direct renderer styling for dark-theme markdown content, and integration into the create dialog and item drawer flows
 - File Upload with Cloudflare R2 completed with authenticated R2-backed upload and download proxy routes, drag-and-drop file and image creation flows with progress UI, Prisma-backed file metadata persistence in `lib/db/items.ts`, R2 cleanup on item deletion, SVG download hardening, and unit coverage for actions, helpers, and route handlers
 - Image Gallery View completed with a dedicated image thumbnail card on `/items/images`, 16:9 gallery thumbnails using `object-cover`, a subtle hover zoom effect, and preserved SVG attachment-only handling in the gallery preview path
+- File List View completed with a dedicated single-column row layout on `/items/files`, extension-aware file icons, visible file size and upload date metadata, direct downloads that do not trigger the drawer, and responsive stacked row details on mobile
