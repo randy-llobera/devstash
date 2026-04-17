@@ -1,7 +1,6 @@
 import {
-  getFavoriteSidebarCollections,
   getRecentDashboardCollections,
-  getRecentSidebarCollections,
+  getSidebarCollectionsData,
 } from "@/lib/db/collections";
 import { getDashboardUser } from "@/lib/db/dashboard-user";
 import {
@@ -22,8 +21,7 @@ const DashboardPage = async () => {
     user,
     stats,
     itemTypes,
-    favoriteCollections,
-    recentSidebarCollections,
+    sidebarCollections,
     recentCollections,
     pinnedItems,
     recentItems,
@@ -31,20 +29,19 @@ const DashboardPage = async () => {
     getDashboardUser(),
     getDashboardStats(),
     getSidebarItemTypes(),
-    getFavoriteSidebarCollections(),
-    getRecentSidebarCollections(),
+    getSidebarCollectionsData(),
     getRecentDashboardCollections(),
     getPinnedDashboardItems(),
     getRecentDashboardItems(),
   ]);
 
   return (
-    <DashboardShell
-      user={user}
-      itemTypes={itemTypes}
-      favoriteCollections={favoriteCollections}
-      recentCollections={recentSidebarCollections}
-    >
+      <DashboardShell
+        user={user}
+        itemTypes={itemTypes}
+        favoriteCollections={sidebarCollections.favoriteCollections}
+        recentCollections={sidebarCollections.recentCollections}
+      >
       <div className="space-y-1">
         <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
         <p className="text-sm text-muted-foreground">

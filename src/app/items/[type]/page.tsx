@@ -6,8 +6,7 @@ import {
   getItemTypeLabel,
 } from "@/lib/db/items";
 import {
-  getFavoriteSidebarCollections,
-  getRecentSidebarCollections,
+  getSidebarCollectionsData,
 } from "@/lib/db/collections";
 import { getDashboardUser } from "@/lib/db/dashboard-user";
 
@@ -22,12 +21,11 @@ interface ItemsByTypePageProps {
 
 const ItemsByTypePage = async ({ params }: ItemsByTypePageProps) => {
   const { type } = await params;
-  const [user, itemTypes, favoriteCollections, recentCollections, result] =
+  const [user, itemTypes, sidebarCollections, result] =
     await Promise.all([
       getDashboardUser(),
       getSidebarItemTypes(),
-      getFavoriteSidebarCollections(),
-      getRecentSidebarCollections(),
+      getSidebarCollectionsData(),
       getItemsByTypeSlug(type),
     ]);
 
@@ -39,8 +37,8 @@ const ItemsByTypePage = async ({ params }: ItemsByTypePageProps) => {
     <DashboardShell
       user={user}
       itemTypes={itemTypes}
-      favoriteCollections={favoriteCollections}
-      recentCollections={recentCollections}
+      favoriteCollections={sidebarCollections.favoriteCollections}
+      recentCollections={sidebarCollections.recentCollections}
     >
       <div className="space-y-6">
         <div className="space-y-1">

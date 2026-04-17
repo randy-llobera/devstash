@@ -24,11 +24,15 @@ interface AuthRateLimitOptions {
 
 export interface AuthRateLimitResult {
   remaining: number;
+  reason: "limited" | "unavailable" | null;
   reset: number;
   success: boolean;
 }
 
 const RATE_LIMIT_ERROR_CODE_PREFIX = "rate_limited_";
+const RATE_LIMIT_UNAVAILABLE_ERROR_CODE = "rate_limit_unavailable";
+const RATE_LIMIT_UNAVAILABLE_MESSAGE =
+  "Auth protection is temporarily unavailable. Please try again shortly.";
 
 const AUTH_RATE_LIMIT_CONFIG: Record<AuthRateLimitName, AuthRateLimitConfig> = {
   login: {
@@ -60,12 +64,32 @@ const AUTH_RATE_LIMIT_CONFIG: Record<AuthRateLimitName, AuthRateLimitConfig> = {
 
 let redis: Redis | null | undefined;
 const limiters = new Map<AuthRateLimitName, Ratelimit>();
+let hasWarnedRateLimitBypass = false;
 
-const getFallbackRateLimitResult = (type: AuthRateLimitName): AuthRateLimitResult => ({
+const getBypassRateLimitResult = (type: AuthRateLimitName): AuthRateLimitResult => ({
   remaining: AUTH_RATE_LIMIT_CONFIG[type].limit,
+  reason: null,
   reset: Date.now(),
   success: true,
 });
+
+const getUnavailableRateLimitResult = (): AuthRateLimitResult => ({
+  remaining: 0,
+  reason: "unavailable",
+  reset: Date.now(),
+  success: false,
+});
+
+const shouldFailClosed = () => process.env.NODE_ENV === "production";
+
+const warnRateLimitBypass = (reason: string) => {
+  if (hasWarnedRateLimitBypass) {
+    return;
+  }
+
+  hasWarnedRateLimitBypass = true;
+  console.warn(`Auth rate limiting is bypassed in non-production: ${reason}`);
+};
 
 const getRedis = () => {
   if (redis !== undefined) {
@@ -159,7 +183,12 @@ export const checkAuthRateLimit = async ({
   const ratelimit = getRateLimiter(type);
 
   if (!ratelimit) {
-    return getFallbackRateLimitResult(type);
+    if (shouldFailClosed()) {
+      return getUnavailableRateLimitResult();
+    }
+
+    warnRateLimitBypass("Upstash Redis is not configured.");
+    return getBypassRateLimitResult(type);
   }
 
   try {
@@ -172,12 +201,19 @@ export const checkAuthRateLimit = async ({
 
     return {
       remaining: result.remaining,
+      reason: result.success ? null : "limited",
       reset: result.reset,
       success: result.success,
     };
   } catch (error) {
     console.error(`Rate limit check failed for ${type}`, error);
-    return getFallbackRateLimitResult(type);
+
+    if (shouldFailClosed()) {
+      return getUnavailableRateLimitResult();
+    }
+
+    warnRateLimitBypass("rate-limit checks are failing.");
+    return getBypassRateLimitResult(type);
   }
 };
 
@@ -192,7 +228,16 @@ export const getRateLimitMinutesUntilReset = (reset: number) =>
 export const getRateLimitErrorCode = (reset: number) =>
   `${RATE_LIMIT_ERROR_CODE_PREFIX}${getRateLimitMinutesUntilReset(reset)}`;
 
+export const getRateLimitUnavailableErrorCode = () => RATE_LIMIT_UNAVAILABLE_ERROR_CODE;
+
+export const isRateLimitUnavailable = (result: AuthRateLimitResult) =>
+  result.reason === "unavailable";
+
 export const getRateLimitMessageFromCode = (code?: string | null) => {
+  if (code === RATE_LIMIT_UNAVAILABLE_ERROR_CODE) {
+    return RATE_LIMIT_UNAVAILABLE_MESSAGE;
+  }
+
   if (!code?.startsWith(RATE_LIMIT_ERROR_CODE_PREFIX)) {
     return null;
   }
@@ -220,3 +265,11 @@ export const createRateLimitErrorResponse = (result: AuthRateLimitResult) => {
     },
   );
 };
+
+export const createRateLimitUnavailableResponse = () =>
+  NextResponse.json(
+    { error: RATE_LIMIT_UNAVAILABLE_MESSAGE },
+    {
+      status: 503,
+    },
+  );

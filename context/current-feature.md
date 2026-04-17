@@ -1,16 +1,23 @@
 # Current Feature
 
+Fix audit findings across auth, dashboard queries, and file-row accessibility
+
 ## Status
 
-<!-- Not Started|In Progress|Completed -->
+Completed
 
 ## Goals
 
-<!-- Goals & requirements -->
+- Use a trusted app origin for auth email links instead of request-derived host data
+- Escape user-provided email content in auth templates
+- Stop auth rate limiting from silently failing open
+- Remove duplicate heavy dashboard item and collection reads
+- Fix nested interactive markup in the file row download UI
 
 ## Notes
 
-<!-- Any extra notes -->
+- Keep changes incremental and aligned with the current app structure
+- Add focused test coverage for the auth hardening and rate-limit behavior
 
 ## History
 
@@ -49,3 +56,4 @@
 - File Upload with Cloudflare R2 completed with authenticated R2-backed upload and download proxy routes, drag-and-drop file and image creation flows with progress UI, Prisma-backed file metadata persistence in `lib/db/items.ts`, R2 cleanup on item deletion, SVG download hardening, and unit coverage for actions, helpers, and route handlers
 - Image Gallery View completed with a dedicated image thumbnail card on `/items/images`, 16:9 gallery thumbnails using `object-cover`, a subtle hover zoom effect, and preserved SVG attachment-only handling in the gallery preview path
 - File List View completed with a dedicated single-column row layout on `/items/files`, extension-aware file icons, visible file size and upload date metadata, direct downloads that do not trigger the drawer, and responsive stacked row details on mobile
+- Audit follow-up fixes completed with trusted auth email origins from `AUTH_URL`/`NEXTAUTH_URL`, escaped auth email content, production fail-closed rate-limit handling, reduced duplicate dashboard item and collection reads, and accessible file row actions

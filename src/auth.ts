@@ -9,12 +9,21 @@ import { prisma } from "@/lib/prisma";
 import {
   checkAuthRateLimit,
   getRateLimitErrorCode,
+  getRateLimitUnavailableErrorCode,
+  isRateLimitUnavailable,
 } from "@/lib/rate-limit";
 
 class RateLimitExceededError extends CredentialsSignin {
   constructor(code: string) {
     super();
     this.code = code;
+  }
+}
+
+class RateLimitUnavailableError extends CredentialsSignin {
+  constructor() {
+    super();
+    this.code = getRateLimitUnavailableErrorCode();
   }
 }
 
@@ -43,6 +52,10 @@ const credentialsProvider = Credentials({
     });
 
     if (!rateLimitResult.success) {
+      if (isRateLimitUnavailable(rateLimitResult)) {
+        throw new RateLimitUnavailableError();
+      }
+
       throw new RateLimitExceededError(
         getRateLimitErrorCode(rateLimitResult.reset),
       );

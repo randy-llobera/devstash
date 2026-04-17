@@ -6,6 +6,8 @@ import { prisma } from "@/lib/prisma";
 import {
   checkAuthRateLimit,
   createRateLimitErrorResponse,
+  createRateLimitUnavailableResponse,
+  isRateLimitUnavailable,
 } from "@/lib/rate-limit";
 
 interface ResetPasswordRequestBody {
@@ -62,6 +64,10 @@ export const POST = async (request: Request) => {
   });
 
   if (!rateLimitResult.success) {
+    if (isRateLimitUnavailable(rateLimitResult)) {
+      return createRateLimitUnavailableResponse();
+    }
+
     return createRateLimitErrorResponse(rateLimitResult);
   }
 

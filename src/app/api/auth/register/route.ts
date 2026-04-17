@@ -7,6 +7,8 @@ import { prisma } from "@/lib/prisma";
 import {
   checkAuthRateLimit,
   createRateLimitErrorResponse,
+  createRateLimitUnavailableResponse,
+  isRateLimitUnavailable,
 } from "@/lib/rate-limit";
 
 interface RegisterRequestBody {
@@ -77,6 +79,10 @@ export const POST = async (request: Request) => {
   });
 
   if (!rateLimitResult.success) {
+    if (isRateLimitUnavailable(rateLimitResult)) {
+      return createRateLimitUnavailableResponse();
+    }
+
     return createRateLimitErrorResponse(rateLimitResult);
   }
 
@@ -113,7 +119,6 @@ export const POST = async (request: Request) => {
     await issueEmailVerification({
       email: createdUser.email,
       name: createdUser.name,
-      baseUrl: new URL(request.url).origin,
     });
 
     return NextResponse.json({ success: true });
