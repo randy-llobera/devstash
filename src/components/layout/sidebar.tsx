@@ -180,7 +180,7 @@ export const Sidebar = ({
                     {favoriteCollections.map((collection) => (
                       <Link
                         key={collection.id}
-                        href="#"
+                        href={`/collections/${collection.id}`}
                         onClick={onNavigate}
                         title={collection.name}
                         className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors hover:bg-muted/70"
@@ -201,7 +201,7 @@ export const Sidebar = ({
                     {recentCollections.map((collection) => (
                       <Link
                         key={collection.id}
-                        href="#"
+                        href={`/collections/${collection.id}`}
                         onClick={onNavigate}
                         title={collection.name}
                         className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"

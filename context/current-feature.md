@@ -1,18 +1,21 @@
-# Current Feature
-
-<!-- No active feature -->
+# Current Feature: Collections Pages
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Add goals here -->
+- Create a protected `/collections` page that lists the user's collections using the existing collection cards
+- Create a protected `/collections/[id]` page that shows the items in that collection using the existing item cards
+- Link the sidebar and dashboard "View all collections" entry points to `/collections`
+- Link collection cards and sidebar collection entries to their specific `/collections/[id]` pages
 
 ## Notes
 
-<!-- Add notes here -->
+<!-- Loaded from inline feature request -->
+- Reuse the existing dashboard shell and card components
+- Keep the implementation incremental and aligned with the current server-component data-fetching patterns
 
 ## History
 
