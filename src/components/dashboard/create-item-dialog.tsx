@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 import { createItem, type CreateItemActionError } from '@/actions/items';
+import type { CollectionOption } from '@/lib/db/collections';
 import { isFileUploadItemType, type FileUploadItemType } from '@/lib/file-upload';
 import { ItemFormType, ITEM_FORM_TYPES, isContentItemType, isFileItemType, isLanguageItemType, parseItemTagsInput, isUrlItemType } from '@/lib/item-form';
 import type { SidebarItemType } from '@/lib/db/items';
@@ -14,6 +15,7 @@ import { isMarkdownEditorItemType } from '@/lib/markdown-editor';
 import { cn } from '@/lib/utils';
 
 import { FileUpload } from '@/components/dashboard/file-upload';
+import { CollectionPicker } from '@/components/dashboard/collection-picker';
 import { getItemTypeIcon } from '@/components/utils/item-type';
 import { Button } from '@/components/ui/button';
 import { CodeEditor } from '@/components/ui/code-editor';
@@ -59,6 +61,7 @@ const TYPE_SLUGS: Record<CreateItemType, string> = {
 };
 
 interface CreateItemDialogProps {
+  collections: CollectionOption[];
   itemTypes: SidebarItemType[];
   onOpenChange: (open: boolean) => void;
   open: boolean;
@@ -72,6 +75,7 @@ interface CreateItemFormState {
   content: string;
   language: string;
   url: string;
+  collectionIds: string[];
 }
 
 type CreateItemFormField = keyof CreateItemFormState;
@@ -91,6 +95,7 @@ const INITIAL_FORM_STATE: CreateItemFormState = {
   content: '',
   language: '',
   url: '',
+  collectionIds: [],
 };
 
 const FieldErrorText = ({ errors }: { errors?: string[] }) => {
@@ -223,7 +228,10 @@ const CreateItemTypePicker = ({
 interface CreateItemMainFieldsProps {
   fieldErrors: CreateItemFormErrors;
   formState: CreateItemFormState;
-  onFieldChange: (field: CreateItemFormField, value: string) => void;
+  onFieldChange: <T extends CreateItemFormField>(
+    field: T,
+    value: CreateItemFormState[T],
+  ) => void;
 }
 
 const CreateItemMainFields = ({
@@ -267,7 +275,10 @@ interface CreateItemDynamicFieldsProps {
   fileError: string | null;
   formState: CreateItemFormState;
   isSubmitting: boolean;
-  onFieldChange: (field: CreateItemFormField, value: string) => void;
+  onFieldChange: <T extends CreateItemFormField>(
+    field: T,
+    value: CreateItemFormState[T],
+  ) => void;
   onFileChange: (file: File | null) => void;
   selectedFile: File | null;
   uploadProgress: number;
@@ -405,6 +416,7 @@ const CreateItemFooter = ({
 );
 
 export const CreateItemDialog = ({
+  collections,
   itemTypes,
   onOpenChange,
   open,
@@ -452,7 +464,10 @@ export const CreateItemDialog = ({
     onOpenChange(nextOpen);
   };
 
-  const handleFieldChange = (field: CreateItemFormField, value: string) => {
+  const handleFieldChange = <T extends CreateItemFormField>(
+    field: T,
+    value: CreateItemFormState[T],
+  ) => {
     setFormState((currentState) => ({
       ...currentState,
       [field]: value,
@@ -529,6 +544,7 @@ export const CreateItemDialog = ({
           }
         : {}),
       ...(isUrlItemType(formState.itemType) ? { url: formState.url } : {}),
+      collectionIds: formState.collectionIds,
     });
 
     setIsSubmitting(false);
@@ -609,6 +625,14 @@ export const CreateItemDialog = ({
                 }}
                 selectedFile={selectedFile}
                 uploadProgress={uploadProgress}
+              />
+
+              <CollectionPicker
+                collections={collections}
+                errors={fieldErrors.collectionIds}
+                id='create-item-collections'
+                onChange={(collectionIds) => handleFieldChange('collectionIds', collectionIds)}
+                selectedCollectionIds={formState.collectionIds}
               />
 
               <div className='space-y-2 sm:col-span-2'>

@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 
+import type { CollectionOption } from "@/lib/db/collections";
 import type { DashboardItem, ItemDrawerDetail } from "@/lib/db/items";
 
 import { ItemDrawer } from "@/components/dashboard/item-drawer";
@@ -35,7 +36,13 @@ const parseItemResponse = async (response: Response) => {
   return payload.item;
 };
 
-export const ItemDrawerProvider = ({ children }: { children: ReactNode }) => {
+export const ItemDrawerProvider = ({
+  children,
+  collections,
+}: {
+  children: ReactNode;
+  collections: CollectionOption[];
+}) => {
   const cacheRef = useRef<Map<string, ItemDrawerDetail>>(new Map());
   const requestIdRef = useRef(0);
 
@@ -122,7 +129,7 @@ export const ItemDrawerProvider = ({ children }: { children: ReactNode }) => {
         updatedAt: updatedItem.updatedAt,
         tags: updatedItem.tags,
         itemType: updatedItem.itemType,
-        collection: updatedItem.collections[0] ?? currentPreview.collection,
+        collection: updatedItem.collections[0] ?? null,
       };
     });
   }, []);
@@ -148,6 +155,7 @@ export const ItemDrawerProvider = ({ children }: { children: ReactNode }) => {
     <ItemDrawerContext.Provider value={contextValue}>
       {children}
       <ItemDrawer
+        collections={collections}
         error={error}
         isLoading={isLoading}
         item={item}

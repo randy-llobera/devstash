@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import {
+  getAvailableCollections,
   getSidebarCollectionsData,
 } from "@/lib/db/collections";
 import { getDashboardUser } from "@/lib/db/dashboard-user";
@@ -13,12 +14,13 @@ import { ProfileInfo } from "@/components/profile/profile-info";
 import { ProfileStats } from "@/components/profile/profile-stats";
 
 const ProfilePage = async () => {
-  const [user, stats, itemTypes, sidebarCollections] =
+  const [user, stats, itemTypes, sidebarCollections, collections] =
     await Promise.all([
       getDashboardUser(),
       getDashboardStats(),
       getSidebarItemTypes(),
       getSidebarCollectionsData(),
+      getAvailableCollections(),
     ]);
 
   if (!user) {
@@ -28,6 +30,7 @@ const ProfilePage = async () => {
   return (
     <DashboardShell
       user={user}
+      collections={collections}
       itemTypes={itemTypes}
       favoriteCollections={sidebarCollections.favoriteCollections}
       recentCollections={sidebarCollections.recentCollections}

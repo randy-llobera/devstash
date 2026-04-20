@@ -2,6 +2,12 @@ import { ContentType } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getDashboardUser } from "@/lib/db/dashboard-user";
 
+interface CollectionLookupClient {
+  collection: {
+    findMany: typeof prisma.collection.findMany;
+  };
+}
+
 type DashboardItemCollection = {
   id: string;
   name: string;
@@ -90,6 +96,7 @@ export interface UpdateItemInput {
   url?: string | null;
   language?: string | null;
   tags: string[];
+  collectionIds: string[];
 }
 
 export interface CreateItemInput {
@@ -103,6 +110,7 @@ export interface CreateItemInput {
   url?: string | null;
   language?: string | null;
   tags: string[];
+  collectionIds: string[];
 }
 
 const ITEM_CONTENT_TYPES: Partial<Record<CreateItemInput["itemType"], ContentType>> = {
@@ -139,6 +147,16 @@ const buildTagConnections = (tags: string[]) =>
 const getCreateItemContentType = (itemType: CreateItemInput["itemType"]) =>
   ITEM_CONTENT_TYPES[itemType] ?? ContentType.TEXT;
 
+const getItemCollectionConnections = (collectionIds: string[]) => ({
+  create: collectionIds.map((collectionId) => ({
+    collection: {
+      connect: {
+        id: collectionId,
+      },
+    },
+  })),
+});
+
 const getCreateItemData = (userId: string, itemTypeId: string, data: CreateItemInput) => ({
   userId,
   itemTypeId,
@@ -158,6 +176,7 @@ const getCreateItemData = (userId: string, itemTypeId: string, data: CreateItemI
   tags: {
     connectOrCreate: buildTagConnections(data.tags),
   },
+  collections: getItemCollectionConnections(data.collectionIds),
 });
 
 const findSystemItemType = async (name: CreateItemInput["itemType"]) =>
@@ -170,6 +189,32 @@ const findSystemItemType = async (name: CreateItemInput["itemType"]) =>
       id: true,
     },
   });
+
+const getOwnedCollectionIds = async (
+  tx: CollectionLookupClient,
+  userId: string,
+  collectionIds: string[],
+) => {
+  if (collectionIds.length === 0) {
+    return [];
+  }
+
+  const collections = await tx.collection.findMany({
+    where: {
+      userId,
+      id: {
+        in: collectionIds,
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  return collectionIds.filter((collectionId) =>
+    collections.some((collection) => collection.id === collectionId)
+  );
+};
 
 const mapDashboardItem = (item: {
   id: string;
@@ -499,8 +544,13 @@ export const createItem = async (
     return null;
   }
 
+  const ownedCollectionIds = await getOwnedCollectionIds(prisma, userId, data.collectionIds);
+
   const item = await prisma.item.create({
-    data: getCreateItemData(userId, itemType.id, data),
+    data: getCreateItemData(userId, itemType.id, {
+      ...data,
+      collectionIds: ownedCollectionIds,
+    }),
     select: itemDrawerDetailSelect,
   });
 
@@ -509,6 +559,7 @@ export const createItem = async (
 
 export const updateItem = async (
   itemId: string,
+  userId: string,
   data: UpdateItemInput
 ): Promise<ItemDrawerDetail | null> => {
   const scalarData = {
@@ -528,6 +579,7 @@ export const updateItem = async (
   };
 
   const item = await prisma.$transaction(async (tx) => {
+    const ownedCollectionIds = await getOwnedCollectionIds(tx, userId, data.collectionIds);
     const existingItem = await tx.item.findUnique({
       where: {
         id: itemId,
@@ -550,6 +602,9 @@ export const updateItem = async (
         tags: {
           set: [],
         },
+        collections: {
+          deleteMany: {},
+        },
       },
     });
 
@@ -561,6 +616,7 @@ export const updateItem = async (
         tags: {
           connectOrCreate: buildTagConnections(data.tags),
         },
+        collections: getItemCollectionConnections(ownedCollectionIds),
       },
       select: itemDrawerDetailSelect,
     });

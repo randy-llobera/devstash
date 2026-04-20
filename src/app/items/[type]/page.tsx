@@ -6,6 +6,7 @@ import {
   getItemTypeLabel,
 } from "@/lib/db/items";
 import {
+  getAvailableCollections,
   getSidebarCollectionsData,
 } from "@/lib/db/collections";
 import { getDashboardUser } from "@/lib/db/dashboard-user";
@@ -21,11 +22,12 @@ interface ItemsByTypePageProps {
 
 const ItemsByTypePage = async ({ params }: ItemsByTypePageProps) => {
   const { type } = await params;
-  const [user, itemTypes, sidebarCollections, result] =
+  const [user, itemTypes, sidebarCollections, collections, result] =
     await Promise.all([
       getDashboardUser(),
       getSidebarItemTypes(),
       getSidebarCollectionsData(),
+      getAvailableCollections(),
       getItemsByTypeSlug(type),
     ]);
 
@@ -36,6 +38,7 @@ const ItemsByTypePage = async ({ params }: ItemsByTypePageProps) => {
   return (
     <DashboardShell
       user={user}
+      collections={collections}
       itemTypes={itemTypes}
       favoriteCollections={sidebarCollections.favoriteCollections}
       recentCollections={sidebarCollections.recentCollections}
