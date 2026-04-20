@@ -1,3 +1,5 @@
+import type { DashboardItem } from "@/lib/db/items";
+
 import { prisma } from "@/lib/prisma";
 import { getDashboardUser } from "@/lib/db/dashboard-user";
 
@@ -24,6 +26,18 @@ interface CollectionSummary {
 interface SidebarCollectionData {
   favoriteCollections: SidebarCollection[];
   recentCollections: SidebarCollection[];
+}
+
+export interface CollectionDetail {
+  id: string;
+  name: string;
+  description: string;
+  isFavorite: boolean;
+  itemCount: number;
+  updatedAt: string;
+  dominantTypeColor: string | null;
+  itemTypes: DashboardCollectionItemType[];
+  items: DashboardItem[];
 }
 
 export interface CollectionOption {
@@ -90,6 +104,50 @@ const collectionSelect = {
   },
 };
 
+const collectionDetailSelect = {
+  id: true,
+  name: true,
+  description: true,
+  isFavorite: true,
+  updatedAt: true,
+  items: {
+    select: {
+      addedAt: true,
+      item: {
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          fileName: true,
+          fileSize: true,
+          isFavorite: true,
+          isPinned: true,
+          createdAt: true,
+          updatedAt: true,
+          tags: {
+            select: {
+              name: true,
+            },
+          },
+          itemType: {
+            select: {
+              id: true,
+              name: true,
+              icon: true,
+              color: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      item: {
+        updatedAt: "desc" as const,
+      },
+    },
+  },
+};
+
 const mapSidebarCollection = (collection: CollectionSummary): SidebarCollection => ({
   id: collection.id,
   name: collection.name,
@@ -98,7 +156,7 @@ const mapSidebarCollection = (collection: CollectionSummary): SidebarCollection 
   dominantTypeColor: collection.dominantTypeColor,
 });
 
-const buildCollectionSummary = (collection: {
+export const buildCollectionSummary = (collection: {
   id: string;
   name: string;
   description: string | null;
@@ -161,6 +219,44 @@ const buildCollectionSummary = (collection: {
   };
 };
 
+export const mapCollectionDetailItem = (
+  collection: {
+    id: string;
+    name: string;
+  },
+  item: {
+    id: string;
+    title: string;
+    description: string | null;
+    fileName: string | null;
+    fileSize: number | null;
+    isFavorite: boolean;
+    isPinned: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+    tags: { name: string }[];
+    itemType: {
+      id: string;
+      name: string;
+      icon: string;
+      color: string;
+    };
+  }
+): DashboardItem => ({
+  id: item.id,
+  title: item.title,
+  description: item.description ?? "No description yet.",
+  fileName: item.fileName,
+  fileSize: item.fileSize,
+  isFavorite: item.isFavorite,
+  isPinned: item.isPinned,
+  createdAt: item.createdAt.toISOString(),
+  updatedAt: item.updatedAt.toISOString(),
+  tags: item.tags.map((tag) => tag.name),
+  itemType: item.itemType,
+  collection,
+});
+
 const getCollectionSummaries = async (): Promise<CollectionSummary[]> => {
   const user = await getDashboardUser();
 
@@ -188,6 +284,10 @@ export const getRecentDashboardCollections = async (
   const collections = await getCollectionSummaries();
 
   return collections.slice(0, limit);
+};
+
+export const getAllDashboardCollections = async (): Promise<DashboardCollection[]> => {
+  return getCollectionSummaries();
 };
 
 export const getSidebarCollectionsData = async (
@@ -223,6 +323,62 @@ export const getAvailableCollections = async (): Promise<CollectionOption[]> => 
       name: "asc",
     },
   });
+};
+
+export const getCollectionDetailById = async (
+  collectionId: string
+): Promise<CollectionDetail | null> => {
+  const user = await getDashboardUser();
+
+  if (!user) {
+    return null;
+  }
+
+  const collection = await prisma.collection.findFirst({
+    where: {
+      id: collectionId,
+      userId: user.id,
+    },
+    select: collectionDetailSelect,
+  });
+
+  if (!collection) {
+    return null;
+  }
+
+  const summary = buildCollectionSummary({
+    id: collection.id,
+    name: collection.name,
+    description: collection.description,
+    isFavorite: collection.isFavorite,
+    updatedAt: collection.updatedAt,
+    items: collection.items.map(({ item }) => ({
+      item: {
+        updatedAt: item.updatedAt,
+        itemType: item.itemType,
+      },
+    })),
+  });
+
+  return {
+    id: collection.id,
+    name: summary.name,
+    description: summary.description,
+    isFavorite: collection.isFavorite,
+    itemCount: summary.itemCount,
+    updatedAt: summary.updatedAt,
+    dominantTypeColor: summary.dominantTypeColor,
+    itemTypes: summary.itemTypes,
+    items: collection.items.map(({ item }) =>
+      mapCollectionDetailItem(
+        {
+          id: collection.id,
+          name: collection.name,
+        },
+        item
+      )
+    ),
+  };
 };
 
 export const createCollection = async (
