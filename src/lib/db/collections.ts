@@ -26,6 +26,11 @@ interface SidebarCollectionData {
   recentCollections: SidebarCollection[];
 }
 
+interface CreateCollectionInput {
+  name: string;
+  description?: string | null;
+}
+
 export interface DashboardCollection {
   id: string;
   name: string;
@@ -44,6 +49,15 @@ export interface SidebarCollection {
   isFavorite: boolean;
   itemCount: number;
   dominantTypeColor: string | null;
+}
+
+export interface CreatedCollection {
+  id: string;
+  name: string;
+  description: string | null;
+  isFavorite: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 const collectionSelect = {
@@ -152,9 +166,6 @@ const getCollectionSummaries = async (): Promise<CollectionSummary[]> => {
   const collections = await prisma.collection.findMany({
     where: {
       userId: user.id,
-      items: {
-        some: {},
-      },
     },
     select: collectionSelect,
   });
@@ -185,5 +196,35 @@ export const getSidebarCollectionsData = async (
       .slice(0, limit)
       .map(mapSidebarCollection),
     recentCollections: collections.slice(0, limit).map(mapSidebarCollection),
+  };
+};
+
+export const createCollection = async (
+  userId: string,
+  data: CreateCollectionInput
+): Promise<CreatedCollection> => {
+  const collection = await prisma.collection.create({
+    data: {
+      userId,
+      name: data.name,
+      description: data.description ?? null,
+    },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      isFavorite: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  return {
+    id: collection.id,
+    name: collection.name,
+    description: collection.description,
+    isFavorite: collection.isFavorite,
+    createdAt: collection.createdAt.toISOString(),
+    updatedAt: collection.updatedAt.toISOString(),
   };
 };

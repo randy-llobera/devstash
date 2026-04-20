@@ -6,10 +6,15 @@ import { Input } from "@/components/ui/input";
 
 interface TopBarProps {
   mobileSidebar: ReactNode;
+  onCreateCollection: () => void;
   onCreateItem: () => void;
 }
 
-export const TopBar = ({ mobileSidebar, onCreateItem }: TopBarProps) => {
+export const TopBar = ({
+  mobileSidebar,
+  onCreateCollection,
+  onCreateItem,
+}: TopBarProps) => {
   return (
     <header className="border-b border-border/70">
       <div className="grid gap-4 px-4 py-4 sm:px-6 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center">
@@ -40,7 +45,12 @@ export const TopBar = ({ mobileSidebar, onCreateItem }: TopBarProps) => {
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-          <Button type="button" variant="outline" className="w-full shrink-0 lg:w-auto">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full shrink-0 lg:w-auto"
+            onClick={onCreateCollection}
+          >
             <FolderPlus className="size-4" />
             New Collection
           </Button>

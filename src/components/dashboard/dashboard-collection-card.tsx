@@ -24,6 +24,8 @@ export const DashboardCollectionCard = ({
   collection,
 }: DashboardCollectionCardProps) => {
   const dominantTypeLabel = collection.itemTypes[0]?.name ?? "No types";
+  const dominantTypeText =
+    collection.typeCount > 0 ? `${dominantTypeLabel} leads` : "No types yet";
 
   return (
     <Card
@@ -62,7 +64,7 @@ export const DashboardCollectionCard = ({
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
             <span>{collection.typeCount} types</span>
-            <span>{dominantTypeLabel} leads</span>
+            <span>{dominantTypeText}</span>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
             {collection.itemTypes.map((itemType) => {
