@@ -1,6 +1,4 @@
-# Current Feature
-
-<!-- No active feature -->
+# Current Feature: Item Collection Assignment
 
 ## Status
 
@@ -8,11 +6,16 @@ Not Started
 
 ## Goals
 
-<!-- Add goals here -->
+- Add collection selection to the create item form.
+- Add collection selection to the edit item form in the item drawer.
+- Allow assigning an item to one or multiple existing collections.
+- Persist collection membership changes when creating or updating an item.
 
 ## Notes
 
-<!-- Add notes here -->
+- Use existing user-owned collections only.
+- Do not build or update collection pages as part of this feature.
+- Keep the change incremental and aligned with the current item form patterns.
 
 ## History
 

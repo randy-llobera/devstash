@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 import { deleteItem, updateItem, type UpdateItemActionError } from '@/actions/items';
+import type { CollectionOption } from '@/lib/db/collections';
 import type { DashboardItem, ItemDrawerDetail } from '@/lib/db/items';
 import { isCodeEditorItemType } from '@/lib/code-editor';
 import { formatFileSize } from '@/lib/file-size';
@@ -21,6 +22,7 @@ import { isMarkdownEditorItemType } from '@/lib/markdown-editor';
 
 import { cn } from '@/lib/utils';
 
+import { CollectionPicker } from '@/components/dashboard/collection-picker';
 import { CodeEditor } from '@/components/ui/code-editor';
 import { formatDate, formatUpdatedAt } from '@/components/utils/date';
 import { getItemTypeIcon } from '@/components/utils/item-type';
@@ -55,6 +57,7 @@ interface EditFormState {
   content: string;
   language: string;
   url: string;
+  collectionIds: string[];
 }
 
 type EditFormField = keyof EditFormState;
@@ -87,6 +90,7 @@ const getInitialFormState = (item: ItemDrawerDetail | null): EditFormState => ({
   content: item?.content ?? '',
   language: item?.language ?? '',
   url: item?.url ?? '',
+  collectionIds: item?.collections.map((collection) => collection.id) ?? [],
 });
 
 const usesCodeEditor = (itemTypeName: string) => isCodeEditorItemType(itemTypeName);
@@ -399,14 +403,16 @@ const ItemDrawerBody = ({ item }: { item: ItemDrawerDetail }) => {
 };
 
 interface ItemDrawerEditBodyProps {
+  collections: CollectionOption[];
   fieldErrors: EditFormErrors;
   formState: EditFormState;
   item: ItemDrawerDetail;
-  onFieldChange: (field: EditFormField, value: string) => void;
+  onFieldChange: <T extends EditFormField>(field: T, value: EditFormState[T]) => void;
   submitError: string | null;
 }
 
 const ItemDrawerEditBody = ({
+  collections,
   fieldErrors,
   formState,
   item,
@@ -455,22 +461,6 @@ const ItemDrawerEditBody = ({
 
       <div className='grid gap-3 sm:grid-cols-2'>
         <ItemMetadataCard label='Item type' value={item.itemType.name} />
-        <div className='rounded-2xl border border-border/60 bg-card/40 p-4'>
-          <p className='text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase'>
-            Collections
-          </p>
-          <div className='mt-2 flex flex-wrap gap-2'>
-            {item.collections.length > 0 ? (
-              item.collections.map((collection) => (
-                <Badge key={collection.id} variant='outline' className='rounded-full px-3 py-1'>
-                  {collection.name}
-                </Badge>
-              ))
-            ) : (
-              <p className='text-sm text-muted-foreground'>No collections yet.</p>
-            )}
-          </div>
-        </div>
         <ItemMetadataCard
           label='Updated'
           value={formatUpdatedAt(item.updatedAt)}
@@ -482,6 +472,14 @@ const ItemDrawerEditBody = ({
           secondaryValue={item.contentType}
         />
       </div>
+
+      <CollectionPicker
+        collections={collections}
+        errors={fieldErrors.collectionIds}
+        id='item-collections'
+        onChange={(collectionIds) => onFieldChange('collectionIds', collectionIds)}
+        selectedCollectionIds={formState.collectionIds}
+      />
 
       <div className='space-y-2'>
         <label htmlFor='item-tags' className='text-sm font-medium'>
@@ -571,6 +569,7 @@ const ItemDrawerEditBody = ({
 };
 
 interface ItemDrawerProps {
+  collections: CollectionOption[];
   error: string | null;
   isLoading: boolean;
   item: ItemDrawerDetail | null;
@@ -583,6 +582,7 @@ interface ItemDrawerProps {
 }
 
 export const ItemDrawer = ({
+  collections,
   error,
   isLoading,
   item,
@@ -606,7 +606,7 @@ export const ItemDrawer = ({
     getInitialFormState(item),
   );
 
-  const handleFieldChange = (field: EditFormField, value: string) => {
+  const handleFieldChange = <T extends EditFormField>(field: T, value: EditFormState[T]) => {
     setFormState((currentState) => ({
       ...currentState,
       [field]: value,
@@ -680,6 +680,7 @@ export const ItemDrawer = ({
       ...(isContentItemType(item.itemType.name) ? { content: formState.content } : {}),
       ...(isLanguageItemType(item.itemType.name) ? { language: formState.language } : {}),
       ...(isUrlItemType(item.itemType.name) ? { url: formState.url } : {}),
+      collectionIds: formState.collectionIds,
     };
 
     const result = await updateItem(item.id, payload);
@@ -872,9 +873,10 @@ export const ItemDrawer = ({
               <ItemDrawerLoading preview={preview} />
             ) : item ? (
               isEditing ? (
-                <ItemDrawerEditBody
-                  fieldErrors={fieldErrors}
-                  formState={formState}
+              <ItemDrawerEditBody
+                collections={collections}
+                fieldErrors={fieldErrors}
+                formState={formState}
                   item={item}
                   onFieldChange={handleFieldChange}
                   submitError={submitError}

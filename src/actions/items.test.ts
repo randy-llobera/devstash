@@ -61,6 +61,7 @@ describe("createItem action", () => {
       itemType: "snippet",
       title: "New item",
       tags: [],
+      collectionIds: [],
     });
 
     expect(result).toEqual({
@@ -76,6 +77,7 @@ describe("createItem action", () => {
       title: "   ",
       url: "not-a-url",
       tags: [],
+      collectionIds: [],
     });
 
     expect(result.success).toBe(false);
@@ -108,6 +110,7 @@ describe("createItem action", () => {
       content: "  npm run lint  ",
       language: "  Bash  ",
       tags: ["react", "react", " prisma "],
+      collectionIds: ["collection-1", "collection-1", "collection-2"],
     });
 
     expect(createItemRecordMock).toHaveBeenCalledWith("user-1", {
@@ -117,6 +120,7 @@ describe("createItem action", () => {
       content: "npm run lint",
       language: "Bash",
       tags: ["react", "prisma"],
+      collectionIds: ["collection-1", "collection-2"],
     });
     expect(result).toEqual({
       success: true,
@@ -132,6 +136,7 @@ describe("createItem action", () => {
       itemType: "file",
       title: "Docs",
       tags: [],
+      collectionIds: [],
     });
 
     expect(result.success).toBe(false);
@@ -165,6 +170,7 @@ describe("createItem action", () => {
       fileSize: 2048,
       fileUrl: " https://files.example.com/users/user-1/file/spec.pdf ",
       tags: [],
+      collectionIds: ["collection-7"],
     });
 
     expect(createItemRecordMock).toHaveBeenCalledWith("user-1", {
@@ -174,6 +180,7 @@ describe("createItem action", () => {
       fileSize: 2048,
       fileUrl: "https://files.example.com/users/user-1/file/spec.pdf",
       tags: [],
+      collectionIds: ["collection-7"],
     });
   });
 
@@ -191,6 +198,7 @@ describe("createItem action", () => {
       fileSize: 2048,
       fileUrl: "https://files.example.com/users/other-user/file/file.txt",
       tags: [],
+      collectionIds: [],
     });
 
     expect(result).toEqual({
@@ -217,6 +225,7 @@ describe("createItem action", () => {
       itemType: "note",
       title: "New item",
       tags: [],
+      collectionIds: [],
     });
 
     expect(result).toEqual({
@@ -242,6 +251,7 @@ describe("updateItem action", () => {
     const result = await updateItem("item-1", {
       title: "Updated title",
       tags: [],
+      collectionIds: [],
     });
 
     expect(result).toEqual({
@@ -263,6 +273,7 @@ describe("updateItem action", () => {
     const result = await updateItem("item-1", {
       title: "Updated title",
       tags: [],
+      collectionIds: [],
     });
 
     expect(result).toEqual({
@@ -277,6 +288,7 @@ describe("updateItem action", () => {
       title: "   ",
       url: "not-a-url",
       tags: [],
+      collectionIds: [],
     });
 
     expect(result.success).toBe(false);
@@ -313,15 +325,17 @@ describe("updateItem action", () => {
       language: "  TypeScript  ",
       url: "  https://example.com/docs  ",
       tags: ["react", "react", " prisma "],
+      collectionIds: ["collection-1", "collection-1", "collection-3"],
     });
 
-    expect(updateItemRecordMock).toHaveBeenCalledWith("item-1", {
+    expect(updateItemRecordMock).toHaveBeenCalledWith("item-1", "user-1", {
       title: "Updated title",
       description: null,
       content: "console.log('hi')",
       language: "TypeScript",
       url: "https://example.com/docs",
       tags: ["react", "prisma"],
+      collectionIds: ["collection-1", "collection-3"],
     });
     expect(result).toEqual({
       success: true,
@@ -346,6 +360,7 @@ describe("updateItem action", () => {
     const result = await updateItem("item-1", {
       title: "Updated title",
       tags: [],
+      collectionIds: [],
     });
 
     expect(result).toEqual({

@@ -71,6 +71,9 @@ const itemCreateSchema = z
     tags: z
       .array(z.string().trim().min(1, "Tags cannot be empty."))
       .transform((tags) => Array.from(new Set(tags))),
+    collectionIds: z
+      .array(z.string().trim().min(1, "Collection selection is invalid."))
+      .transform((collectionIds) => Array.from(new Set(collectionIds))),
   })
   .superRefine((value, context) => {
     if (value.itemType === "link" && !value.url) {
@@ -135,6 +138,9 @@ const itemUpdateSchema = z.object({
   tags: z
     .array(z.string().trim().min(1, "Tags cannot be empty."))
     .transform((tags) => Array.from(new Set(tags))),
+  collectionIds: z
+    .array(z.string().trim().min(1, "Collection selection is invalid."))
+    .transform((collectionIds) => Array.from(new Set(collectionIds))),
 });
 
 type UpdateItemPayload = z.input<typeof itemUpdateSchema>;
@@ -183,6 +189,7 @@ const buildParsedPayload = <T extends CreateItemPayload | UpdateItemPayload>(
   data: T,
 ) => ({
   tags: data.tags,
+  collectionIds: data.collectionIds,
   title: data.title,
   ...(Object.prototype.hasOwnProperty.call(data, "description")
     ? { description: normalizeOptionalText(data.description) }
@@ -331,7 +338,7 @@ export const updateItem = async (
   }
 
   try {
-    const updatedItem = await updateItemRecord(itemId, parsedPayload.data);
+    const updatedItem = await updateItemRecord(itemId, userId, parsedPayload.data);
 
     if (!updatedItem) {
       return {

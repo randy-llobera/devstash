@@ -1,4 +1,5 @@
 import {
+  getAvailableCollections,
   getRecentDashboardCollections,
   getSidebarCollectionsData,
 } from "@/lib/db/collections";
@@ -22,6 +23,7 @@ const DashboardPage = async () => {
     stats,
     itemTypes,
     sidebarCollections,
+    collections,
     recentCollections,
     pinnedItems,
     recentItems,
@@ -30,6 +32,7 @@ const DashboardPage = async () => {
     getDashboardStats(),
     getSidebarItemTypes(),
     getSidebarCollectionsData(),
+    getAvailableCollections(),
     getRecentDashboardCollections(),
     getPinnedDashboardItems(),
     getRecentDashboardItems(),
@@ -38,6 +41,7 @@ const DashboardPage = async () => {
   return (
       <DashboardShell
         user={user}
+        collections={collections}
         itemTypes={itemTypes}
         favoriteCollections={sidebarCollections.favoriteCollections}
         recentCollections={sidebarCollections.recentCollections}

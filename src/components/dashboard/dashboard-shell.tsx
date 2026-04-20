@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from 'react';
 
-import type { SidebarCollection } from '@/lib/db/collections';
+import type { CollectionOption, SidebarCollection } from '@/lib/db/collections';
 import type { DashboardUser } from '@/lib/db/dashboard-user';
 import type { SidebarItemType } from '@/lib/db/items';
 
@@ -17,6 +17,7 @@ import { Sidebar } from '@/components/layout/sidebar';
 
 interface DashboardShellProps {
   user: DashboardUser | null;
+  collections: CollectionOption[];
   itemTypes: SidebarItemType[];
   favoriteCollections: SidebarCollection[];
   recentCollections: SidebarCollection[];
@@ -25,6 +26,7 @@ interface DashboardShellProps {
 
 export const DashboardShell = ({
   user,
+  collections,
   itemTypes,
   favoriteCollections,
   recentCollections,
@@ -35,7 +37,7 @@ export const DashboardShell = ({
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   return (
-    <ItemDrawerProvider>
+    <ItemDrawerProvider collections={collections}>
       <main className='min-h-screen bg-background text-foreground'>
         <div className='grid min-h-screen grid-rows-[auto_1fr]'>
           <TopBar
@@ -84,6 +86,7 @@ export const DashboardShell = ({
         open={isCreateCollectionDialogOpen}
       />
       <CreateItemDialog
+        collections={collections}
         itemTypes={itemTypes}
         onOpenChange={setIsCreateDialogOpen}
         open={isCreateDialogOpen}

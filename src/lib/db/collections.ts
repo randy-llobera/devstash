@@ -26,6 +26,11 @@ interface SidebarCollectionData {
   recentCollections: SidebarCollection[];
 }
 
+export interface CollectionOption {
+  id: string;
+  name: string;
+}
+
 interface CreateCollectionInput {
   name: string;
   description?: string | null;
@@ -197,6 +202,27 @@ export const getSidebarCollectionsData = async (
       .map(mapSidebarCollection),
     recentCollections: collections.slice(0, limit).map(mapSidebarCollection),
   };
+};
+
+export const getAvailableCollections = async (): Promise<CollectionOption[]> => {
+  const user = await getDashboardUser();
+
+  if (!user) {
+    return [];
+  }
+
+  return prisma.collection.findMany({
+    where: {
+      userId: user.id,
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+    orderBy: {
+      name: "asc",
+    },
+  });
 };
 
 export const createCollection = async (
