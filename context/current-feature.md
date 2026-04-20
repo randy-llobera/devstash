@@ -1,21 +1,18 @@
-# Current Feature: Collections Pages
+# Current Feature
+
+<!-- No active feature -->
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Create a protected `/collections` page that lists the user's collections using the existing collection cards
-- Create a protected `/collections/[id]` page that shows the items in that collection using the existing item cards
-- Link the sidebar and dashboard "View all collections" entry points to `/collections`
-- Link collection cards and sidebar collection entries to their specific `/collections/[id]` pages
+<!-- Add goals here -->
 
 ## Notes
 
-<!-- Loaded from inline feature request -->
-- Reuse the existing dashboard shell and card components
-- Keep the implementation incremental and aligned with the current server-component data-fetching patterns
+<!-- Add notes here -->
 
 ## History
 
@@ -58,3 +55,4 @@ In Progress
 - Item UI refactor completed with shared item-form and file-size utilities, smaller create dialog and item drawer sections, deduplicated item action and DB helpers, and focused unit coverage for the extracted utilities
 - Collection Create completed with a top-bar collection modal, a Zod-validated `createCollection` server action, Prisma-backed collection creation in `src/lib/db/collections.ts`, toast feedback plus refresh behavior, empty collections included in dashboard/sidebar reads, and focused action coverage
 - Item Collection Assignment completed with collection multi-select support in create and edit item forms, shadcn-based picker primitives backed by `cmdk`, user-owned collection filtering in item persistence, and focused action coverage for collection payload handling
+- Collections Pages completed with protected `/collections` and `/collections/[id]` routes, real collection links from the sidebar and dashboard, a compact collection detail header with type counts, mixed/files/images section ordering, and focused unit coverage for collection data mapping
