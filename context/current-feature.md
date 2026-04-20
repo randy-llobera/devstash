@@ -1,4 +1,6 @@
-# Current Feature: Item Collection Assignment
+# Current Feature
+
+<!-- No active feature -->
 
 ## Status
 
@@ -6,16 +8,11 @@ Not Started
 
 ## Goals
 
-- Add collection selection to the create item form.
-- Add collection selection to the edit item form in the item drawer.
-- Allow assigning an item to one or multiple existing collections.
-- Persist collection membership changes when creating or updating an item.
+<!-- Add goals here -->
 
 ## Notes
 
-- Use existing user-owned collections only.
-- Do not build or update collection pages as part of this feature.
-- Keep the change incremental and aligned with the current item form patterns.
+<!-- Add notes here -->
 
 ## History
 
@@ -57,3 +54,4 @@ Not Started
 - Audit follow-up fixes completed with trusted auth email origins from `AUTH_URL`/`NEXTAUTH_URL`, escaped auth email content, production fail-closed rate-limit handling, reduced duplicate dashboard item and collection reads, and accessible file row actions
 - Item UI refactor completed with shared item-form and file-size utilities, smaller create dialog and item drawer sections, deduplicated item action and DB helpers, and focused unit coverage for the extracted utilities
 - Collection Create completed with a top-bar collection modal, a Zod-validated `createCollection` server action, Prisma-backed collection creation in `src/lib/db/collections.ts`, toast feedback plus refresh behavior, empty collections included in dashboard/sidebar reads, and focused action coverage
+- Item Collection Assignment completed with collection multi-select support in create and edit item forms, shadcn-based picker primitives backed by `cmdk`, user-owned collection filtering in item persistence, and focused action coverage for collection payload handling
