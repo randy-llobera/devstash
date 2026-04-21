@@ -1,28 +1,16 @@
-# Current Feature: Favorites Page
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Add a star icon button to the top bar linking to `/favorites`.
-- Create a protected `/favorites` route.
-- Fetch all user-favorited items and collections.
-- Render a compact list view for favorites instead of cards.
-- Show each row with a type icon, title, type badge, and date added.
-- Split favorites into item and collection sections with counts.
-- Open `ItemDrawer` when an item row is clicked.
-- Navigate to `/collections/[id]` when a collection row is clicked.
-- Show an empty state when the user has no favorites.
-- Sort favorites by most recently favorited using `updatedAt`.
+<!-- Add goals here -->
 
 ## Notes
 
 <!-- Add notes here -->
-- Spec: `context/features/favorites-spec.md`
-- Overview: Add a `/favorites` page displaying all favorited items and collections in a compact, dev-focused list.
-- UI style: monospace or semi-monospace font, minimal padding, high density, subtle hover states, and no cards or heavy borders.
 
 ## History
 
@@ -71,3 +59,4 @@ In Progress
 - Pagination completed with shared page parsing and pagination state helpers, numbered prev/next navigation on `/items/[type]` and `/collections/[id]`, paged Prisma reads capped at 21 records per page, preserved dashboard limits via shared constants, and focused unit coverage for pagination helpers and DB paging behavior
 - Settings Page completed with a protected `/settings` route, sidebar dropdown settings navigation, account actions moved off `/profile`, a new settings-only account actions panel, and forgot-password access alongside the existing password and delete-account flows
 - Editor Preferences Settings completed with a settings page editor preferences panel, Prisma-backed `User.editorPreferences` JSON storage plus migration, an auto-saving preferences server action with success toasts, a shared `EditorPreferencesContext`, Monaco theme/font/tab/minimap/word-wrap application across editors, focused tests for preferences and actions, and the included `src/lib/pagination.ts` plus `context/features/editor-settings-spec.md` changes requested during completion
+- Favorites Page completed with a new protected `/favorites` route, top-bar favorites shortcut, compact monospace favorites sections for items and collections, drawer opening for item rows, collection navigation for collection rows, DB helpers for favorite item and collection reads, and focused unit coverage for the new queries
