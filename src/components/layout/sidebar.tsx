@@ -10,6 +10,7 @@ import {
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
+  Settings,
   Star,
   User,
 } from "lucide-react";
@@ -269,6 +270,12 @@ export const Sidebar = ({
               <Link href="/profile" onClick={onNavigate}>
                 <User className="size-4 shrink-0" />
                 <span>Profile</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/settings" onClick={onNavigate}>
+                <Settings className="size-4 shrink-0" />
+                <span>Settings</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={handleSignOut} variant="destructive">

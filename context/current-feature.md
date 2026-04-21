@@ -1,4 +1,4 @@
-# Current Feature
+# Current Feature: Settings Page
 
 ## Status
 
@@ -6,11 +6,17 @@ Not Started
 
 ## Goals
 
-<!-- Add goals here -->
+- Add a protected `/settings` page within the dashboard shell.
+- Add a `Settings` link to the user dropdown in the sidebar.
+- Move account actions off `/profile` and onto `/settings`.
+- Keep password-related actions available only when the account has a local password.
+- Keep delete-account behavior and forgot-password navigation working from the new settings page.
 
 ## Notes
 
-<!-- Add notes here -->
+Move account actions, including delete account and forgot password, from profile to settings.
+Protect `/settings` with the existing auth guard pattern used by `/profile`.
+Keep the profile page focused on account info and usage stats.
 
 ## History
 
