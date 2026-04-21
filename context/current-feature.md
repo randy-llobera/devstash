@@ -1,4 +1,4 @@
-# Current Feature: Settings Page
+# Current Feature
 
 ## Status
 
@@ -6,17 +6,11 @@ Not Started
 
 ## Goals
 
-- Add a protected `/settings` page within the dashboard shell.
-- Add a `Settings` link to the user dropdown in the sidebar.
-- Move account actions off `/profile` and onto `/settings`.
-- Keep password-related actions available only when the account has a local password.
-- Keep delete-account behavior and forgot-password navigation working from the new settings page.
+<!-- Add goals here -->
 
 ## Notes
 
-Move account actions, including delete account and forgot password, from profile to settings.
-Protect `/settings` with the existing auth guard pattern used by `/profile`.
-Keep the profile page focused on account info and usage stats.
+<!-- Add notes here -->
 
 ## History
 
@@ -63,3 +57,4 @@ Keep the profile page focused on account info and usage stats.
 - Collection Actions UI completed with owner-scoped collection update/delete actions, collection-preserving delete behavior, edit/delete controls on `/collections/[id]`, shared three-dots collection card menus on `/collections` and `/dashboard`, and focused action plus DB helper coverage
 - Global Search / Command Palette completed with a shared `SearchProvider`, a combined `search` server action, lazy-loaded client-side search data for items and collections, grouped `cmdk` results opened from the top bar and keyboard shortcuts, drawer and collection navigation on select, explicit cache invalidation after item and collection mutations, and focused action and DB-helper coverage
 - Pagination completed with shared page parsing and pagination state helpers, numbered prev/next navigation on `/items/[type]` and `/collections/[id]`, paged Prisma reads capped at 21 records per page, preserved dashboard limits via shared constants, and focused unit coverage for pagination helpers and DB paging behavior
+- Settings Page completed with a protected `/settings` route, sidebar dropdown settings navigation, account actions moved off `/profile`, a new settings-only account actions panel, and forgot-password access alongside the existing password and delete-account flows
