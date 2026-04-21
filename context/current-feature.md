@@ -1,30 +1,16 @@
-# Current Feature: Editor Preferences Settings
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Add an editor preferences section to the settings page.
-- Add controls for font size, tab size, word wrap, minimap, and theme.
-- Store editor preferences in the `User.editorPreferences` JSON column.
-- Create and run a Prisma migration for the schema change.
-- Add a server action to update editor preferences.
-- Apply saved preferences to the Monaco editor component.
-- Auto-save preference changes without a save button.
-- Show a success toast after a preference save.
-- Create an `EditorPreferencesContext` for client components.
+<!-- Add goals here -->
 
 ## Notes
 
 <!-- Add notes here -->
-
-- Word wrap default: on.
-- Minimap default: off.
-- Theme options: `vs-dark`, `monokai`, `github-dark`.
-- Default theme: `vs-dark`.
-- Use a migration, never `db push`.
 
 ## History
 
@@ -72,3 +58,4 @@ In Progress
 - Global Search / Command Palette completed with a shared `SearchProvider`, a combined `search` server action, lazy-loaded client-side search data for items and collections, grouped `cmdk` results opened from the top bar and keyboard shortcuts, drawer and collection navigation on select, explicit cache invalidation after item and collection mutations, and focused action and DB-helper coverage
 - Pagination completed with shared page parsing and pagination state helpers, numbered prev/next navigation on `/items/[type]` and `/collections/[id]`, paged Prisma reads capped at 21 records per page, preserved dashboard limits via shared constants, and focused unit coverage for pagination helpers and DB paging behavior
 - Settings Page completed with a protected `/settings` route, sidebar dropdown settings navigation, account actions moved off `/profile`, a new settings-only account actions panel, and forgot-password access alongside the existing password and delete-account flows
+- Editor Preferences Settings completed with a settings page editor preferences panel, Prisma-backed `User.editorPreferences` JSON storage plus migration, an auto-saving preferences server action with success toasts, a shared `EditorPreferencesContext`, Monaco theme/font/tab/minimap/word-wrap application across editors, focused tests for preferences and actions, and the included `src/lib/pagination.ts` plus `context/features/editor-settings-spec.md` changes requested during completion
