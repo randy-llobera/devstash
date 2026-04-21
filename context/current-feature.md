@@ -1,23 +1,16 @@
-# Current Feature: Pagination
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Add pagination to `/items/[type]` and `/collections/[id]`
-- Render pagination controls at the bottom with numbered page links and prev/next links
-- Disable previous and next controls when there is no available page in that direction
-- Use `ITEMS_PER_PAGE = 21` and `COLLECTIONS_PER_PAGE = 21`
-- Keep dashboard limits at `DASHBOARD_COLLECTIONS_LIMIT = 6` and `DASHBOARD_RECENT_ITEMS_LIMIT = 10`
-- Fetch only the records required for the active page instead of loading all resources at once
+<!-- Add goals here -->
 
 ## Notes
 
-- Source spec: `context/features/pagination-spec.md`
-- Applies to item type listings and collection detail item listings
-- Pagination should be server-data-aware and avoid overfetching
+<!-- Add notes here -->
 
 ## History
 
@@ -63,3 +56,4 @@ In Progress
 - Collections Pages completed with protected `/collections` and `/collections/[id]` routes, real collection links from the sidebar and dashboard, a compact collection detail header with type counts, mixed/files/images section ordering, and focused unit coverage for collection data mapping
 - Collection Actions UI completed with owner-scoped collection update/delete actions, collection-preserving delete behavior, edit/delete controls on `/collections/[id]`, shared three-dots collection card menus on `/collections` and `/dashboard`, and focused action plus DB helper coverage
 - Global Search / Command Palette completed with a shared `SearchProvider`, a combined `search` server action, lazy-loaded client-side search data for items and collections, grouped `cmdk` results opened from the top bar and keyboard shortcuts, drawer and collection navigation on select, explicit cache invalidation after item and collection mutations, and focused action and DB-helper coverage
+- Pagination completed with shared page parsing and pagination state helpers, numbered prev/next navigation on `/items/[type]` and `/collections/[id]`, paged Prisma reads capped at 21 records per page, preserved dashboard limits via shared constants, and focused unit coverage for pagination helpers and DB paging behavior
