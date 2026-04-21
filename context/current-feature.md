@@ -1,22 +1,16 @@
-# Current Feature: Add favorites toggle to drawer, collection page, and cards
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Add a favorite toggle to item cards so users can favorite or unfavorite items without leaving the current view
-- Add a favorite toggle to the item drawer with the same behavior and state as the cards
-- Add a favorite toggle on collection pages for collection-level favorite actions
-- Keep favorite state consistent across drawer, collection page, cards, and the existing favorites page
-- Preserve the current UI patterns and avoid introducing a new interaction pattern unless required
+<!-- Add goals here -->
 
 ## Notes
 
-- Inline request loaded from feature workflow: "Add a favorite button to the drawer, collection page and cards to toggle"
-- Scope implies item-level favorite controls in the drawer and cards, plus collection-level favorite control on collection pages
-- Implementation should reuse existing favorites data flow and favorite/unfavorite behavior where possible
+<!-- Add notes here -->
 
 ## History
 
@@ -66,3 +60,4 @@ In Progress
 - Settings Page completed with a protected `/settings` route, sidebar dropdown settings navigation, account actions moved off `/profile`, a new settings-only account actions panel, and forgot-password access alongside the existing password and delete-account flows
 - Editor Preferences Settings completed with a settings page editor preferences panel, Prisma-backed `User.editorPreferences` JSON storage plus migration, an auto-saving preferences server action with success toasts, a shared `EditorPreferencesContext`, Monaco theme/font/tab/minimap/word-wrap application across editors, focused tests for preferences and actions, and the included `src/lib/pagination.ts` plus `context/features/editor-settings-spec.md` changes requested during completion
 - Favorites Page completed with a new protected `/favorites` route, top-bar favorites shortcut, compact monospace favorites sections for items and collections, drawer opening for item rows, collection navigation for collection rows, DB helpers for favorite item and collection reads, and focused unit coverage for the new queries
+- Favorites Toggle completed with shared item-level favorite toggles across dashboard cards, rows, image/file views, and the item drawer, plus collection-level favorite actions on collection pages and focused unit coverage for the new item and collection favorite actions
