@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
   collectionDeleteMock,
+  collectionFindManyMock,
   collectionFindFirstMock,
   collectionUpdateMock,
   getDashboardUserMock,
@@ -14,6 +15,7 @@ const {
   prismaTransactionMock,
 } = vi.hoisted(() => ({
   collectionDeleteMock: vi.fn(),
+  collectionFindManyMock: vi.fn(),
   collectionFindFirstMock: vi.fn(),
   collectionUpdateMock: vi.fn(),
   getDashboardUserMock: vi.fn(),
@@ -29,6 +31,7 @@ const {
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     collection: {
+      findMany: collectionFindManyMock,
       findFirst: collectionFindFirstMock,
       update: collectionUpdateMock,
       delete: collectionDeleteMock,
@@ -56,6 +59,7 @@ vi.mock("@/lib/db/dashboard-user", () => ({
 import {
   buildCollectionSummary,
   deleteCollection,
+  getFavoriteDashboardCollections,
   getCollectionDetailById,
   mapGlobalSearchCollection,
   mapCollectionDetailItem,
@@ -65,6 +69,7 @@ import {
 describe("collection db helpers", () => {
   beforeEach(() => {
     collectionDeleteMock.mockReset();
+    collectionFindManyMock.mockReset();
     collectionFindFirstMock.mockReset();
     collectionUpdateMock.mockReset();
     getDashboardUserMock.mockReset();
@@ -286,6 +291,72 @@ describe("collection db helpers", () => {
       ],
       searchText: "DevOps Deployment commands command link",
     });
+  });
+
+  it("returns favorite dashboard collections sorted by updatedAt", async () => {
+    getDashboardUserMock.mockResolvedValue({
+      id: "user-1",
+    });
+    collectionFindManyMock.mockResolvedValue([
+      {
+        id: "collection-1",
+        name: "DevOps",
+        description: null,
+        isFavorite: true,
+        updatedAt: new Date("2026-04-10T08:00:00.000Z"),
+        items: [
+          {
+            item: {
+              updatedAt: new Date("2026-04-12T10:00:00.000Z"),
+              itemType: {
+                id: "type-command",
+                name: "command",
+                icon: "Terminal",
+                color: "#f97316",
+              },
+            },
+          },
+        ],
+      },
+      {
+        id: "collection-2",
+        name: "Archived",
+        description: null,
+        isFavorite: false,
+        updatedAt: new Date("2026-04-14T08:00:00.000Z"),
+        items: [],
+      },
+    ]);
+
+    const result = await getFavoriteDashboardCollections();
+
+    expect(collectionFindManyMock).toHaveBeenCalledWith({
+      where: {
+        userId: "user-1",
+      },
+      select: expect.any(Object),
+    });
+    expect(result).toEqual([
+      {
+        id: "collection-1",
+        name: "DevOps",
+        description: "No description yet.",
+        isFavorite: true,
+        itemCount: 1,
+        typeCount: 1,
+        updatedAt: "2026-04-12T10:00:00.000Z",
+        dominantTypeColor: "#f97316",
+        itemTypes: [
+          {
+            id: "type-command",
+            name: "command",
+            icon: "Terminal",
+            color: "#f97316",
+            itemCount: 1,
+          },
+        ],
+      },
+    ]);
   });
 
   it("returns paginated collection detail without fetching every item", async () => {

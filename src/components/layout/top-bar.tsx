@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { FolderPlus, Plus, Search } from "lucide-react";
+import Link from "next/link";
+import { FolderPlus, Plus, Search, Star } from "lucide-react";
 
 import { useSearch } from "@/components/dashboard/search-provider";
 import { Button } from "@/components/ui/button";
@@ -62,6 +63,16 @@ export const TopBar = ({
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+          <Button
+            asChild
+            variant="outline"
+            size="icon"
+            className="shrink-0"
+          >
+            <Link href="/favorites" aria-label="Open favorites">
+              <Star className="size-4" />
+            </Link>
+          </Button>
           <Button
             type="button"
             variant="outline"

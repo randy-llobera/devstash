@@ -52,7 +52,12 @@ vi.mock("@/lib/db/dashboard-user", () => ({
   getDashboardUser: getDashboardUserMock,
 }));
 
-import { getGlobalSearchItemPreview, getItemsByTypeSlug, mapGlobalSearchItem } from "@/lib/db/items";
+import {
+  getFavoriteDashboardItems,
+  getGlobalSearchItemPreview,
+  getItemsByTypeSlug,
+  mapGlobalSearchItem,
+} from "@/lib/db/items";
 
 describe("item db helpers", () => {
   beforeEach(() => {
@@ -207,5 +212,77 @@ describe("item db helpers", () => {
     });
     expect(result?.items).toHaveLength(1);
     expect(result?.itemType.slug).toBe("snippets");
+  });
+
+  it("returns favorite dashboard items sorted by updatedAt", async () => {
+    getDashboardUserMock.mockResolvedValue({
+      id: "user-1",
+    });
+    itemFindManyMock.mockResolvedValue([
+      {
+        id: "item-1",
+        title: "Deploy command",
+        description: null,
+        fileName: null,
+        fileSize: null,
+        isFavorite: true,
+        isPinned: false,
+        createdAt: new Date("2026-04-10T08:00:00.000Z"),
+        updatedAt: new Date("2026-04-12T10:00:00.000Z"),
+        tags: [{ name: "deploy" }],
+        itemType: {
+          id: "type-command",
+          name: "command",
+          icon: "Terminal",
+          color: "#f97316",
+        },
+        collections: [
+          {
+            addedAt: new Date("2026-04-11T09:00:00.000Z"),
+            collection: {
+              id: "collection-1",
+              name: "DevOps",
+            },
+          },
+        ],
+      },
+    ]);
+
+    const result = await getFavoriteDashboardItems();
+
+    expect(itemFindManyMock).toHaveBeenCalledWith({
+      where: {
+        isFavorite: true,
+        userId: "user-1",
+      },
+      select: expect.any(Object),
+      orderBy: {
+        updatedAt: "desc",
+      },
+    });
+    expect(result).toEqual([
+      {
+        id: "item-1",
+        title: "Deploy command",
+        description: "No description yet.",
+        fileName: null,
+        fileSize: null,
+        isFavorite: true,
+        isPinned: false,
+        createdAt: "2026-04-10T08:00:00.000Z",
+        updatedAt: "2026-04-12T10:00:00.000Z",
+        tags: ["deploy"],
+        itemType: {
+          id: "type-command",
+          name: "command",
+          icon: "Terminal",
+          color: "#f97316",
+        },
+        collection: {
+          id: "collection-1",
+          name: "DevOps",
+        },
+      },
+    ]);
   });
 });

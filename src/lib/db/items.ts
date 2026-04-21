@@ -483,9 +483,11 @@ const globalSearchItemSelect = {
 
 const getDashboardItems = async ({
   isPinned,
+  isFavorite,
   limit,
 }: {
   isPinned?: boolean;
+  isFavorite?: boolean;
   limit?: number;
 } = {}) => {
   const user = await getDashboardUser();
@@ -497,6 +499,7 @@ const getDashboardItems = async ({
   return prisma.item.findMany({
     where: {
       ...(typeof isPinned === "boolean" ? { isPinned } : {}),
+      ...(typeof isFavorite === "boolean" ? { isFavorite } : {}),
       userId: user.id,
     },
     select: dashboardItemSelect,
@@ -517,6 +520,12 @@ export const getRecentDashboardItems = async (
   limit = DASHBOARD_RECENT_ITEMS_LIMIT
 ): Promise<DashboardItem[]> => {
   const items = await getDashboardItems({ limit });
+
+  return items.map(mapDashboardItem);
+};
+
+export const getFavoriteDashboardItems = async (): Promise<DashboardItem[]> => {
+  const items = await getDashboardItems({ isFavorite: true });
 
   return items.map(mapDashboardItem);
 };

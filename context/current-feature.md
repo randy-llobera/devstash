@@ -1,16 +1,28 @@
-# Current Feature
+# Current Feature: Favorites Page
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Add goals here -->
+- Add a star icon button to the top bar linking to `/favorites`.
+- Create a protected `/favorites` route.
+- Fetch all user-favorited items and collections.
+- Render a compact list view for favorites instead of cards.
+- Show each row with a type icon, title, type badge, and date added.
+- Split favorites into item and collection sections with counts.
+- Open `ItemDrawer` when an item row is clicked.
+- Navigate to `/collections/[id]` when a collection row is clicked.
+- Show an empty state when the user has no favorites.
+- Sort favorites by most recently favorited using `updatedAt`.
 
 ## Notes
 
 <!-- Add notes here -->
+- Spec: `context/features/favorites-spec.md`
+- Overview: Add a `/favorites` page displaying all favorited items and collections in a compact, dev-focused list.
+- UI style: monospace or semi-monospace font, minimal padding, high density, subtle hover states, and no cards or heavy borders.
 
 ## History
 
