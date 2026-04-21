@@ -7,6 +7,7 @@ const {
   deleteR2ObjectMock,
   getItemDrawerDetailMock,
   setItemFavoriteStateRecordMock,
+  setItemPinnedStateRecordMock,
   updateItemRecordMock,
 } = vi.hoisted(() => ({
   authMock: vi.fn(),
@@ -15,6 +16,7 @@ const {
   deleteR2ObjectMock: vi.fn(),
   getItemDrawerDetailMock: vi.fn(),
   setItemFavoriteStateRecordMock: vi.fn(),
+  setItemPinnedStateRecordMock: vi.fn(),
   updateItemRecordMock: vi.fn(),
 }));
 
@@ -27,6 +29,7 @@ vi.mock("@/lib/db/items", () => ({
   deleteItem: deleteItemRecordMock,
   getItemDrawerDetail: getItemDrawerDetailMock,
   setItemFavoriteState: setItemFavoriteStateRecordMock,
+  setItemPinnedState: setItemPinnedStateRecordMock,
   updateItem: updateItemRecordMock,
 }));
 
@@ -45,7 +48,7 @@ vi.mock("@/lib/r2", () => ({
   deleteR2Object: deleteR2ObjectMock,
 }));
 
-import { createItem, deleteItem, toggleItemFavorite, updateItem } from "@/actions/items";
+import { createItem, deleteItem, toggleItemFavorite, toggleItemPin, updateItem } from "@/actions/items";
 
 describe("createItem action", () => {
   beforeEach(() => {
@@ -55,6 +58,7 @@ describe("createItem action", () => {
     deleteR2ObjectMock.mockReset();
     getItemDrawerDetailMock.mockReset();
     setItemFavoriteStateRecordMock.mockReset();
+    setItemPinnedStateRecordMock.mockReset();
     updateItemRecordMock.mockReset();
   });
 
@@ -247,6 +251,7 @@ describe("updateItem action", () => {
     deleteR2ObjectMock.mockReset();
     getItemDrawerDetailMock.mockReset();
     setItemFavoriteStateRecordMock.mockReset();
+    setItemPinnedStateRecordMock.mockReset();
     updateItemRecordMock.mockReset();
   });
 
@@ -383,6 +388,7 @@ describe("deleteItem action", () => {
     deleteR2ObjectMock.mockReset();
     getItemDrawerDetailMock.mockReset();
     setItemFavoriteStateRecordMock.mockReset();
+    setItemPinnedStateRecordMock.mockReset();
     updateItemRecordMock.mockReset();
   });
 
@@ -507,6 +513,7 @@ describe("toggleItemFavorite action", () => {
     deleteR2ObjectMock.mockReset();
     getItemDrawerDetailMock.mockReset();
     setItemFavoriteStateRecordMock.mockReset();
+    setItemPinnedStateRecordMock.mockReset();
     updateItemRecordMock.mockReset();
   });
 
@@ -570,6 +577,86 @@ describe("toggleItemFavorite action", () => {
     setItemFavoriteStateRecordMock.mockRejectedValue(new Error("db failure"));
 
     const result = await toggleItemFavorite("item-1", false);
+
+    expect(result).toEqual({
+      success: false,
+      error: "Unable to update item.",
+    });
+  });
+});
+
+describe("toggleItemPin action", () => {
+  beforeEach(() => {
+    authMock.mockReset();
+    createItemRecordMock.mockReset();
+    deleteItemRecordMock.mockReset();
+    deleteR2ObjectMock.mockReset();
+    getItemDrawerDetailMock.mockReset();
+    setItemFavoriteStateRecordMock.mockReset();
+    setItemPinnedStateRecordMock.mockReset();
+    updateItemRecordMock.mockReset();
+  });
+
+  it("rejects unauthenticated pin updates", async () => {
+    authMock.mockResolvedValue(null);
+
+    const result = await toggleItemPin("item-1", true);
+
+    expect(result).toEqual({
+      success: false,
+      error: "You must be signed in to update items.",
+    });
+    expect(setItemPinnedStateRecordMock).not.toHaveBeenCalled();
+  });
+
+  it("updates the item pinned state", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    setItemPinnedStateRecordMock.mockResolvedValue({
+      id: "item-1",
+      isPinned: true,
+    });
+
+    const result = await toggleItemPin("item-1", true);
+
+    expect(setItemPinnedStateRecordMock).toHaveBeenCalledWith("item-1", "user-1", true);
+    expect(result).toEqual({
+      success: true,
+      data: {
+        id: "item-1",
+        isPinned: true,
+      },
+    });
+  });
+
+  it("returns not found when the item does not belong to the user", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    setItemPinnedStateRecordMock.mockResolvedValue(null);
+
+    const result = await toggleItemPin("item-1", false);
+
+    expect(result).toEqual({
+      success: false,
+      error: "Item not found.",
+    });
+  });
+
+  it("returns a generic error when the pin update fails", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    setItemPinnedStateRecordMock.mockRejectedValue(new Error("db failure"));
+
+    const result = await toggleItemPin("item-1", false);
 
     expect(result).toEqual({
       success: false,

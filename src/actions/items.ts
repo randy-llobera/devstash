@@ -10,6 +10,7 @@ import {
   deleteItem as deleteItemRecord,
   getItemDrawerDetail,
   setItemFavoriteState as setItemFavoriteStateRecord,
+  setItemPinnedState as setItemPinnedStateRecord,
   updateItem as updateItemRecord,
 } from "@/lib/db/items";
 
@@ -177,6 +178,12 @@ interface DeleteItemActionResult {
 interface ToggleItemFavoriteActionResult {
   success: boolean;
   data?: Awaited<ReturnType<typeof setItemFavoriteStateRecord>>;
+  error?: string;
+}
+
+interface ToggleItemPinActionResult {
+  success: boolean;
+  data?: Awaited<ReturnType<typeof setItemPinnedStateRecord>>;
   error?: string;
 }
 
@@ -447,6 +454,43 @@ export const toggleItemFavorite = async (
     };
   } catch (error) {
     console.error("Failed to update item favorite state.", error);
+
+    return {
+      success: false,
+      error: "Unable to update item.",
+    };
+  }
+};
+
+export const toggleItemPin = async (
+  itemId: string,
+  isPinned: boolean,
+): Promise<ToggleItemPinActionResult> => {
+  const userId = await getSessionUserId();
+
+  if (!userId) {
+    return {
+      success: false,
+      error: "You must be signed in to update items.",
+    };
+  }
+
+  try {
+    const updatedItem = await setItemPinnedStateRecord(itemId, userId, isPinned);
+
+    if (!updatedItem) {
+      return {
+        success: false,
+        error: "Item not found.",
+      };
+    }
+
+    return {
+      success: true,
+      data: updatedItem,
+    };
+  } catch (error) {
+    console.error("Failed to update item pinned state.", error);
 
     return {
       success: false,
