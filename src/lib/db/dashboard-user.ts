@@ -1,6 +1,10 @@
 import { cache } from "react";
 
 import { auth } from "@/auth";
+import {
+  normalizeEditorPreferences,
+  type EditorPreferences,
+} from "@/lib/editor-preferences";
 import { prisma } from "@/lib/prisma";
 
 export interface DashboardUser {
@@ -10,6 +14,7 @@ export interface DashboardUser {
   image: string | null;
   createdAt: string;
   hasPassword: boolean;
+  editorPreferences: EditorPreferences;
 }
 
 export const getDashboardUser = cache(async (): Promise<DashboardUser | null> => {
@@ -30,6 +35,7 @@ export const getDashboardUser = cache(async (): Promise<DashboardUser | null> =>
       image: true,
       createdAt: true,
       password: true,
+      editorPreferences: true,
     },
   });
 
@@ -44,5 +50,6 @@ export const getDashboardUser = cache(async (): Promise<DashboardUser | null> =>
     image: user.image,
     createdAt: user.createdAt.toISOString(),
     hasPassword: Boolean(user.password),
+    editorPreferences: normalizeEditorPreferences(user.editorPreferences),
   };
 });

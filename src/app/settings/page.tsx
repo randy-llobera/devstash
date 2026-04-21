@@ -9,6 +9,7 @@ import { getSidebarItemTypes } from "@/lib/db/items";
 
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { AccountSettings } from "@/components/profile/account-settings";
+import { EditorPreferencesSettings } from "@/components/settings/editor-preferences-settings";
 
 const SettingsPage = async () => {
   const [user, itemTypes, sidebarCollections, collections] = await Promise.all([
@@ -33,10 +34,11 @@ const SettingsPage = async () => {
       <div className="space-y-1">
         <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
         <p className="text-sm text-muted-foreground">
-          Manage your account actions and password recovery options.
+          Manage your editor defaults, account actions, and password recovery options.
         </p>
       </div>
 
+      <EditorPreferencesSettings initialPreferences={user.editorPreferences} />
       <AccountSettings email={user.email} hasPassword={user.hasPassword} />
     </DashboardShell>
   );
