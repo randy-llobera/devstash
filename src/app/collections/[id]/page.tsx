@@ -13,11 +13,13 @@ import {
   getItemTypeSlug,
   getSidebarItemTypes,
 } from "@/lib/db/items";
+import { COLLECTIONS_PER_PAGE, parsePageParam } from "@/lib/pagination";
 
 import { DashboardItemCard } from "@/components/dashboard/dashboard-item-card";
 import { DashboardItemsList } from "@/components/dashboard/dashboard-items-list";
 import { CollectionActions } from "@/components/dashboard/collection-actions";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { PaginationControls } from "@/components/dashboard/pagination-controls";
 import { formatUpdatedAt } from "@/components/utils/date";
 import { getItemTypeIcon } from "@/components/utils/item-type";
 
@@ -25,10 +27,18 @@ interface CollectionDetailPageProps {
   params: Promise<{
     id: string;
   }>;
+  searchParams?: Promise<{
+    page?: string | string[];
+  }>;
 }
 
-const CollectionDetailPage = async ({ params }: CollectionDetailPageProps) => {
+const CollectionDetailPage = async ({
+  params,
+  searchParams,
+}: CollectionDetailPageProps) => {
   const { id } = await params;
+  const resolvedSearchParams = await searchParams;
+  const page = parsePageParam(resolvedSearchParams?.page);
   const [
     user,
     itemTypes,
@@ -41,7 +51,7 @@ const CollectionDetailPage = async ({ params }: CollectionDetailPageProps) => {
       getSidebarItemTypes(),
       getSidebarCollectionsData(),
       getAvailableCollections(),
-      getCollectionDetailById(id),
+      getCollectionDetailById(id, page, COLLECTIONS_PER_PAGE),
     ]);
 
   if (!collection) {
@@ -175,6 +185,11 @@ const CollectionDetailPage = async ({ params }: CollectionDetailPageProps) => {
                 />
               </section>
             ) : null}
+
+            <PaginationControls
+              basePath={`/collections/${id}`}
+              pagination={collection.pagination}
+            />
           </div>
         ) : (
           <div className="rounded-[1.75rem] border border-dashed border-border/70 bg-card/35 px-6 py-14 text-center">

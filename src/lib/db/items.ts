@@ -1,6 +1,12 @@
 import { ContentType } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getDashboardUser } from "@/lib/db/dashboard-user";
+import {
+  DASHBOARD_RECENT_ITEMS_LIMIT,
+  getPaginationState,
+  ITEMS_PER_PAGE,
+  type PaginationState,
+} from "@/lib/pagination";
 
 interface CollectionLookupClient {
   collection: {
@@ -75,6 +81,7 @@ export interface ItemTypeSummary {
 export interface ItemsByTypeResult {
   itemType: ItemTypeSummary;
   items: DashboardItem[];
+  pagination: PaginationState;
 }
 
 export interface DashboardStats {
@@ -507,7 +514,7 @@ export const getPinnedDashboardItems = async (): Promise<DashboardItem[]> => {
 };
 
 export const getRecentDashboardItems = async (
-  limit = 10
+  limit = DASHBOARD_RECENT_ITEMS_LIMIT
 ): Promise<DashboardItem[]> => {
   const items = await getDashboardItems({ limit });
 
@@ -744,7 +751,9 @@ export const updateItem = async (
 };
 
 export const getItemsByTypeSlug = async (
-  slug: string
+  slug: string,
+  page = 1,
+  perPage = ITEMS_PER_PAGE,
 ): Promise<ItemsByTypeResult | null> => {
   const user = await getDashboardUser();
 
@@ -769,6 +778,18 @@ export const getItemsByTypeSlug = async (
   if (!matchedItemType) {
     return null;
   }
+
+  const totalItems = await prisma.item.count({
+    where: {
+      userId: user.id,
+      itemTypeId: matchedItemType.id,
+    },
+  });
+  const pagination = getPaginationState({
+    currentPage: page,
+    perPage,
+    totalItems,
+  });
 
   const items = await prisma.item.findMany({
     where: {
@@ -810,6 +831,8 @@ export const getItemsByTypeSlug = async (
         },
       },
     },
+    skip: pagination.offset,
+    take: pagination.perPage,
     orderBy: {
       updatedAt: "desc",
     },
@@ -821,5 +844,6 @@ export const getItemsByTypeSlug = async (
       slug,
     },
     items: items.map(mapDashboardItem),
+    pagination,
   };
 };
