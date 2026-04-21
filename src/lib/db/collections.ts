@@ -428,9 +428,14 @@ export const getCollectionDetailById = async (
     },
     skip: pagination.offset,
     take: pagination.perPage,
-    orderBy: {
-      updatedAt: "desc",
-    },
+    orderBy: [
+      {
+        isPinned: "desc",
+      },
+      {
+        updatedAt: "desc",
+      },
+    ],
   });
   const itemTypes = itemTypeCounts.length > 0
     ? await prisma.itemType.findMany({

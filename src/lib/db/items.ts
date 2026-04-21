@@ -791,6 +791,38 @@ export const setItemFavoriteState = async (
   return mapItemDrawerDetail(item);
 };
 
+export const setItemPinnedState = async (
+  itemId: string,
+  userId: string,
+  isPinned: boolean,
+): Promise<ItemDrawerDetail | null> => {
+  const existingItem = await prisma.item.findFirst({
+    where: {
+      id: itemId,
+      userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!existingItem) {
+    return null;
+  }
+
+  const item = await prisma.item.update({
+    where: {
+      id: itemId,
+    },
+    data: {
+      isPinned,
+    },
+    select: itemDrawerDetailSelect,
+  });
+
+  return mapItemDrawerDetail(item);
+};
+
 export const getItemsByTypeSlug = async (
   slug: string,
   page = 1,
@@ -874,9 +906,14 @@ export const getItemsByTypeSlug = async (
     },
     skip: pagination.offset,
     take: pagination.perPage,
-    orderBy: {
-      updatedAt: "desc",
-    },
+    orderBy: [
+      {
+        isPinned: "desc",
+      },
+      {
+        updatedAt: "desc",
+      },
+    ],
   });
 
   return {

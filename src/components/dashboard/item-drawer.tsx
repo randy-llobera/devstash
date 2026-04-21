@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils';
 
 import { CollectionPicker } from '@/components/dashboard/collection-picker';
 import { ItemFavoriteButton } from '@/components/dashboard/item-favorite-button';
+import { ItemPinButton } from '@/components/dashboard/item-pin-button';
 import { useSearch } from '@/components/dashboard/search-provider';
 import { CodeEditor } from '@/components/ui/code-editor';
 import { formatDate, formatUpdatedAt } from '@/components/utils/date';
@@ -802,16 +803,24 @@ export const ItemDrawer = ({
                       Favorite
                     </DrawerActionButton>
                   )}
-                  <DrawerActionButton
-                    active={Boolean(item?.isPinned)}
-                    aria-label='Pin'
-                    disabled
-                  >
-                    <Pin
-                      className={cn('size-4', item?.isPinned ? 'fill-current' : '')}
+                  {item ? (
+                    <ItemPinButton
+                      itemId={item.id}
+                      itemTitle={item.title}
+                      isPinned={item.isPinned}
+                      label='Pin'
+                      onToggled={onItemUpdated}
+                      size='sm'
+                      className='h-9 rounded-xl border border-border/60 bg-background/80 px-3 text-muted-foreground hover:bg-muted/60'
+                      iconClassName='size-4'
+                      stopPropagation={false}
                     />
-                    Pin
-                  </DrawerActionButton>
+                  ) : (
+                    <DrawerActionButton aria-label='Pin' disabled>
+                      <Pin className='size-4' />
+                      Pin
+                    </DrawerActionButton>
+                  )}
                   <DrawerActionButton
                     aria-label='Copy'
                     disabled={!canCopy}
