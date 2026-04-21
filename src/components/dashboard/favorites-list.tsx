@@ -1,41 +1,127 @@
 "use client";
 
-import { createElement } from "react";
+import { createElement, useState } from "react";
 import Link from "next/link";
-import { Folder, Star } from "lucide-react";
+import { ChevronDown, Folder, Star } from "lucide-react";
 
 import type { DashboardCollection } from "@/lib/db/collections";
 import type { DashboardItem } from "@/lib/db/items";
+import type {
+  FavoriteCollectionSortKey,
+  FavoriteItemSortKey,
+} from "@/lib/favorites-sort";
 
 import { formatDate } from "@/components/utils/date";
 import { getItemTypeIcon } from "@/components/utils/item-type";
 import { useItemDrawer } from "@/components/dashboard/item-drawer-provider";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  sortFavoriteCollections,
+  sortFavoriteItems,
+} from "@/lib/favorites-sort";
 
 interface FavoritesListProps {
   items: DashboardItem[];
   collections: DashboardCollection[];
 }
 
+interface SortOption<TValue extends string> {
+  label: string;
+  value: TValue;
+}
+
 interface FavoritesSectionHeaderProps {
   title: string;
   count: number;
+  sortLabel: string;
+  options: SortOption<string>[];
+  selectedValue: string;
+  selectedLabel: string;
+  onChange: (value: string) => void;
 }
 
-const FavoritesSectionHeader = ({ title, count }: FavoritesSectionHeaderProps) => (
-  <div className="flex items-center justify-between gap-3 border-b border-border/70 pb-2">
-    <h2 className="font-mono text-sm font-semibold uppercase tracking-[0.16em] text-foreground">
-      {title}
-    </h2>
-    <span className="font-mono text-xs text-muted-foreground">
-      {count}
-    </span>
+const FavoritesSectionHeader = ({
+  title,
+  count,
+  sortLabel,
+  options,
+  selectedValue,
+  selectedLabel,
+  onChange,
+}: FavoritesSectionHeaderProps) => (
+  <div className="flex flex-col gap-3 border-b border-border/70 pb-2 md:flex-row md:items-center md:justify-between">
+    <div className="flex items-center justify-between gap-3">
+      <h2 className="font-mono text-sm font-semibold uppercase tracking-[0.16em] text-foreground">
+        {title}
+      </h2>
+      <span className="font-mono text-xs text-muted-foreground">
+        {count}
+      </span>
+    </div>
+
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+        {sortLabel}
+      </span>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="min-w-28 justify-between font-mono uppercase tracking-[0.12em]"
+          >
+            {selectedLabel}
+            <ChevronDown className="size-3.5" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-36">
+          <DropdownMenuRadioGroup value={selectedValue} onValueChange={onChange}>
+            {options.map((option) => (
+              <DropdownMenuRadioItem
+                key={option.value}
+                value={option.value}
+                className="font-mono uppercase tracking-[0.12em]"
+              >
+                {option.label}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   </div>
 );
 
+const ITEM_SORT_OPTIONS: SortOption<FavoriteItemSortKey>[] = [
+  { label: "Date", value: "date" },
+  { label: "Name", value: "name" },
+  { label: "Type", value: "itemType" },
+];
+
+const COLLECTION_SORT_OPTIONS: SortOption<FavoriteCollectionSortKey>[] = [
+  { label: "Date", value: "date" },
+  { label: "Name", value: "name" },
+];
+
 export const FavoritesList = ({ items, collections }: FavoritesListProps) => {
   const { openItem } = useItemDrawer();
+  const [itemSort, setItemSort] = useState<FavoriteItemSortKey>("date");
+  const [collectionSort, setCollectionSort] = useState<FavoriteCollectionSortKey>("date");
   const hasFavorites = items.length > 0 || collections.length > 0;
+  const sortedItems = sortFavoriteItems(items, itemSort);
+  const sortedCollections = sortFavoriteCollections(collections, collectionSort);
+  const selectedItemSortLabel = ITEM_SORT_OPTIONS.find((option) => option.value === itemSort)?.label ?? "Date";
+  const selectedCollectionSortLabel =
+    COLLECTION_SORT_OPTIONS.find((option) => option.value === collectionSort)?.label ?? "Date";
 
   if (!hasFavorites) {
     return (
@@ -53,10 +139,18 @@ export const FavoritesList = ({ items, collections }: FavoritesListProps) => {
   return (
     <div className="space-y-10">
       <section className="space-y-3">
-        <FavoritesSectionHeader count={items.length} title="Items" />
-        {items.length > 0 ? (
+        <FavoritesSectionHeader
+          count={items.length}
+          onChange={(value) => setItemSort(value as FavoriteItemSortKey)}
+          options={ITEM_SORT_OPTIONS}
+          selectedLabel={selectedItemSortLabel}
+          selectedValue={itemSort}
+          sortLabel="Sort by"
+          title="Items"
+        />
+        {sortedItems.length > 0 ? (
           <div className="divide-y divide-border/60 border-y border-border/60">
-            {items.map((item) => {
+            {sortedItems.map((item) => {
               const Icon = getItemTypeIcon(item.itemType.icon);
 
               return (
@@ -107,10 +201,18 @@ export const FavoritesList = ({ items, collections }: FavoritesListProps) => {
       </section>
 
       <section className="space-y-3">
-        <FavoritesSectionHeader count={collections.length} title="Collections" />
-        {collections.length > 0 ? (
+        <FavoritesSectionHeader
+          count={collections.length}
+          onChange={(value) => setCollectionSort(value as FavoriteCollectionSortKey)}
+          options={COLLECTION_SORT_OPTIONS}
+          selectedLabel={selectedCollectionSortLabel}
+          selectedValue={collectionSort}
+          sortLabel="Sort by"
+          title="Collections"
+        />
+        {sortedCollections.length > 0 ? (
           <div className="divide-y divide-border/60 border-y border-border/60">
-            {collections.map((collection) => (
+            {sortedCollections.map((collection) => (
               <Link
                 key={collection.id}
                 href={`/collections/${collection.id}`}
