@@ -8,7 +8,11 @@ import {
   getSidebarCollectionsData,
 } from "@/lib/db/collections";
 import { getDashboardUser } from "@/lib/db/dashboard-user";
-import { getItemTypeLabel, getItemTypeSlug, getSidebarItemTypes } from "@/lib/db/items";
+import {
+  getItemTypeLabel,
+  getItemTypeSlug,
+  getSidebarItemTypes,
+} from "@/lib/db/items";
 
 import { DashboardItemCard } from "@/components/dashboard/dashboard-item-card";
 import { DashboardItemsList } from "@/components/dashboard/dashboard-items-list";
@@ -25,7 +29,13 @@ interface CollectionDetailPageProps {
 
 const CollectionDetailPage = async ({ params }: CollectionDetailPageProps) => {
   const { id } = await params;
-  const [user, itemTypes, sidebarCollections, collections, collection] =
+  const [
+    user,
+    itemTypes,
+    sidebarCollections,
+    collections,
+    collection,
+  ] =
     await Promise.all([
       getDashboardUser(),
       getSidebarItemTypes(),

@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 
 import { FileUpload } from '@/components/dashboard/file-upload';
 import { CollectionPicker } from '@/components/dashboard/collection-picker';
+import { useSearch } from '@/components/dashboard/search-provider';
 import { getItemTypeIcon } from '@/components/utils/item-type';
 import { Button } from '@/components/ui/button';
 import { CodeEditor } from '@/components/ui/code-editor';
@@ -422,6 +423,7 @@ export const CreateItemDialog = ({
   open,
 }: CreateItemDialogProps) => {
   const router = useRouter();
+  const { invalidateSearchData } = useSearch();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRefreshPending, startTransition] = useTransition();
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -567,6 +569,7 @@ export const CreateItemDialog = ({
     }
 
     handleOpenChange(false);
+    invalidateSearchData();
     toast.success('Item created.');
     startTransition(() => {
       router.refresh();

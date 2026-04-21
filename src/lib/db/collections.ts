@@ -3,7 +3,7 @@ import type { DashboardItem } from "@/lib/db/items";
 import { prisma } from "@/lib/prisma";
 import { getDashboardUser } from "@/lib/db/dashboard-user";
 
-type DashboardCollectionItemType = {
+export type DashboardCollectionItemType = {
   id: string;
   name: string;
   icon: string;
@@ -65,6 +65,14 @@ export interface DashboardCollection {
   updatedAt: string;
   dominantTypeColor: string | null;
   itemTypes: DashboardCollectionItemType[];
+}
+
+export interface GlobalSearchCollection {
+  id: string;
+  name: string;
+  itemCount: number;
+  itemTypes: DashboardCollectionItemType[];
+  searchText: string;
 }
 
 export interface SidebarCollection {
@@ -159,6 +167,16 @@ const mapSidebarCollection = (collection: CollectionSummary): SidebarCollection 
   isFavorite: collection.isFavorite,
   itemCount: collection.itemCount,
   dominantTypeColor: collection.dominantTypeColor,
+});
+
+export const mapGlobalSearchCollection = (collection: CollectionSummary): GlobalSearchCollection => ({
+  id: collection.id,
+  name: collection.name,
+  itemCount: collection.itemCount,
+  itemTypes: collection.itemTypes,
+  searchText: [collection.name, collection.description, collection.itemTypes.map((itemType) => itemType.name).join(" ")]
+    .filter(Boolean)
+    .join(" "),
 });
 
 export const buildCollectionSummary = (collection: {
@@ -262,16 +280,12 @@ export const mapCollectionDetailItem = (
   collection,
 });
 
-const getCollectionSummaries = async (): Promise<CollectionSummary[]> => {
-  const user = await getDashboardUser();
-
-  if (!user) {
-    return [];
-  }
-
+const getCollectionSummariesByUserId = async (
+  userId: string,
+): Promise<CollectionSummary[]> => {
   const collections = await prisma.collection.findMany({
     where: {
-      userId: user.id,
+      userId,
     },
     select: collectionSelect,
   });
@@ -281,6 +295,16 @@ const getCollectionSummaries = async (): Promise<CollectionSummary[]> => {
     .sort((left, right) => {
       return new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime();
     });
+};
+
+const getCollectionSummaries = async (): Promise<CollectionSummary[]> => {
+  const user = await getDashboardUser();
+
+  if (!user) {
+    return [];
+  }
+
+  return getCollectionSummariesByUserId(user.id);
 };
 
 export const getRecentDashboardCollections = async (
@@ -293,6 +317,14 @@ export const getRecentDashboardCollections = async (
 
 export const getAllDashboardCollections = async (): Promise<DashboardCollection[]> => {
   return getCollectionSummaries();
+};
+
+export const getGlobalSearchCollections = async (
+  userId: string,
+): Promise<GlobalSearchCollection[]> => {
+  const collections = await getCollectionSummariesByUserId(userId);
+
+  return collections.map(mapGlobalSearchCollection);
 };
 
 export const getSidebarCollectionsData = async (

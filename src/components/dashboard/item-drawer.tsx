@@ -23,6 +23,7 @@ import { isMarkdownEditorItemType } from '@/lib/markdown-editor';
 import { cn } from '@/lib/utils';
 
 import { CollectionPicker } from '@/components/dashboard/collection-picker';
+import { useSearch } from '@/components/dashboard/search-provider';
 import { CodeEditor } from '@/components/ui/code-editor';
 import { formatDate, formatUpdatedAt } from '@/components/utils/date';
 import { getItemTypeIcon } from '@/components/utils/item-type';
@@ -594,6 +595,7 @@ export const ItemDrawer = ({
   preview,
 }: ItemDrawerProps) => {
   const router = useRouter();
+  const { invalidateSearchData } = useSearch();
   const activeItem = item ?? preview;
   const canCopy = Boolean(getCopyValue(item));
   const [isEditing, setIsEditing] = useState(false);
@@ -658,6 +660,7 @@ export const ItemDrawer = ({
     setFieldErrors({});
     setSubmitError(null);
     onItemDeleted(item.id);
+    invalidateSearchData();
     toast.success('Item deleted.');
     router.refresh();
   };
@@ -701,6 +704,7 @@ export const ItemDrawer = ({
 
     onItemUpdated(result.data);
     setIsEditing(false);
+    invalidateSearchData();
     toast.success('Item updated.');
     router.refresh();
   };

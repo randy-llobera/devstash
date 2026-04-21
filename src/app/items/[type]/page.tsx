@@ -2,8 +2,8 @@ import { notFound } from "next/navigation";
 
 import {
   getItemsByTypeSlug,
-  getSidebarItemTypes,
   getItemTypeLabel,
+  getSidebarItemTypes,
 } from "@/lib/db/items";
 import {
   getAvailableCollections,

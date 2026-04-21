@@ -35,6 +35,7 @@ vi.mock("@/lib/db/dashboard-user", () => ({
 import {
   buildCollectionSummary,
   deleteCollection,
+  mapGlobalSearchCollection,
   mapCollectionDetailItem,
   updateCollection,
 } from "@/lib/db/collections";
@@ -204,6 +205,58 @@ describe("collection db helpers", () => {
         id: "collection-1",
         name: "DevOps",
       },
+    });
+  });
+
+  it("maps a global search collection with keywords and counts", () => {
+    const collection = mapGlobalSearchCollection({
+      id: "collection-1",
+      name: "DevOps",
+      description: "Deployment commands",
+      isFavorite: false,
+      itemCount: 3,
+      typeCount: 2,
+      updatedAt: "2026-04-12T10:00:00.000Z",
+      dominantTypeColor: "#f97316",
+      itemTypes: [
+        {
+          id: "type-command",
+          name: "command",
+          icon: "Terminal",
+          color: "#f97316",
+          itemCount: 2,
+        },
+        {
+          id: "type-link",
+          name: "link",
+          icon: "Link",
+          color: "#10b981",
+          itemCount: 1,
+        },
+      ],
+    });
+
+    expect(collection).toEqual({
+      id: "collection-1",
+      name: "DevOps",
+      itemCount: 3,
+      itemTypes: [
+        {
+          id: "type-command",
+          name: "command",
+          icon: "Terminal",
+          color: "#f97316",
+          itemCount: 2,
+        },
+        {
+          id: "type-link",
+          name: "link",
+          icon: "Link",
+          color: "#10b981",
+          itemCount: 1,
+        },
+      ],
+      searchText: "DevOps Deployment commands command link",
     });
   });
 
