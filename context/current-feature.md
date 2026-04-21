@@ -1,26 +1,16 @@
-# Current Feature: Add client-side sorting to the favorites page
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Add client-side sorting controls to the favorites page.
-- Support sorting favorites by name.
-- Support sorting favorites by date.
-- Support sorting favorite items by item type.
-- Support sorting favorite collections by name and date only.
-- Keep sorting responsive without adding a server round-trip.
+<!-- Add goals here -->
 
 ## Notes
 
-- Requested via inline feature description.
-- Sorting should apply on the favorites page.
-- Supported sort options:
-- Items: name, date, and item type.
-- Collections: name and date only.
-- Preserve the existing favorites page behavior aside from the new client-side ordering controls.
+<!-- Add notes here -->
 
 ## History
 
@@ -71,3 +61,4 @@ In Progress
 - Editor Preferences Settings completed with a settings page editor preferences panel, Prisma-backed `User.editorPreferences` JSON storage plus migration, an auto-saving preferences server action with success toasts, a shared `EditorPreferencesContext`, Monaco theme/font/tab/minimap/word-wrap application across editors, focused tests for preferences and actions, and the included `src/lib/pagination.ts` plus `context/features/editor-settings-spec.md` changes requested during completion
 - Favorites Page completed with a new protected `/favorites` route, top-bar favorites shortcut, compact monospace favorites sections for items and collections, drawer opening for item rows, collection navigation for collection rows, DB helpers for favorite item and collection reads, and focused unit coverage for the new queries
 - Favorites Toggle completed with shared item-level favorite toggles across dashboard cards, rows, image/file views, and the item drawer, plus collection-level favorite actions on collection pages and focused unit coverage for the new item and collection favorite actions
+- Favorites sorting completed with client-side item sorting by date, name, and item type, collection sorting by date and name, dropdown controls on the favorites page, and focused unit coverage for the shared sorting helpers
