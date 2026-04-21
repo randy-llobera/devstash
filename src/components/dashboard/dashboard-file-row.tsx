@@ -12,7 +12,6 @@ import {
   FileSpreadsheet,
   FileText,
   FileVideo,
-  Star,
   type LucideIcon,
 } from "lucide-react";
 
@@ -20,6 +19,7 @@ import type { DashboardItem } from "@/lib/db/items";
 import { formatFileSize } from "@/lib/file-size";
 import { getFileExtension } from "@/lib/file-upload";
 
+import { ItemFavoriteButton } from "@/components/dashboard/item-favorite-button";
 import { useItemDrawer } from "@/components/dashboard/item-drawer-provider";
 import { formatDate } from "@/components/utils/date";
 
@@ -89,12 +89,7 @@ export const DashboardFileRow = ({ item }: DashboardFileRowProps) => {
         <div className="min-w-0 flex-1">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="truncate text-sm font-semibold sm:text-base">{fileLabel}</p>
-                {item.isFavorite ? (
-                  <Star className="size-3.5 shrink-0 fill-current text-yellow-400" />
-                ) : null}
-              </div>
+              <p className="truncate text-sm font-semibold sm:text-base">{fileLabel}</p>
               <p className="mt-1 truncate text-xs text-muted-foreground sm:text-sm">
                 {item.description}
               </p>
@@ -107,6 +102,14 @@ export const DashboardFileRow = ({ item }: DashboardFileRowProps) => {
           </div>
         </div>
       </button>
+
+      <ItemFavoriteButton
+        itemId={item.id}
+        itemTitle={item.title}
+        isFavorite={item.isFavorite}
+        className="shrink-0 rounded-full border border-border/60 bg-background/70 text-muted-foreground"
+        stopPropagation={false}
+      />
 
       <a
         href={`/api/items/${item.id}/download`}

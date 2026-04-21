@@ -1,16 +1,22 @@
-# Current Feature
+# Current Feature: Add favorites toggle to drawer, collection page, and cards
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Add goals here -->
+- Add a favorite toggle to item cards so users can favorite or unfavorite items without leaving the current view
+- Add a favorite toggle to the item drawer with the same behavior and state as the cards
+- Add a favorite toggle on collection pages for collection-level favorite actions
+- Keep favorite state consistent across drawer, collection page, cards, and the existing favorites page
+- Preserve the current UI patterns and avoid introducing a new interaction pattern unless required
 
 ## Notes
 
-<!-- Add notes here -->
+- Inline request loaded from feature workflow: "Add a favorite button to the drawer, collection page and cards to toggle"
+- Scope implies item-level favorite controls in the drawer and cards, plus collection-level favorite control on collection pages
+- Implementation should reuse existing favorites data flow and favorite/unfavorite behavior where possible
 
 ## History
 

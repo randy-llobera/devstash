@@ -23,6 +23,7 @@ import { isMarkdownEditorItemType } from '@/lib/markdown-editor';
 import { cn } from '@/lib/utils';
 
 import { CollectionPicker } from '@/components/dashboard/collection-picker';
+import { ItemFavoriteButton } from '@/components/dashboard/item-favorite-button';
 import { useSearch } from '@/components/dashboard/search-provider';
 import { CodeEditor } from '@/components/ui/code-editor';
 import { formatDate, formatUpdatedAt } from '@/components/utils/date';
@@ -783,19 +784,24 @@ export const ItemDrawer = ({
                       </a>
                     </DrawerActionButton>
                   ) : null}
-                  <DrawerActionButton
-                    active={Boolean(item?.isFavorite)}
-                    aria-label='Favorite'
-                    disabled
-                  >
-                    <Star
-                      className={cn(
-                        'size-4',
-                        item?.isFavorite ? 'fill-current text-yellow-400' : '',
-                      )}
+                  {item ? (
+                    <ItemFavoriteButton
+                      itemId={item.id}
+                      itemTitle={item.title}
+                      isFavorite={item.isFavorite}
+                      label='Favorite'
+                      onToggled={onItemUpdated}
+                      size='sm'
+                      className='h-9 rounded-xl border border-border/60 bg-background/80 px-3 text-muted-foreground hover:bg-muted/60'
+                      iconClassName='size-4'
+                      stopPropagation={false}
                     />
-                    Favorite
-                  </DrawerActionButton>
+                  ) : (
+                    <DrawerActionButton aria-label='Favorite' disabled>
+                      <Star className='size-4' />
+                      Favorite
+                    </DrawerActionButton>
+                  )}
                   <DrawerActionButton
                     active={Boolean(item?.isPinned)}
                     aria-label='Pin'

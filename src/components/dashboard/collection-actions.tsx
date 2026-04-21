@@ -12,6 +12,7 @@ import { toast } from "sonner";
 
 import {
   deleteCollection,
+  toggleCollectionFavorite,
   updateCollection,
   type UpdateCollectionActionError,
 } from "@/actions/collections";
@@ -85,12 +86,15 @@ export const CollectionActions = ({
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isFavoritePending, setIsFavoritePending] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<CollectionFormErrors>({});
+  const [pendingFavoriteValue, setPendingFavoriteValue] = useState<boolean | null>(null);
   const [formState, setFormState] = useState<CollectionFormState>({
     name: collection.name,
     description: collection.description === "No description yet." ? "" : collection.description,
   });
+  const isFavorite = pendingFavoriteValue ?? collection.isFavorite;
 
   const resetForm = () => {
     setFormState({
@@ -184,7 +188,33 @@ export const CollectionActions = ({
     refreshView();
   };
 
-  const disabled = isSaving || isDeleting || isRefreshPending;
+  const handleFavoriteToggle = async () => {
+    const nextIsFavorite = !isFavorite;
+
+    setIsFavoritePending(true);
+    setPendingFavoriteValue(nextIsFavorite);
+
+    const result = await toggleCollectionFavorite(collection.id, nextIsFavorite);
+
+    setIsFavoritePending(false);
+
+    if (!result.success || !result.data) {
+      setPendingFavoriteValue(null);
+      toast.error(result.error ?? "Unable to update collection.");
+      return;
+    }
+
+    setPendingFavoriteValue(result.data.isFavorite);
+    invalidateSearchData();
+    toast.success(
+      result.data.isFavorite
+        ? `"${collection.name}" added to favorites.`
+        : `"${collection.name}" removed from favorites.`,
+    );
+    refreshView();
+  };
+
+  const disabled = isSaving || isDeleting || isRefreshPending || isFavoritePending;
   const saveDisabled = disabled || !formState.name.trim();
 
   return (
@@ -207,14 +237,14 @@ export const CollectionActions = ({
               <Pencil className="size-4" />
               Edit
             </DropdownMenuItem>
-            <DropdownMenuItem disabled>
+            <DropdownMenuItem onSelect={() => void handleFavoriteToggle()} disabled={disabled}>
               <Star
                 className={cn(
                   "size-4",
-                  collection.isFavorite ? "fill-current text-yellow-400" : "",
+                  isFavorite ? "fill-current text-yellow-400" : "",
                 )}
               />
-              Favorite
+              {isFavorite ? "Unfavorite" : "Favorite"}
             </DropdownMenuItem>
             <DropdownMenuItem
               variant="destructive"
@@ -241,15 +271,18 @@ export const CollectionActions = ({
             type="button"
             variant="outline"
             className="rounded-xl"
-            disabled
+            onClick={() => {
+              void handleFavoriteToggle();
+            }}
+            disabled={disabled}
           >
             <Star
               className={cn(
                 "size-4",
-                collection.isFavorite ? "fill-current text-yellow-400" : "",
+                isFavorite ? "fill-current text-yellow-400" : "",
               )}
             />
-            Favorite
+            {isFavorite ? "Unfavorite" : "Favorite"}
           </Button>
           <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
             <AlertDialogTrigger asChild>

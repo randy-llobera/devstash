@@ -51,6 +51,12 @@ interface DeleteCollectionActionResult {
   error?: string;
 }
 
+interface ToggleCollectionFavoriteActionResult {
+  success: boolean;
+  data?: Awaited<ReturnType<typeof updateCollectionRecord>>;
+  error?: string;
+}
+
 const VALIDATION_ERROR_MESSAGE = "Please fix the highlighted fields.";
 
 const normalizeOptionalText = (value: string | null | undefined) => {
@@ -206,6 +212,45 @@ export const deleteCollection = async (
     return {
       success: false,
       error: "Unable to delete collection.",
+    };
+  }
+};
+
+export const toggleCollectionFavorite = async (
+  collectionId: string,
+  isFavorite: boolean,
+): Promise<ToggleCollectionFavoriteActionResult> => {
+  const userId = await getSessionUserId();
+
+  if (!userId) {
+    return {
+      success: false,
+      error: "You must be signed in to update collections.",
+    };
+  }
+
+  try {
+    const updatedCollection = await updateCollectionRecord(userId, collectionId, {
+      isFavorite,
+    });
+
+    if (!updatedCollection) {
+      return {
+        success: false,
+        error: "Collection not found.",
+      };
+    }
+
+    return {
+      success: true,
+      data: updatedCollection,
+    };
+  } catch (error) {
+    console.error("Failed to update collection favorite state.", error);
+
+    return {
+      success: false,
+      error: "Unable to update collection.",
     };
   }
 };

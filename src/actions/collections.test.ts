@@ -22,7 +22,12 @@ vi.mock("@/lib/db/collections", () => ({
   updateCollection: updateCollectionRecordMock,
 }));
 
-import { createCollection, deleteCollection, updateCollection } from "@/actions/collections";
+import {
+  createCollection,
+  deleteCollection,
+  toggleCollectionFavorite,
+  updateCollection,
+} from "@/actions/collections";
 
 describe("collections actions", () => {
   beforeEach(() => {
@@ -270,6 +275,75 @@ describe("collections actions", () => {
     expect(result).toEqual({
       success: false,
       error: "Unable to delete collection.",
+    });
+  });
+
+  it("rejects unauthenticated favorite updates", async () => {
+    authMock.mockResolvedValue(null);
+
+    const result = await toggleCollectionFavorite("collection-1", true);
+
+    expect(result).toEqual({
+      success: false,
+      error: "You must be signed in to update collections.",
+    });
+    expect(updateCollectionRecordMock).not.toHaveBeenCalled();
+  });
+
+  it("updates the collection favorite state", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    updateCollectionRecordMock.mockResolvedValue({
+      id: "collection-1",
+      isFavorite: true,
+    });
+
+    const result = await toggleCollectionFavorite("collection-1", true);
+
+    expect(updateCollectionRecordMock).toHaveBeenCalledWith("user-1", "collection-1", {
+      isFavorite: true,
+    });
+    expect(result).toEqual({
+      success: true,
+      data: {
+        id: "collection-1",
+        isFavorite: true,
+      },
+    });
+  });
+
+  it("returns a not found error when favorite update misses the collection", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    updateCollectionRecordMock.mockResolvedValue(null);
+
+    const result = await toggleCollectionFavorite("collection-1", false);
+
+    expect(result).toEqual({
+      success: false,
+      error: "Collection not found.",
+    });
+  });
+
+  it("returns a generic error when favorite update fails", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    updateCollectionRecordMock.mockRejectedValue(new Error("db failure"));
+
+    const result = await toggleCollectionFavorite("collection-1", false);
+
+    expect(result).toEqual({
+      success: false,
+      error: "Unable to update collection.",
     });
   });
 });

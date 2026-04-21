@@ -58,8 +58,9 @@ interface CreateCollectionInput {
 }
 
 interface UpdateCollectionInput {
-  name: string;
+  name?: string;
   description?: string | null;
+  isFavorite?: boolean;
 }
 
 export interface DashboardCollection {
@@ -551,8 +552,15 @@ export const updateCollection = async (
       id: collectionId,
     },
     data: {
-      name: data.name,
-      description: data.description ?? null,
+      ...(Object.prototype.hasOwnProperty.call(data, "name")
+        ? { name: data.name }
+        : {}),
+      ...(Object.prototype.hasOwnProperty.call(data, "description")
+        ? { description: data.description ?? null }
+        : {}),
+      ...(Object.prototype.hasOwnProperty.call(data, "isFavorite")
+        ? { isFavorite: data.isFavorite }
+        : {}),
     },
     select: {
       id: true,

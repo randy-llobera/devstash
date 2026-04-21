@@ -9,6 +9,7 @@ import {
   createItem as createItemRecord,
   deleteItem as deleteItemRecord,
   getItemDrawerDetail,
+  setItemFavoriteState as setItemFavoriteStateRecord,
   updateItem as updateItemRecord,
 } from "@/lib/db/items";
 
@@ -170,6 +171,12 @@ interface CreateItemActionResult {
 
 interface DeleteItemActionResult {
   success: boolean;
+  error?: string;
+}
+
+interface ToggleItemFavoriteActionResult {
+  success: boolean;
+  data?: Awaited<ReturnType<typeof setItemFavoriteStateRecord>>;
   error?: string;
 }
 
@@ -407,6 +414,43 @@ export const deleteItem = async (itemId: string): Promise<DeleteItemActionResult
     return {
       success: false,
       error: "Unable to delete item.",
+    };
+  }
+};
+
+export const toggleItemFavorite = async (
+  itemId: string,
+  isFavorite: boolean,
+): Promise<ToggleItemFavoriteActionResult> => {
+  const userId = await getSessionUserId();
+
+  if (!userId) {
+    return {
+      success: false,
+      error: "You must be signed in to update items.",
+    };
+  }
+
+  try {
+    const updatedItem = await setItemFavoriteStateRecord(itemId, userId, isFavorite);
+
+    if (!updatedItem) {
+      return {
+        success: false,
+        error: "Item not found.",
+      };
+    }
+
+    return {
+      success: true,
+      data: updatedItem,
+    };
+  } catch (error) {
+    console.error("Failed to update item favorite state.", error);
+
+    return {
+      success: false,
+      error: "Unable to update item.",
     };
   }
 };

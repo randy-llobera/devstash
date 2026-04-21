@@ -759,6 +759,38 @@ export const updateItem = async (
   return item ? mapItemDrawerDetail(item) : null;
 };
 
+export const setItemFavoriteState = async (
+  itemId: string,
+  userId: string,
+  isFavorite: boolean,
+): Promise<ItemDrawerDetail | null> => {
+  const existingItem = await prisma.item.findFirst({
+    where: {
+      id: itemId,
+      userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!existingItem) {
+    return null;
+  }
+
+  const item = await prisma.item.update({
+    where: {
+      id: itemId,
+    },
+    data: {
+      isFavorite,
+    },
+    select: itemDrawerDetailSelect,
+  });
+
+  return mapItemDrawerDetail(item);
+};
+
 export const getItemsByTypeSlug = async (
   slug: string,
   page = 1,

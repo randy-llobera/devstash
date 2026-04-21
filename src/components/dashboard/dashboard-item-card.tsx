@@ -1,10 +1,11 @@
 "use client";
 
 import { createElement } from "react";
-import { Pin, Star } from "lucide-react";
+import { Pin } from "lucide-react";
 
 import type { DashboardItem } from "@/lib/db/items";
 
+import { ItemFavoriteButton } from "@/components/dashboard/item-favorite-button";
 import { useItemDrawer } from "@/components/dashboard/item-drawer-provider";
 import { formatUpdatedAt } from "@/components/utils/date";
 import { getItemTypeIcon } from "@/components/utils/item-type";
@@ -26,20 +27,22 @@ export const DashboardItemCard = ({
   const isItemsVariant = variant === "items";
 
   return (
-    <button
-      type="button"
-      className="block w-full rounded-[1.25rem] border-0 bg-transparent p-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
-      onClick={() => openItem(item)}
+    <Card
+      className={
+        isItemsVariant
+          ? "h-full overflow-hidden border-border/60 bg-card/55 shadow-sm shadow-black/10 transition-colors hover:border-foreground/15 hover:bg-card/75"
+          : "h-full border-border/70 bg-background/50 transition-colors hover:border-primary/40 hover:bg-muted/40"
+      }
+      style={{ borderLeftColor: item.itemType.color, borderLeftWidth: "4px" }}
     >
-      <Card
-        className={
-          isItemsVariant
-            ? "h-full overflow-hidden border-border/60 bg-card/55 shadow-sm shadow-black/10 transition-colors hover:border-foreground/15 hover:bg-card/75"
-            : "h-full border-border/70 bg-background/50 transition-colors hover:border-primary/40 hover:bg-muted/40"
-        }
-        style={{ borderLeftColor: item.itemType.color, borderLeftWidth: "4px" }}
+      <CardContent
+        className={isItemsVariant ? "flex h-full items-start gap-4 px-5 py-5" : "flex h-full items-start gap-3"}
       >
-        <CardContent className={isItemsVariant ? "flex h-full items-start gap-4 px-5 py-5" : "flex h-full items-start gap-3"}>
+        <button
+          type="button"
+          className="flex min-w-0 flex-1 items-start gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+          onClick={() => openItem(item)}
+        >
           <div
             className={
               isItemsVariant
@@ -62,9 +65,6 @@ export const DashboardItemCard = ({
                   </p>
                   {showPinnedIndicator && item.isPinned ? (
                     <Pin className="size-3.5 shrink-0 text-primary" />
-                  ) : null}
-                  {item.isFavorite ? (
-                    <Star className="size-3.5 shrink-0 fill-current text-yellow-400" />
                   ) : null}
                 </div>
 
@@ -130,8 +130,17 @@ export const DashboardItemCard = ({
               </>
             )}
           </div>
-        </CardContent>
-      </Card>
-    </button>
+        </button>
+
+        <ItemFavoriteButton
+          itemId={item.id}
+          itemTitle={item.title}
+          isFavorite={item.isFavorite}
+          className="mt-0.5 shrink-0 rounded-full text-muted-foreground"
+          iconClassName="size-3.5"
+          stopPropagation={false}
+        />
+      </CardContent>
+    </Card>
   );
 };

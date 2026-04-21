@@ -6,6 +6,7 @@ const {
   deleteItemRecordMock,
   deleteR2ObjectMock,
   getItemDrawerDetailMock,
+  setItemFavoriteStateRecordMock,
   updateItemRecordMock,
 } = vi.hoisted(() => ({
   authMock: vi.fn(),
@@ -13,6 +14,7 @@ const {
   deleteItemRecordMock: vi.fn(),
   deleteR2ObjectMock: vi.fn(),
   getItemDrawerDetailMock: vi.fn(),
+  setItemFavoriteStateRecordMock: vi.fn(),
   updateItemRecordMock: vi.fn(),
 }));
 
@@ -24,6 +26,7 @@ vi.mock("@/lib/db/items", () => ({
   createItem: createItemRecordMock,
   deleteItem: deleteItemRecordMock,
   getItemDrawerDetail: getItemDrawerDetailMock,
+  setItemFavoriteState: setItemFavoriteStateRecordMock,
   updateItem: updateItemRecordMock,
 }));
 
@@ -42,7 +45,7 @@ vi.mock("@/lib/r2", () => ({
   deleteR2Object: deleteR2ObjectMock,
 }));
 
-import { createItem, deleteItem, updateItem } from "@/actions/items";
+import { createItem, deleteItem, toggleItemFavorite, updateItem } from "@/actions/items";
 
 describe("createItem action", () => {
   beforeEach(() => {
@@ -51,6 +54,7 @@ describe("createItem action", () => {
     deleteItemRecordMock.mockReset();
     deleteR2ObjectMock.mockReset();
     getItemDrawerDetailMock.mockReset();
+    setItemFavoriteStateRecordMock.mockReset();
     updateItemRecordMock.mockReset();
   });
 
@@ -242,6 +246,7 @@ describe("updateItem action", () => {
     deleteItemRecordMock.mockReset();
     deleteR2ObjectMock.mockReset();
     getItemDrawerDetailMock.mockReset();
+    setItemFavoriteStateRecordMock.mockReset();
     updateItemRecordMock.mockReset();
   });
 
@@ -377,6 +382,7 @@ describe("deleteItem action", () => {
     deleteItemRecordMock.mockReset();
     deleteR2ObjectMock.mockReset();
     getItemDrawerDetailMock.mockReset();
+    setItemFavoriteStateRecordMock.mockReset();
     updateItemRecordMock.mockReset();
   });
 
@@ -489,6 +495,85 @@ describe("deleteItem action", () => {
     expect(result).toEqual({
       success: false,
       error: "Unable to delete item.",
+    });
+  });
+});
+
+describe("toggleItemFavorite action", () => {
+  beforeEach(() => {
+    authMock.mockReset();
+    createItemRecordMock.mockReset();
+    deleteItemRecordMock.mockReset();
+    deleteR2ObjectMock.mockReset();
+    getItemDrawerDetailMock.mockReset();
+    setItemFavoriteStateRecordMock.mockReset();
+    updateItemRecordMock.mockReset();
+  });
+
+  it("rejects unauthenticated favorite updates", async () => {
+    authMock.mockResolvedValue(null);
+
+    const result = await toggleItemFavorite("item-1", true);
+
+    expect(result).toEqual({
+      success: false,
+      error: "You must be signed in to update items.",
+    });
+    expect(setItemFavoriteStateRecordMock).not.toHaveBeenCalled();
+  });
+
+  it("updates the item favorite state", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    setItemFavoriteStateRecordMock.mockResolvedValue({
+      id: "item-1",
+      isFavorite: true,
+    });
+
+    const result = await toggleItemFavorite("item-1", true);
+
+    expect(setItemFavoriteStateRecordMock).toHaveBeenCalledWith("item-1", "user-1", true);
+    expect(result).toEqual({
+      success: true,
+      data: {
+        id: "item-1",
+        isFavorite: true,
+      },
+    });
+  });
+
+  it("returns not found when the item does not belong to the user", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    setItemFavoriteStateRecordMock.mockResolvedValue(null);
+
+    const result = await toggleItemFavorite("item-1", false);
+
+    expect(result).toEqual({
+      success: false,
+      error: "Item not found.",
+    });
+  });
+
+  it("returns a generic error when the favorite update fails", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    setItemFavoriteStateRecordMock.mockRejectedValue(new Error("db failure"));
+
+    const result = await toggleItemFavorite("item-1", false);
+
+    expect(result).toEqual({
+      success: false,
+      error: "Unable to update item.",
     });
   });
 });
