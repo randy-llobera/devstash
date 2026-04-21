@@ -8,6 +8,7 @@ import {
   createCollection,
   type CreateCollectionActionError,
 } from '@/actions/collections';
+import { useSearch } from '@/components/dashboard/search-provider';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -52,6 +53,7 @@ export const CreateCollectionDialog = ({
   open,
 }: CreateCollectionDialogProps) => {
   const router = useRouter();
+  const { invalidateSearchData } = useSearch();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRefreshPending, startTransition] = useTransition();
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -112,6 +114,7 @@ export const CreateCollectionDialog = ({
     }
 
     handleOpenChange(false);
+    invalidateSearchData();
     toast.success('Collection created.');
     startTransition(() => {
       router.refresh();

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { FolderPlus, Plus, Search } from "lucide-react";
 
+import { useSearch } from "@/components/dashboard/search-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -15,6 +16,8 @@ export const TopBar = ({
   onCreateCollection,
   onCreateItem,
 }: TopBarProps) => {
+  const { openSearch } = useSearch();
+
   return (
     <header className="border-b border-border/70">
       <div className="grid gap-4 px-4 py-4 sm:px-6 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center">
@@ -38,9 +41,23 @@ export const TopBar = ({
         <div className="relative min-w-0 lg:mx-auto lg:w-full lg:max-w-xl">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            aria-label="Search items"
-            placeholder="Search items..."
-            className="pl-9"
+            readOnly
+            role="button"
+            aria-label="Open global search"
+            aria-haspopup="dialog"
+            placeholder="Search items and collections... (⌘K)"
+            className="cursor-pointer pl-9"
+            onClick={openSearch}
+            onFocus={(event) => {
+              event.target.blur();
+              openSearch();
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                openSearch();
+              }
+            }}
           />
         </div>
 

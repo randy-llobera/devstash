@@ -15,6 +15,7 @@ import {
   updateCollection,
   type UpdateCollectionActionError,
 } from "@/actions/collections";
+import { useSearch } from "@/components/dashboard/search-provider";
 
 import {
   AlertDialog,
@@ -78,6 +79,7 @@ export const CollectionActions = ({
 }: CollectionActionsProps) => {
   const router = useRouter();
   const pathname = usePathname();
+  const { invalidateSearchData } = useSearch();
   const [isRefreshPending, startTransition] = useTransition();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -153,6 +155,7 @@ export const CollectionActions = ({
     }
 
     handleEditOpenChange(false);
+    invalidateSearchData();
     toast.success("Collection updated.");
     refreshView();
   };
@@ -170,6 +173,7 @@ export const CollectionActions = ({
     }
 
     setIsDeleteDialogOpen(false);
+    invalidateSearchData();
     toast.success("Collection deleted.");
 
     if (pathname === `/collections/${collection.id}`) {

@@ -35,6 +35,10 @@ export interface DashboardItem {
   collection: DashboardItemCollection | null;
 }
 
+export interface GlobalSearchItem extends DashboardItem {
+  searchText: string;
+}
+
 export interface ItemDrawerCollection {
   id: string;
   name: string;
@@ -253,6 +257,66 @@ const mapDashboardItem = (item: {
   };
 };
 
+const getSearchTextPart = (value: string | null | undefined, limit = 500) =>
+  value?.replace(/\s+/g, " ").trim().slice(0, limit) ?? "";
+
+export const getGlobalSearchItemPreview = (item: {
+  description: string | null;
+  content: string | null;
+  url: string | null;
+  fileName: string | null;
+}) => {
+  const preview = getSearchTextPart(item.description, 160)
+    || getSearchTextPart(item.content, 160)
+    || getSearchTextPart(item.url, 160)
+    || getSearchTextPart(item.fileName, 160);
+
+  return preview || "No preview available.";
+};
+
+export const mapGlobalSearchItem = (item: {
+  id: string;
+  title: string;
+  description: string | null;
+  content: string | null;
+  url: string | null;
+  fileName: string | null;
+  fileSize: number | null;
+  isFavorite: boolean;
+  isPinned: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  tags: { name: string }[];
+  itemType: DashboardItemType;
+  collections: {
+    addedAt: Date;
+    collection: DashboardItemCollection;
+  }[];
+}): GlobalSearchItem => {
+  const dashboardItem = mapDashboardItem({
+    ...item,
+    description: getGlobalSearchItemPreview(item),
+  });
+
+  const searchText = [
+    item.title,
+    item.itemType.name,
+    getSearchTextPart(item.description),
+    getSearchTextPart(item.content),
+    getSearchTextPart(item.url),
+    getSearchTextPart(item.fileName),
+    item.tags.map((tag) => tag.name).join(" "),
+    item.collections.map(({ collection }) => collection.name).join(" "),
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return {
+    ...dashboardItem,
+    searchText,
+  };
+};
+
 const mapItemDrawerDetail = (item: {
   id: string;
   title: string;
@@ -372,6 +436,44 @@ const dashboardItemSelect = {
   },
 };
 
+const globalSearchItemSelect = {
+  id: true,
+  title: true,
+  description: true,
+  content: true,
+  url: true,
+  fileName: true,
+  fileSize: true,
+  isFavorite: true,
+  isPinned: true,
+  createdAt: true,
+  updatedAt: true,
+  tags: {
+    select: {
+      name: true,
+    },
+  },
+  itemType: {
+    select: {
+      id: true,
+      name: true,
+      icon: true,
+      color: true,
+    },
+  },
+  collections: {
+    select: {
+      addedAt: true,
+      collection: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  },
+} as const;
+
 const getDashboardItems = async ({
   isPinned,
   limit,
@@ -410,6 +512,20 @@ export const getRecentDashboardItems = async (
   const items = await getDashboardItems({ limit });
 
   return items.map(mapDashboardItem);
+};
+
+export const getGlobalSearchItems = async (userId: string): Promise<GlobalSearchItem[]> => {
+  const items = await prisma.item.findMany({
+    where: {
+      userId,
+    },
+    select: globalSearchItemSelect,
+    orderBy: {
+      updatedAt: "desc",
+    },
+  });
+
+  return items.map(mapGlobalSearchItem);
 };
 
 export const getDashboardStats = async (): Promise<DashboardStats> => {
