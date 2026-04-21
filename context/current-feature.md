@@ -1,47 +1,16 @@
-# Current Feature: Collection Actions UI
+# Current Feature
 
 ## Status
 
-Complete
+Not Started
 
 ## Goals
 
-- Add collection action controls on `/collections/[id]` for edit, delete, and favorite, with favorite limited to icon/button UI only for now.
-- Add an edit modal on `/collections/[id]` that updates collection metadata only.
-- Add a delete confirmation on `/collections/[id]` that removes the collection without deleting its items.
-- Add a three-dots dropdown on collection cards shown on `/collections` and `/dashboard` with edit, delete, and favorite actions.
-- Keep card navigation intact so clicking elsewhere on a collection card still opens the collection detail page.
-- Reuse existing patterns where possible and keep collection mutations scoped to the signed-in owner.
+<!-- Add goals here -->
 
 ## Notes
 
-- Expected files to change:
-  - `context/current-feature.md`
-  - `src/actions/collections.ts`
-  - `src/actions/collections.test.ts`
-  - `src/lib/db/collections.ts`
-  - `src/lib/db/collections.test.ts`
-  - `src/app/collections/[id]/page.tsx`
-  - `src/components/dashboard/dashboard-collection-card.tsx`
-  - `src/components/dashboard/dashboard-collections.tsx`
-  - Additional collection action/modal component files under `src/components/dashboard/` if needed
-- Step-by-step approach:
-  1. Extend collection server actions and DB helpers for update and delete, with auth ownership checks and delete behavior that only disconnects item relations.
-  2. Add focused unit coverage for the new collection action and DB helper behavior.
-  3. Add collection detail page action controls with an edit metadata modal, a delete confirmation flow, and a non-functional favorite button/icon.
-  4. Update shared collection cards on dashboard and collections pages to use a three-dots dropdown for edit, delete, and favorite while preserving click-through navigation on the rest of the card.
-  5. Run targeted tests plus repo verification for lint, build, and any other relevant checks.
-- Risks:
-  - Nested interactive elements inside linked cards can break navigation or accessibility if event handling is not isolated cleanly.
-  - Deleting a collection must remove join-table relations only; accidental item deletion would be a regression.
-  - Reusing edit/delete UI across the detail page and cards may require careful client/server boundaries to avoid duplicating logic.
-- Done checklist:
-  - Collection update action edits name/description for the owner only.
-  - Collection delete action removes the collection and preserves items.
-  - `/collections/[id]` shows edit, delete, and favorite controls with the required modal/confirmation behavior.
-  - Dashboard and collections cards show a three-dots dropdown with the required actions.
-  - Clicking outside the dropdown on a collection card still opens the collection page.
-  - Tests and verification commands are identified and run or explicitly left unrun.
+<!-- Add notes here -->
 
 ## History
 
