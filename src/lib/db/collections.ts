@@ -282,6 +282,12 @@ export const getAllDashboardCollections = async (): Promise<DashboardCollection[
   return getCollectionSummaries();
 };
 
+export const getFavoriteDashboardCollections = async (): Promise<DashboardCollection[]> => {
+  const collections = await getCollectionSummaries();
+
+  return collections.filter((collection) => collection.isFavorite);
+};
+
 export const getGlobalSearchCollections = async (
   userId: string,
 ): Promise<GlobalSearchCollection[]> => {
