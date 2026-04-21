@@ -7,10 +7,11 @@ import type { OnMount } from '@monaco-editor/react';
 import type * as MonacoNamespace from 'monaco-editor';
 import { toast } from 'sonner';
 
-import { getCodeEditorLanguage } from '@/lib/code-editor';
+import { getCodeEditorLanguage, getCodeEditorWordWrap } from '@/lib/code-editor';
 import { cn } from '@/lib/utils';
 
 import { Button } from '@/components/ui/button';
+import { useEditorPreferences } from '@/contexts/editor-preferences-context';
 
 const MonacoEditor = dynamic(
   async () => {
@@ -27,7 +28,6 @@ const MonacoEditor = dynamic(
   },
 );
 
-const CODE_EDITOR_THEME = 'devstash-dark';
 const DEFAULT_MAX_HEIGHT = 400;
 const DEFAULT_MIN_HEIGHT = 144;
 const HEADER_HEIGHT = 53;
@@ -48,28 +48,54 @@ interface CodeEditorProps {
 const clampHeight = (height: number, minHeight: number, maxHeight: number) =>
   Math.min(Math.max(height, minHeight), maxHeight);
 
-const defineEditorTheme = (monaco: typeof MonacoNamespace) => {
-  monaco.editor.defineTheme(CODE_EDITOR_THEME, {
+const defineEditorThemes = (monaco: typeof MonacoNamespace) => {
+  monaco.editor.defineTheme('monokai', {
     base: 'vs-dark',
     inherit: true,
     rules: [
-      { token: 'comment', foreground: '64748b' },
-      { token: 'keyword', foreground: 'f59e0b' },
-      { token: 'number', foreground: '38bdf8' },
-      { token: 'string', foreground: '34d399' },
+      { token: 'comment', foreground: '75715e' },
+      { token: 'keyword', foreground: 'f92672' },
+      { token: 'number', foreground: 'ae81ff' },
+      { token: 'string', foreground: 'e6db74' },
+      { token: 'identifier', foreground: 'f8f8f2' },
     ],
     colors: {
-      'editor.background': '#0f1726',
-      'editor.foreground': '#e2e8f0',
-      'editor.lineHighlightBackground': '#162033',
-      'editor.selectionBackground': '#1d4ed833',
-      'editorLineNumber.foreground': '#475569',
-      'editorLineNumber.activeForeground': '#94a3b8',
-      'editorIndentGuide.background1': '#1e293b',
-      'editorIndentGuide.activeBackground1': '#334155',
-      'scrollbarSlider.background': '#33415599',
-      'scrollbarSlider.hoverBackground': '#475569bb',
-      'scrollbarSlider.activeBackground': '#64748bcc',
+      'editor.background': '#272822',
+      'editor.foreground': '#f8f8f2',
+      'editor.lineHighlightBackground': '#3e3d32',
+      'editor.selectionBackground': '#49483e',
+      'editorLineNumber.foreground': '#75715e',
+      'editorLineNumber.activeForeground': '#f8f8f2',
+      'editorIndentGuide.background1': '#3b3a32',
+      'editorIndentGuide.activeBackground1': '#75715e',
+      'scrollbarSlider.background': '#75715e66',
+      'scrollbarSlider.hoverBackground': '#a6a28c88',
+      'scrollbarSlider.activeBackground': '#c5c2ad99',
+    },
+  });
+
+  monaco.editor.defineTheme('github-dark', {
+    base: 'vs-dark',
+    inherit: true,
+    rules: [
+      { token: 'comment', foreground: '8b949e' },
+      { token: 'keyword', foreground: 'ff7b72' },
+      { token: 'number', foreground: '79c0ff' },
+      { token: 'string', foreground: 'a5d6ff' },
+      { token: 'identifier', foreground: 'c9d1d9' },
+    ],
+    colors: {
+      'editor.background': '#0d1117',
+      'editor.foreground': '#c9d1d9',
+      'editor.lineHighlightBackground': '#161b22',
+      'editor.selectionBackground': '#264f78',
+      'editorLineNumber.foreground': '#6e7681',
+      'editorLineNumber.activeForeground': '#c9d1d9',
+      'editorIndentGuide.background1': '#21262d',
+      'editorIndentGuide.activeBackground1': '#30363d',
+      'scrollbarSlider.background': '#30363d99',
+      'scrollbarSlider.hoverBackground': '#484f58bb',
+      'scrollbarSlider.activeBackground': '#6e7681cc',
     },
   });
 };
@@ -97,6 +123,7 @@ export const CodeEditor = ({
   const copyTimeoutRef = useRef<number | null>(null);
 
   const { editorLanguage, label } = getCodeEditorLanguage(language, itemType);
+  const { preferences } = useEditorPreferences();
 
   useEffect(() => {
     return () => {
@@ -193,7 +220,7 @@ export const CodeEditor = ({
       </div>
 
       <MonacoEditor
-        beforeMount={defineEditorTheme}
+        beforeMount={defineEditorThemes}
         height={`${editorHeight}px`}
         language={editorLanguage}
         loading={null}
@@ -209,11 +236,12 @@ export const CodeEditor = ({
           domReadOnly: readOnly,
           fixedOverflowWidgets: true,
           folding: false,
+          fontSize: preferences.fontSize,
           glyphMargin: false,
           lineDecorationsWidth: 10,
           lineNumbers: 'on',
           lineNumbersMinChars: 3,
-          minimap: { enabled: false },
+          minimap: { enabled: preferences.minimap },
           overviewRulerBorder: false,
           overviewRulerLanes: 0,
           padding: { top: 16, bottom: 16 },
@@ -229,9 +257,10 @@ export const CodeEditor = ({
           },
           smoothScrolling: true,
           stickyScroll: { enabled: false },
-          wordWrap: 'on',
+          tabSize: preferences.tabSize,
+          wordWrap: getCodeEditorWordWrap(preferences.wordWrap),
         }}
-        theme={CODE_EDITOR_THEME}
+        theme={preferences.theme}
         value={value}
         width='100%'
         wrapperProps={{

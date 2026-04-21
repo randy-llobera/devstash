@@ -43,6 +43,8 @@ const normalizeLanguageKey = (value: string) => value.trim().toLowerCase();
 export const isCodeEditorItemType = (itemType: string) =>
   CODE_EDITOR_ITEM_TYPES.has(itemType.trim().toLowerCase());
 
+export const getCodeEditorWordWrap = (enabled: boolean) => (enabled ? 'on' : 'off');
+
 export const getCodeEditorLanguage = (
   language: string | null | undefined,
   itemType: string | null | undefined,

@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { getCodeEditorLanguage, isCodeEditorItemType } from '@/lib/code-editor';
+import {
+  getCodeEditorLanguage,
+  getCodeEditorWordWrap,
+  isCodeEditorItemType,
+} from '@/lib/code-editor';
 
 describe('isCodeEditorItemType', () => {
   it('returns true for snippet and command item types', () => {
@@ -40,5 +44,12 @@ describe('getCodeEditorLanguage', () => {
       editorLanguage: 'plaintext',
       label: 'Custom DSL',
     });
+  });
+});
+
+describe('getCodeEditorWordWrap', () => {
+  it('maps editor preference booleans to Monaco word wrap values', () => {
+    expect(getCodeEditorWordWrap(true)).toBe('on');
+    expect(getCodeEditorWordWrap(false)).toBe('off');
   });
 });
