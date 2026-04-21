@@ -12,6 +12,7 @@ import { getItemTypeLabel, getItemTypeSlug, getSidebarItemTypes } from "@/lib/db
 
 import { DashboardItemCard } from "@/components/dashboard/dashboard-item-card";
 import { DashboardItemsList } from "@/components/dashboard/dashboard-items-list";
+import { CollectionActions } from "@/components/dashboard/collection-actions";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { formatUpdatedAt } from "@/components/utils/date";
 import { getItemTypeIcon } from "@/components/utils/item-type";
@@ -65,40 +66,44 @@ const CollectionDetailPage = async ({ params }: CollectionDetailPageProps) => {
       recentCollections={sidebarCollections.recentCollections}
     >
       <div className="space-y-8">
-        <div className="space-y-3">
-          <div className="flex flex-wrap items-baseline gap-3">
-            <h1 className="text-[2rem] font-semibold leading-none tracking-tight">
-              {collection.name}
-            </h1>
-            <span className="text-lg font-medium text-muted-foreground">
-              ({collection.itemCount} {collection.itemCount === 1 ? "item" : "items"})
-            </span>
-            {collection.isFavorite ? (
-              <Star className="size-4 fill-current text-yellow-400" />
-            ) : null}
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-baseline gap-3">
+              <h1 className="text-[2rem] font-semibold leading-none tracking-tight">
+                {collection.name}
+              </h1>
+              <span className="text-lg font-medium text-muted-foreground">
+                ({collection.itemCount} {collection.itemCount === 1 ? "item" : "items"})
+              </span>
+              {collection.isFavorite ? (
+                <Star className="size-4 fill-current text-yellow-400" />
+              ) : null}
+            </div>
+
+            <p className="text-base text-muted-foreground">{collection.description}</p>
+
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+              {collection.itemTypes.map((itemType) => {
+                const Icon = getItemTypeIcon(itemType.icon);
+
+                return (
+                  <span key={itemType.id} className="inline-flex items-center gap-1.5">
+                    {createElement(Icon, {
+                      className: "size-3.5 shrink-0",
+                      style: itemType.color ? { color: itemType.color } : undefined,
+                    })}
+                    <span>{itemType.itemCount}</span>
+                  </span>
+                );
+              })}
+            </div>
+
+            <p className="text-sm text-muted-foreground">
+              Updated {formatUpdatedAt(collection.updatedAt)}
+            </p>
           </div>
 
-          <p className="text-base text-muted-foreground">{collection.description}</p>
-
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-            {collection.itemTypes.map((itemType) => {
-              const Icon = getItemTypeIcon(itemType.icon);
-
-              return (
-                <span key={itemType.id} className="inline-flex items-center gap-1.5">
-                  {createElement(Icon, {
-                    className: "size-3.5 shrink-0",
-                    style: itemType.color ? { color: itemType.color } : undefined,
-                  })}
-                  <span>{itemType.itemCount}</span>
-                </span>
-              );
-            })}
-          </div>
-
-          <p className="text-sm text-muted-foreground">
-            Updated {formatUpdatedAt(collection.updatedAt)}
-          </p>
+          <CollectionActions collection={collection} variant="detail" />
         </div>
 
         {collection.items.length > 0 ? (

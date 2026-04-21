@@ -3,6 +3,7 @@ import { ArrowRight, Folder, Star } from "lucide-react";
 
 import type { DashboardCollection } from "@/lib/db/collections";
 import { cn } from "@/lib/utils";
+import { CollectionActions } from "@/components/dashboard/collection-actions";
 import { formatUpdatedAt } from "@/components/utils/date";
 import { getItemTypeIcon } from "@/components/utils/item-type";
 
@@ -29,10 +30,12 @@ export const DashboardCollectionCard = ({
     collection.typeCount > 0 ? `${dominantTypeLabel} leads` : "No types yet";
 
   return (
-    <Link
-      href={href}
-      className="group block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
-    >
+    <div className="group relative rounded-xl">
+      <Link
+        href={href}
+        aria-label={`Open ${collection.name}`}
+        className="absolute inset-0 z-10 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+      />
       <Card
         className={cn("border border-border/70 border-l-4 bg-background/50 transition-colors hover:border-primary/40 hover:bg-muted/40")}
         style={
@@ -57,11 +60,12 @@ export const DashboardCollectionCard = ({
                 </p>
               </div>
             </div>
-            {collection.isFavorite ? (
-              <CardAction>
+            <CardAction className="relative z-20 flex items-center gap-1">
+              {collection.isFavorite ? (
                 <Star className="size-4 fill-current text-yellow-400" />
-              </CardAction>
-            ) : null}
+              ) : null}
+              <CollectionActions collection={collection} variant="menu" />
+            </CardAction>
           </div>
         </CardHeader>
 
@@ -100,6 +104,6 @@ export const DashboardCollectionCard = ({
           </span>
         </CardFooter>
       </Card>
-    </Link>
+    </div>
   );
 };

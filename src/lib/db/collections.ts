@@ -50,6 +50,11 @@ interface CreateCollectionInput {
   description?: string | null;
 }
 
+interface UpdateCollectionInput {
+  name: string;
+  description?: string | null;
+}
+
 export interface DashboardCollection {
   id: string;
   name: string;
@@ -409,4 +414,86 @@ export const createCollection = async (
     createdAt: collection.createdAt.toISOString(),
     updatedAt: collection.updatedAt.toISOString(),
   };
+};
+
+export const updateCollection = async (
+  userId: string,
+  collectionId: string,
+  data: UpdateCollectionInput
+): Promise<CreatedCollection | null> => {
+  const existingCollection = await prisma.collection.findFirst({
+    where: {
+      id: collectionId,
+      userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!existingCollection) {
+    return null;
+  }
+
+  const collection = await prisma.collection.update({
+    where: {
+      id: collectionId,
+    },
+    data: {
+      name: data.name,
+      description: data.description ?? null,
+    },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      isFavorite: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  return {
+    id: collection.id,
+    name: collection.name,
+    description: collection.description,
+    isFavorite: collection.isFavorite,
+    createdAt: collection.createdAt.toISOString(),
+    updatedAt: collection.updatedAt.toISOString(),
+  };
+};
+
+export const deleteCollection = async (
+  userId: string,
+  collectionId: string
+): Promise<boolean> => {
+  return prisma.$transaction(async (tx) => {
+    const existingCollection = await tx.collection.findFirst({
+      where: {
+        id: collectionId,
+        userId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!existingCollection) {
+      return false;
+    }
+
+    await tx.itemCollection.deleteMany({
+      where: {
+        collectionId,
+      },
+    });
+
+    await tx.collection.delete({
+      where: {
+        id: collectionId,
+      },
+    });
+
+    return true;
+  });
 };
