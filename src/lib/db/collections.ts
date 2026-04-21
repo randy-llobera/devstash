@@ -2,6 +2,12 @@ import type { DashboardItem } from "@/lib/db/items";
 
 import { prisma } from "@/lib/prisma";
 import { getDashboardUser } from "@/lib/db/dashboard-user";
+import {
+  COLLECTIONS_PER_PAGE,
+  DASHBOARD_COLLECTIONS_LIMIT,
+  getPaginationState,
+  type PaginationState,
+} from "@/lib/pagination";
 
 export type DashboardCollectionItemType = {
   id: string;
@@ -38,6 +44,7 @@ export interface CollectionDetail {
   dominantTypeColor: string | null;
   itemTypes: DashboardCollectionItemType[];
   items: DashboardItem[];
+  pagination: PaginationState;
 }
 
 export interface CollectionOption {
@@ -112,50 +119,6 @@ const collectionSelect = {
             },
           },
         },
-      },
-    },
-  },
-};
-
-const collectionDetailSelect = {
-  id: true,
-  name: true,
-  description: true,
-  isFavorite: true,
-  updatedAt: true,
-  items: {
-    select: {
-      addedAt: true,
-      item: {
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          fileName: true,
-          fileSize: true,
-          isFavorite: true,
-          isPinned: true,
-          createdAt: true,
-          updatedAt: true,
-          tags: {
-            select: {
-              name: true,
-            },
-          },
-          itemType: {
-            select: {
-              id: true,
-              name: true,
-              icon: true,
-              color: true,
-            },
-          },
-        },
-      },
-    },
-    orderBy: {
-      item: {
-        updatedAt: "desc" as const,
       },
     },
   },
@@ -308,7 +271,7 @@ const getCollectionSummaries = async (): Promise<CollectionSummary[]> => {
 };
 
 export const getRecentDashboardCollections = async (
-  limit = 6
+  limit = DASHBOARD_COLLECTIONS_LIMIT
 ): Promise<DashboardCollection[]> => {
   const collections = await getCollectionSummaries();
 
@@ -363,7 +326,9 @@ export const getAvailableCollections = async (): Promise<CollectionOption[]> => 
 };
 
 export const getCollectionDetailById = async (
-  collectionId: string
+  collectionId: string,
+  page = 1,
+  perPage = COLLECTIONS_PER_PAGE,
 ): Promise<CollectionDetail | null> => {
   const user = await getDashboardUser();
 
@@ -376,37 +341,144 @@ export const getCollectionDetailById = async (
       id: collectionId,
       userId: user.id,
     },
-    select: collectionDetailSelect,
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      isFavorite: true,
+      updatedAt: true,
+    },
   });
 
   if (!collection) {
     return null;
   }
 
-  const summary = buildCollectionSummary({
-    id: collection.id,
-    name: collection.name,
-    description: collection.description,
-    isFavorite: collection.isFavorite,
-    updatedAt: collection.updatedAt,
-    items: collection.items.map(({ item }) => ({
-      item: {
-        updatedAt: item.updatedAt,
-        itemType: item.itemType,
+  const itemWhere = {
+    userId: user.id,
+    collections: {
+      some: {
+        collectionId,
       },
-    })),
+    },
+  };
+
+  const [itemCount, latestItem, itemTypeCounts] = await Promise.all([
+    prisma.item.count({
+      where: itemWhere,
+    }),
+    prisma.item.findFirst({
+      where: itemWhere,
+      orderBy: {
+        updatedAt: "desc",
+      },
+      select: {
+        updatedAt: true,
+      },
+    }),
+    prisma.item.groupBy({
+      by: ["itemTypeId"],
+      where: itemWhere,
+      _count: {
+        _all: true,
+      },
+      orderBy: {
+        itemTypeId: "asc",
+      },
+    }),
+  ]);
+
+  const pagination = getPaginationState({
+    currentPage: page,
+    perPage,
+    totalItems: itemCount,
   });
+  const pagedCollectionItems = await prisma.item.findMany({
+    where: itemWhere,
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      fileName: true,
+      fileSize: true,
+      isFavorite: true,
+      isPinned: true,
+      createdAt: true,
+      updatedAt: true,
+      tags: {
+        select: {
+          name: true,
+        },
+      },
+      itemType: {
+        select: {
+          id: true,
+          name: true,
+          icon: true,
+          color: true,
+        },
+      },
+    },
+    skip: pagination.offset,
+    take: pagination.perPage,
+    orderBy: {
+      updatedAt: "desc",
+    },
+  });
+  const itemTypes = itemTypeCounts.length > 0
+    ? await prisma.itemType.findMany({
+      where: {
+        id: {
+          in: itemTypeCounts.map((itemTypeCount) => itemTypeCount.itemTypeId),
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        icon: true,
+        color: true,
+      },
+    })
+    : [];
+  const itemTypeLookup = new Map(itemTypes.map((itemType) => [itemType.id, itemType]));
+  const summaryItemTypes = itemTypeCounts
+    .map((itemTypeCount) => {
+      const itemType = itemTypeLookup.get(itemTypeCount.itemTypeId);
+
+      if (!itemType) {
+        return null;
+      }
+
+      return {
+        id: itemType.id,
+        name: itemType.name,
+        icon: itemType.icon,
+        color: itemType.color,
+        itemCount: itemTypeCount._count._all,
+      };
+    })
+    .filter((itemType): itemType is DashboardCollectionItemType => itemType !== null)
+    .sort((left, right) => {
+      if (right.itemCount !== left.itemCount) {
+        return right.itemCount - left.itemCount;
+      }
+
+      return left.name.localeCompare(right.name);
+    });
+  const updatedAt = latestItem && latestItem.updatedAt > collection.updatedAt
+    ? latestItem.updatedAt.toISOString()
+    : collection.updatedAt.toISOString();
 
   return {
     id: collection.id,
-    name: summary.name,
-    description: summary.description,
+    name: collection.name,
+    description: collection.description ?? "No description yet.",
     isFavorite: collection.isFavorite,
-    itemCount: summary.itemCount,
-    updatedAt: summary.updatedAt,
-    dominantTypeColor: summary.dominantTypeColor,
-    itemTypes: summary.itemTypes,
-    items: collection.items.map(({ item }) =>
+    itemCount,
+    updatedAt,
+    dominantTypeColor: summaryItemTypes[0]?.color ?? null,
+    itemTypes: summaryItemTypes,
+    items: pagedCollectionItems.map((item) =>
       mapCollectionDetailItem(
         {
           id: collection.id,
@@ -415,6 +487,7 @@ export const getCollectionDetailById = async (
         item
       )
     ),
+    pagination,
   };
 };
 

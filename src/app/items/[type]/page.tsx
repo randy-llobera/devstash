@@ -10,25 +10,35 @@ import {
   getSidebarCollectionsData,
 } from "@/lib/db/collections";
 import { getDashboardUser } from "@/lib/db/dashboard-user";
+import { ITEMS_PER_PAGE, parsePageParam } from "@/lib/pagination";
 
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardItemsList } from "@/components/dashboard/dashboard-items-list";
+import { PaginationControls } from "@/components/dashboard/pagination-controls";
 
 interface ItemsByTypePageProps {
   params: Promise<{
     type: string;
   }>;
+  searchParams?: Promise<{
+    page?: string | string[];
+  }>;
 }
 
-const ItemsByTypePage = async ({ params }: ItemsByTypePageProps) => {
+const ItemsByTypePage = async ({
+  params,
+  searchParams,
+}: ItemsByTypePageProps) => {
   const { type } = await params;
+  const resolvedSearchParams = await searchParams;
+  const page = parsePageParam(resolvedSearchParams?.page);
   const [user, itemTypes, sidebarCollections, collections, result] =
     await Promise.all([
       getDashboardUser(),
       getSidebarItemTypes(),
       getSidebarCollectionsData(),
       getAvailableCollections(),
-      getItemsByTypeSlug(type),
+      getItemsByTypeSlug(type, page, ITEMS_PER_PAGE),
     ]);
 
   if (!result) {
@@ -49,12 +59,16 @@ const ItemsByTypePage = async ({ params }: ItemsByTypePageProps) => {
             {getItemTypeLabel(result.itemType.name)}
           </h1>
           <p className="text-base text-muted-foreground">
-            {result.items.length} {result.items.length === 1 ? "item" : "items"}
+            {result.pagination.totalItems} {result.pagination.totalItems === 1 ? "item" : "items"}
           </p>
         </div>
 
         <div className="space-y-5">
           <DashboardItemsList itemType={result.itemType} items={result.items} />
+          <PaginationControls
+            basePath={`/items/${type}`}
+            pagination={result.pagination}
+          />
         </div>
       </div>
     </DashboardShell>

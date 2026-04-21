@@ -4,12 +4,24 @@ const {
   collectionDeleteMock,
   collectionFindFirstMock,
   collectionUpdateMock,
+  getDashboardUserMock,
+  itemCountMock,
+  itemFindFirstMock,
+  itemFindManyMock,
+  itemGroupByMock,
+  itemTypeFindManyMock,
   itemCollectionDeleteManyMock,
   prismaTransactionMock,
 } = vi.hoisted(() => ({
   collectionDeleteMock: vi.fn(),
   collectionFindFirstMock: vi.fn(),
   collectionUpdateMock: vi.fn(),
+  getDashboardUserMock: vi.fn(),
+  itemCountMock: vi.fn(),
+  itemFindFirstMock: vi.fn(),
+  itemFindManyMock: vi.fn(),
+  itemGroupByMock: vi.fn(),
+  itemTypeFindManyMock: vi.fn(),
   itemCollectionDeleteManyMock: vi.fn(),
   prismaTransactionMock: vi.fn(),
 }));
@@ -21,6 +33,15 @@ vi.mock("@/lib/prisma", () => ({
       update: collectionUpdateMock,
       delete: collectionDeleteMock,
     },
+    item: {
+      count: itemCountMock,
+      findFirst: itemFindFirstMock,
+      findMany: itemFindManyMock,
+      groupBy: itemGroupByMock,
+    },
+    itemType: {
+      findMany: itemTypeFindManyMock,
+    },
     itemCollection: {
       deleteMany: itemCollectionDeleteManyMock,
     },
@@ -29,12 +50,13 @@ vi.mock("@/lib/prisma", () => ({
 }));
 
 vi.mock("@/lib/db/dashboard-user", () => ({
-  getDashboardUser: vi.fn(),
+  getDashboardUser: getDashboardUserMock,
 }));
 
 import {
   buildCollectionSummary,
   deleteCollection,
+  getCollectionDetailById,
   mapGlobalSearchCollection,
   mapCollectionDetailItem,
   updateCollection,
@@ -45,6 +67,12 @@ describe("collection db helpers", () => {
     collectionDeleteMock.mockReset();
     collectionFindFirstMock.mockReset();
     collectionUpdateMock.mockReset();
+    getDashboardUserMock.mockReset();
+    itemCountMock.mockReset();
+    itemFindFirstMock.mockReset();
+    itemFindManyMock.mockReset();
+    itemGroupByMock.mockReset();
+    itemTypeFindManyMock.mockReset();
     itemCollectionDeleteManyMock.mockReset();
     prismaTransactionMock.mockReset();
   });
@@ -257,6 +285,102 @@ describe("collection db helpers", () => {
         },
       ],
       searchText: "DevOps Deployment commands command link",
+    });
+  });
+
+  it("returns paginated collection detail without fetching every item", async () => {
+    getDashboardUserMock.mockResolvedValue({
+      id: "user-1",
+    });
+    collectionFindFirstMock.mockResolvedValue({
+      id: "collection-1",
+      name: "DevOps",
+      description: null,
+      isFavorite: true,
+      updatedAt: new Date("2026-04-10T08:00:00.000Z"),
+    });
+    itemCountMock.mockResolvedValue(25);
+    itemFindFirstMock.mockResolvedValue({
+      updatedAt: new Date("2026-04-12T10:00:00.000Z"),
+    });
+    itemGroupByMock.mockResolvedValue([
+      {
+        itemTypeId: "type-command",
+        _count: {
+          _all: 25,
+        },
+      },
+    ]);
+    itemTypeFindManyMock.mockResolvedValue([
+      {
+        id: "type-command",
+        name: "command",
+        icon: "Terminal",
+        color: "#f97316",
+      },
+    ]);
+    itemFindManyMock.mockResolvedValue([
+      {
+        id: "item-22",
+        title: "Deploy command",
+        description: null,
+        fileName: null,
+        fileSize: null,
+        isFavorite: false,
+        isPinned: false,
+        createdAt: new Date("2026-04-12T10:00:00.000Z"),
+        updatedAt: new Date("2026-04-12T10:00:00.000Z"),
+        tags: [{ name: "deploy" }],
+        itemType: {
+          id: "type-command",
+          name: "command",
+          icon: "Terminal",
+          color: "#f97316",
+        },
+      },
+    ]);
+
+    const result = await getCollectionDetailById("collection-1", 2, 21);
+
+    expect(itemFindManyMock).toHaveBeenCalledWith({
+      where: {
+        userId: "user-1",
+        collections: {
+          some: {
+            collectionId: "collection-1",
+          },
+        },
+      },
+      select: expect.any(Object),
+      skip: 21,
+      take: 21,
+      orderBy: {
+        updatedAt: "desc",
+      },
+    });
+    expect(result?.pagination).toEqual({
+      currentPage: 2,
+      totalPages: 2,
+      totalItems: 25,
+      perPage: 21,
+      offset: 21,
+      hasPreviousPage: true,
+      hasNextPage: false,
+    });
+    expect(result?.itemCount).toBe(25);
+    expect(result?.updatedAt).toBe("2026-04-12T10:00:00.000Z");
+    expect(result?.itemTypes).toEqual([
+      {
+        id: "type-command",
+        name: "command",
+        icon: "Terminal",
+        color: "#f97316",
+        itemCount: 25,
+      },
+    ]);
+    expect(result?.items[0]?.collection).toEqual({
+      id: "collection-1",
+      name: "DevOps",
     });
   });
 
