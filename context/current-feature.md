@@ -1,15 +1,26 @@
-# Current Feature
+# Current Feature: Homepage Mockup
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+- Build a marketing homepage mockup for DevStash in `prototypes/homepage/` with `index.html`, `styles.css`, and `script.js`
+- Create a hero section that communicates the "chaos to order" concept with animated scattered-knowledge icons, a transform arrow, and a DevStash dashboard preview
+- Include fixed navigation, hero copy and CTAs, a six-card features grid, an AI-focused section, pricing with monthly/yearly toggle, a closing CTA, and a footer
+- Apply the provided dark-theme item-type color palette consistently across cards and dashboard elements
+- Implement the required motion: `requestAnimationFrame` chaos icon movement and mouse repulsion, arrow pulse, scroll reveal effects, and navbar opacity on scroll
+- Ensure the layout adapts cleanly to mobile with vertically stacked hero visuals, single-column grids, and a rotated arrow
 <!-- Add goals here -->
 
 ## Notes
 
+- Source spec: `context/features/homepage-mockup-spec.md`
+- The homepage is a mockup/prototype, not an app route change
+- Hero visual should use these accent colors: snippet `#3b82f6`, prompt `#f59e0b`, command `#06b6d4`, note `#22c55e`, file `#64748b`, image `#ec4899`, URL `#6366f1`
+- Chaos container should represent current developer knowledge sprawl using Notion, GitHub, Slack, VS Code, browser tab, terminal, text file, and bookmark visuals
+- Pricing should present Free (`$0`, 50 items, 3 collections) and Pro (`$8/mo`) with a yearly option of `$72`
 <!-- Add notes here -->
 
 ## History
