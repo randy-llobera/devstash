@@ -1,26 +1,15 @@
-# Current Feature: Homepage Mockup
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Build a marketing homepage mockup for DevStash in `prototypes/homepage/` with `index.html`, `styles.css`, and `script.js`
-- Create a hero section that communicates the "chaos to order" concept with animated scattered-knowledge icons, a transform arrow, and a DevStash dashboard preview
-- Include fixed navigation, hero copy and CTAs, a six-card features grid, an AI-focused section, pricing with monthly/yearly toggle, a closing CTA, and a footer
-- Apply the provided dark-theme item-type color palette consistently across cards and dashboard elements
-- Implement the required motion: `requestAnimationFrame` chaos icon movement and mouse repulsion, arrow pulse, scroll reveal effects, and navbar opacity on scroll
-- Ensure the layout adapts cleanly to mobile with vertically stacked hero visuals, single-column grids, and a rotated arrow
 <!-- Add goals here -->
 
 ## Notes
 
-- Source spec: `context/features/homepage-mockup-spec.md`
-- The homepage is a mockup/prototype, not an app route change
-- Hero visual should use these accent colors: snippet `#3b82f6`, prompt `#f59e0b`, command `#06b6d4`, note `#22c55e`, file `#64748b`, image `#ec4899`, URL `#6366f1`
-- Chaos container should represent current developer knowledge sprawl using Notion, GitHub, Slack, VS Code, browser tab, terminal, text file, and bookmark visuals
-- Pricing should present Free (`$0`, 50 items, 3 collections) and Pro (`$8/mo`) with a yearly option of `$72`
 <!-- Add notes here -->
 
 ## History
@@ -74,3 +63,4 @@ In Progress
 - Favorites Toggle completed with shared item-level favorite toggles across dashboard cards, rows, image/file views, and the item drawer, plus collection-level favorite actions on collection pages and focused unit coverage for the new item and collection favorite actions
 - Favorites sorting completed with client-side item sorting by date, name, and item type, collection sorting by date and name, dropdown controls on the favorites page, and focused unit coverage for the shared sorting helpers
 - Pinned Items completed with a drawer pin toggle using optimistic updates and toast feedback, a new item pin server action and DB helper, pinned-first ordering on item and collection listings, and focused unit coverage for the new action
+- Homepage Mockup completed with a standalone `prototypes/homepage/` marketing page, an animated chaos-to-order hero, accent-colored feature sections, AI and pricing mockups, and responsive desktop/mobile layouts
