@@ -1,16 +1,25 @@
-# Current Feature
+# Current Feature: Homepage
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Add goals here -->
+- Implement the real marketing homepage at `/` using `prototypes/homepage/` as the visual reference.
+- Replace the placeholder in `src/app/page.tsx` with the actual homepage structure: sticky nav, hero, features, AI section, pricing, CTA, and footer.
+- Keep `src/app/page.tsx` as a server component and limit client components to interactive or animated behavior only.
+- Preserve the current app visual language while reusing Tailwind, existing shadcn/ui primitives, and project item type colors where appropriate.
+- Ensure homepage navigation, CTA destinations, and footer links use real routes or implemented anchors only.
+- Keep the page responsive and aligned with the mockup's desktop and mobile structure.
 
 ## Notes
 
-<!-- Add notes here -->
+- Reference spec: `context/features/homepage-spec.md`
+- Visual reference files: `prototypes/homepage/index.html`, `prototypes/homepage/styles.css`, `prototypes/homepage/script.js`
+- CTA behavior should switch from auth routes to `/dashboard` when the user is already signed in.
+- Footer links cannot use `#` placeholders.
+- Extract homepage-specific components only where repetition justifies reuse.
 
 ## History
 
