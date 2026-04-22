@@ -1,25 +1,16 @@
-# Current Feature: Homepage
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Implement the real marketing homepage at `/` using `prototypes/homepage/` as the visual reference.
-- Replace the placeholder in `src/app/page.tsx` with the actual homepage structure: sticky nav, hero, features, AI section, pricing, CTA, and footer.
-- Keep `src/app/page.tsx` as a server component and limit client components to interactive or animated behavior only.
-- Preserve the current app visual language while reusing Tailwind, existing shadcn/ui primitives, and project item type colors where appropriate.
-- Ensure homepage navigation, CTA destinations, and footer links use real routes or implemented anchors only.
-- Keep the page responsive and aligned with the mockup's desktop and mobile structure.
+<!-- Add goals here -->
 
 ## Notes
 
-- Reference spec: `context/features/homepage-spec.md`
-- Visual reference files: `prototypes/homepage/index.html`, `prototypes/homepage/styles.css`, `prototypes/homepage/script.js`
-- CTA behavior should switch from auth routes to `/dashboard` when the user is already signed in.
-- Footer links cannot use `#` placeholders.
-- Extract homepage-specific components only where repetition justifies reuse.
+<!-- Add notes here -->
 
 ## History
 
@@ -73,3 +64,4 @@ In Progress
 - Favorites sorting completed with client-side item sorting by date, name, and item type, collection sorting by date and name, dropdown controls on the favorites page, and focused unit coverage for the shared sorting helpers
 - Pinned Items completed with a drawer pin toggle using optimistic updates and toast feedback, a new item pin server action and DB helper, pinned-first ordering on item and collection listings, and focused unit coverage for the new action
 - Homepage Mockup completed with a standalone `prototypes/homepage/` marketing page, an animated chaos-to-order hero, accent-colored feature sections, AI and pricing mockups, and responsive desktop/mobile layouts
+- Homepage completed with a real `/` marketing page built from the approved prototype, homepage-specific components under `src/components/homepage/`, auth-aware CTA routing, a widened chaos-to-order hero, responsive desktop/mobile layout, and static sections kept server-rendered while client interactivity stayed limited to navigation, pricing toggle, and chaos animation
