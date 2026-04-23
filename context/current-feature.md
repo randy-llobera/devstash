@@ -1,26 +1,16 @@
-# Current Feature: Stripe Integration Phase 1 - Core Infrastructure
+# Current Feature
 
 ## Status
 
-In Progress
+Complete
 
 ## Goals
 
-- Install the Stripe SDK and add shared Stripe client setup with env validation.
-- Add shared billing constants and price ID mapping helpers.
-- Add a pure `usage-limits` module for free-tier and Pro feature checks.
-- Sync `isPro` from Prisma in auth session loading and expose it on `session.user`.
-- Include current billing fields in shared user reads needed by Settings and gating work.
-- Add unit tests covering item, collection, and Pro-only usage limits.
+<!-- Add goals here -->
 
 ## Notes
 
-- Scope is infrastructure only. Do not add checkout, billing portal, webhooks, or billing UI in this phase.
-- New files expected: `src/lib/stripe.ts`, `src/lib/billing.ts`, `src/lib/usage-limits.ts`, and `src/lib/usage-limits.test.ts`.
-- Existing files expected to change: `package.json`, `src/auth.ts`, `src/types/next-auth.d.ts`, `src/lib/db/dashboard-user.ts`, and `.env.example`.
-- The `usage-limits` module must stay pure and accept plain inputs like `isPro`, `itemCount`, and `collectionCount`.
-- Free-tier rules from the spec: item limit `50`, collection limit `3`, and free users cannot use file uploads, image uploads, or AI features.
-- `isPro` must be re-read from Prisma in the JWT callback on every session load to avoid stale session state.
+<!-- Add notes here -->
 
 ## History
 
@@ -75,3 +65,4 @@ In Progress
 - Pinned Items completed with a drawer pin toggle using optimistic updates and toast feedback, a new item pin server action and DB helper, pinned-first ordering on item and collection listings, and focused unit coverage for the new action
 - Homepage Mockup completed with a standalone `prototypes/homepage/` marketing page, an animated chaos-to-order hero, accent-colored feature sections, AI and pricing mockups, and responsive desktop/mobile layouts
 - Homepage completed with a real `/` marketing page built from the approved prototype, homepage-specific components under `src/components/homepage/`, auth-aware CTA routing, a widened chaos-to-order hero, responsive desktop/mobile layout, and static sections kept server-rendered while client interactivity stayed limited to navigation, pricing toggle, and chaos animation
+- Stripe Integration Phase 1 - Core Infrastructure completed with the Stripe SDK dependency, shared Stripe and billing helpers, centralized usage-limit checks plus tests, `isPro` synced from Prisma into JWT/session state, shared billing fields added to dashboard user reads, and Stripe env names aligned to the existing project `.env`
