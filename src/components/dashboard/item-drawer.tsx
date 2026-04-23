@@ -23,6 +23,7 @@ import { isMarkdownEditorItemType } from '@/lib/markdown-editor';
 import { cn } from '@/lib/utils';
 
 import { CollectionPicker } from '@/components/dashboard/collection-picker';
+import { AiTagSuggestions } from '@/components/dashboard/ai-tag-suggestions';
 import { ItemFavoriteButton } from '@/components/dashboard/item-favorite-button';
 import { ItemPinButton } from '@/components/dashboard/item-pin-button';
 import { useSearch } from '@/components/dashboard/search-provider';
@@ -409,6 +410,7 @@ interface ItemDrawerEditBodyProps {
   collections: CollectionOption[];
   fieldErrors: EditFormErrors;
   formState: EditFormState;
+  isPro: boolean;
   item: ItemDrawerDetail;
   onFieldChange: <T extends EditFormField>(field: T, value: EditFormState[T]) => void;
   submitError: string | null;
@@ -418,6 +420,7 @@ const ItemDrawerEditBody = ({
   collections,
   fieldErrors,
   formState,
+  isPro,
   item,
   onFieldChange,
   submitError,
@@ -487,9 +490,19 @@ const ItemDrawerEditBody = ({
       />
 
       <div className='space-y-2'>
-        <label htmlFor='item-tags' className='text-sm font-medium'>
-          Tags
-        </label>
+        <AiTagSuggestions
+          key={item.id}
+          content={formState.content}
+          description={formState.description}
+          inputId='item-tags'
+          isPro={isPro}
+          itemType={item.itemType.name}
+          language={formState.language}
+          tagsValue={formState.tags}
+          title={formState.title}
+          url={formState.url}
+          onTagsChange={(value) => onFieldChange('tags', value)}
+        />
         <Input
           id='item-tags'
           value={formState.tags}
@@ -601,6 +614,7 @@ interface ItemDrawerProps {
   collections: CollectionOption[];
   error: string | null;
   isLoading: boolean;
+  isPro: boolean;
   item: ItemDrawerDetail | null;
   onCopy: () => Promise<void> | void;
   onItemDeleted: (itemId: string) => void;
@@ -614,6 +628,7 @@ export const ItemDrawer = ({
   collections,
   error,
   isLoading,
+  isPro,
   item,
   onCopy,
   onItemDeleted,
@@ -922,9 +937,10 @@ export const ItemDrawer = ({
                 collections={collections}
                 fieldErrors={fieldErrors}
                 formState={formState}
-                  item={item}
-                  onFieldChange={handleFieldChange}
-                  submitError={submitError}
+                isPro={isPro}
+                item={item}
+                onFieldChange={handleFieldChange}
+                submitError={submitError}
                 />
               ) : (
                 <ItemDrawerBody item={item} />

@@ -44,7 +44,7 @@ export const DashboardShell = ({
       <EditorPreferencesProvider
         initialPreferences={user?.editorPreferences}
       >
-        <ItemDrawerProvider collections={collections}>
+        <ItemDrawerProvider collections={collections} isPro={Boolean(user?.isPro)}>
           <main className='min-h-screen bg-background text-foreground'>
             <div className='grid min-h-screen grid-rows-[auto_1fr]'>
               <TopBar

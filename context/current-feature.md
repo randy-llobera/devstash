@@ -1,16 +1,37 @@
-# Current Feature
+# Current Feature: AI Auto-Tagging
 
 ## Status
 
-Complete
+In Progress
 
 ## Goals
 
 <!-- Add goals here -->
 
+- Add AI-powered tag suggestions for items using `gpt-5-nano`
+- Create the OpenAI client utility and shared `AI_MODEL` constant if they do not already exist
+- Implement `generateAutoTags` with auth, Pro gating, Zod validation, and rate limiting
+- Add the AI rate limit config for 20 requests per hour per user if it does not already exist
+- Add a Pro-only `Suggest Tags` UI in create-item and item-drawer edit flows
+- Show 3-5 suggested freeform tags with accept and reject controls
+- Add accepted suggestions into the current item tag list
+- Truncate content to 2000 characters before sending it to OpenAI
+- Surface Pro gating, rate limit, and AI service failures via toast messages
+- Add unit tests for the server action
+
 ## Notes
 
 <!-- Add notes here -->
+
+- Use the OpenAI Responses API, not Chat Completions, because `gpt-5-nano` returns empty content with Chat Completions
+- Read model output from `response.output_text`
+- Request JSON with `text.format: { type: 'json_object' }` and parse manually
+- Handle both `{"tags": [...]}` and `[...]` response shapes
+- Normalize all returned tags to lowercase
+- `zodResponseFormat` is not suitable here because it uses too many tokens with this model
+- `OPENAI_API_KEY` is already present in `.env`
+- UI visibility for the button needs Pro-state access in create and edit surfaces, but server-side gating remains required
+- Full architectural context is in `docs/ai-integration-plan.md`
 
 ## History
 

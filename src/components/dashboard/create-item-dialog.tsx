@@ -17,6 +17,7 @@ import { isMarkdownEditorItemType } from '@/lib/markdown-editor';
 import { cn } from '@/lib/utils';
 
 import { FileUpload } from '@/components/dashboard/file-upload';
+import { AiTagSuggestions } from '@/components/dashboard/ai-tag-suggestions';
 import { CollectionPicker } from '@/components/dashboard/collection-picker';
 import { useSearch } from '@/components/dashboard/search-provider';
 import { getItemTypeIcon } from '@/components/utils/item-type';
@@ -699,9 +700,19 @@ export const CreateItemDialog = ({
               />
 
               <div className='space-y-2 sm:col-span-2'>
-                <label className='text-sm font-medium' htmlFor='create-item-tags'>
-                  Tags
-                </label>
+                <AiTagSuggestions
+                  key={`${open}:${formState.itemType}`}
+                  content={formState.content}
+                  description={formState.description}
+                  inputId='create-item-tags'
+                  isPro={isPro}
+                  itemType={formState.itemType}
+                  language={formState.language}
+                  tagsValue={formState.tags}
+                  title={formState.title}
+                  url={formState.url}
+                  onTagsChange={(value) => handleFieldChange('tags', value)}
+                />
                 <Input
                   id='create-item-tags'
                   value={formState.tags}

@@ -9,6 +9,8 @@ type AuthRateLimitName =
   | "passwordReset"
   | "verificationResend";
 
+type AiRateLimitName = "autoTag";
+
 interface AuthRateLimitConfig {
   limit: number;
   prefix: string;
@@ -20,6 +22,11 @@ interface AuthRateLimitOptions {
   keyBy: "ip" | "ip-email";
   request: Request;
   type: AuthRateLimitName;
+}
+
+interface AiRateLimitOptions {
+  identifier: string;
+  type: AiRateLimitName;
 }
 
 export interface AuthRateLimitResult {
@@ -62,8 +69,17 @@ const AUTH_RATE_LIMIT_CONFIG: Record<AuthRateLimitName, AuthRateLimitConfig> = {
   },
 };
 
+const AI_RATE_LIMIT_CONFIG: Record<AiRateLimitName, AuthRateLimitConfig> = {
+  autoTag: {
+    limit: 20,
+    prefix: "devstash:rate-limit:ai:auto-tag",
+    window: "1 h",
+  },
+};
+
 let redis: Redis | null | undefined;
 const limiters = new Map<AuthRateLimitName, Ratelimit>();
+const aiLimiters = new Map<AiRateLimitName, Ratelimit>();
 let hasWarnedRateLimitBypass = false;
 
 const getBypassRateLimitResult = (type: AuthRateLimitName): AuthRateLimitResult => ({
@@ -78,6 +94,13 @@ const getUnavailableRateLimitResult = (): AuthRateLimitResult => ({
   reason: "unavailable",
   reset: Date.now(),
   success: false,
+});
+
+const getAiBypassRateLimitResult = (type: AiRateLimitName): AuthRateLimitResult => ({
+  remaining: AI_RATE_LIMIT_CONFIG[type].limit,
+  reason: null,
+  reset: Date.now(),
+  success: true,
 });
 
 const shouldFailClosed = () => process.env.NODE_ENV === "production";
@@ -133,6 +156,30 @@ const getRateLimiter = (type: AuthRateLimitName) => {
   });
 
   limiters.set(type, ratelimit);
+  return ratelimit;
+};
+
+const getAiRateLimiter = (type: AiRateLimitName) => {
+  const existingLimiter = aiLimiters.get(type);
+
+  if (existingLimiter) {
+    return existingLimiter;
+  }
+
+  const redisClient = getRedis();
+
+  if (!redisClient) {
+    return null;
+  }
+
+  const config = AI_RATE_LIMIT_CONFIG[type];
+  const ratelimit = new Ratelimit({
+    limiter: Ratelimit.slidingWindow(config.limit, config.window),
+    prefix: config.prefix,
+    redis: redisClient,
+  });
+
+  aiLimiters.set(type, ratelimit);
   return ratelimit;
 };
 
@@ -214,6 +261,42 @@ export const checkAuthRateLimit = async ({
 
     warnRateLimitBypass("rate-limit checks are failing.");
     return getBypassRateLimitResult(type);
+  }
+};
+
+export const checkAiRateLimit = async ({
+  identifier,
+  type,
+}: AiRateLimitOptions): Promise<AuthRateLimitResult> => {
+  const ratelimit = getAiRateLimiter(type);
+
+  if (!ratelimit) {
+    if (shouldFailClosed()) {
+      return getUnavailableRateLimitResult();
+    }
+
+    warnRateLimitBypass("Upstash Redis is not configured.");
+    return getAiBypassRateLimitResult(type);
+  }
+
+  try {
+    const result = await ratelimit.limit(identifier);
+
+    return {
+      remaining: result.remaining,
+      reason: result.success ? null : "limited",
+      reset: result.reset,
+      success: result.success,
+    };
+  } catch (error) {
+    console.error(`Rate limit check failed for ${type}`, error);
+
+    if (shouldFailClosed()) {
+      return getUnavailableRateLimitResult();
+    }
+
+    warnRateLimitBypass("rate-limit checks are failing.");
+    return getAiBypassRateLimitResult(type);
   }
 };
 
