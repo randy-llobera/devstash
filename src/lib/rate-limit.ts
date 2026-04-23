@@ -9,7 +9,7 @@ type AuthRateLimitName =
   | "passwordReset"
   | "verificationResend";
 
-type AiRateLimitName = "autoTag" | "summary";
+type AiRateLimitName = "autoTag" | "summary" | "explain";
 
 interface AuthRateLimitConfig {
   limit: number;
@@ -78,6 +78,11 @@ const AI_RATE_LIMIT_CONFIG: Record<AiRateLimitName, AuthRateLimitConfig> = {
   summary: {
     limit: 20,
     prefix: "devstash:rate-limit:ai:summary",
+    window: "1 h",
+  },
+  explain: {
+    limit: 20,
+    prefix: "devstash:rate-limit:ai:explain",
     window: "1 h",
   },
 };

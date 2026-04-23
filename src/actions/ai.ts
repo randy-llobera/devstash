@@ -33,6 +33,15 @@ const descriptionSummarySchema = z.object({
 
 type GenerateDescriptionSummaryPayload = z.input<typeof descriptionSummarySchema>;
 
+const explainCodeSchema = z.object({
+  itemType: z.enum(["snippet", "command"]),
+  title: z.string().trim().max(200).default(""),
+  content: z.string().trim().min(1, "Content is required."),
+  language: z.string().trim().max(100).optional(),
+});
+
+type ExplainCodePayload = z.input<typeof explainCodeSchema>;
+
 interface GenerateAutoTagsActionResult {
   success: boolean;
   data?: {
@@ -45,6 +54,14 @@ interface GenerateDescriptionSummaryActionResult {
   success: boolean;
   data?: {
     summary: string;
+  };
+  error?: string;
+}
+
+interface ExplainCodeActionResult {
+  success: boolean;
+  data?: {
+    explanation: string;
   };
   error?: string;
 }
@@ -63,6 +80,13 @@ const descriptionSummaryResponseSchema = z.union([
   z.string(),
   z.object({
     summary: z.string(),
+  }),
+]);
+
+const explainCodeResponseSchema = z.union([
+  z.string(),
+  z.object({
+    explanation: z.string(),
   }),
 ]);
 
@@ -156,6 +180,22 @@ const parseDescriptionSummaryResponse = (outputText: string) => {
   return normalizedSummary;
 };
 
+const parseExplainCodeResponse = (outputText: string) => {
+  const parsedJson = JSON.parse(outputText) as unknown;
+  const parsedResponse = explainCodeResponseSchema.parse(parsedJson);
+  const explanation =
+    typeof parsedResponse === "string"
+      ? parsedResponse
+      : parsedResponse.explanation;
+  const normalizedExplanation = explanation.trim();
+
+  if (!normalizedExplanation) {
+    throw new Error("No explanation was returned.");
+  }
+
+  return normalizedExplanation;
+};
+
 const buildAutoTagPrompt = (data: z.output<typeof autoTagSchema>) => {
   const promptSections = [
     'Return valid JSON in the shape {"tags":["tag"]}.',
@@ -183,6 +223,18 @@ const buildDescriptionSummaryPrompt = (data: z.output<typeof descriptionSummaryS
     `File name: ${data.fileName || "N/A"}`,
     `File size: ${formatFileSize(data.fileSize) || "N/A"}`,
     `Content (truncated to 4000 chars):\n${truncateSummaryContent(data.content) || "N/A"}`,
+  ];
+
+  return promptSections.join("\n\n");
+};
+
+const buildExplainCodePrompt = (data: z.output<typeof explainCodeSchema>) => {
+  const promptSections = [
+    'Return valid JSON in the shape {"explanation":"markdown"}.',
+    `Item type: ${data.itemType}`,
+    `Title: ${data.title || "N/A"}`,
+    `Language: ${data.language || "N/A"}`,
+    `Content (truncated to 4000 chars):\n${truncateSummaryContent(data.content)}`,
   ];
 
   return promptSections.join("\n\n");
@@ -471,6 +523,126 @@ export const generateDescriptionSummary = async (
     return {
       success: false,
       error: "Unable to generate a description right now.",
+    };
+  }
+};
+
+export const explainCode = async (
+  data: ExplainCodePayload,
+): Promise<ExplainCodeActionResult> => {
+  const parsedPayload = explainCodeSchema.safeParse({
+    ...data,
+    content: data.content?.trim() ?? "",
+    language: data.language?.trim() ?? "",
+    title: data.title?.trim() ?? "",
+  });
+
+  if (!parsedPayload.success) {
+    return {
+      success: false,
+      error: "Add code or a command before requesting an explanation.",
+    };
+  }
+
+  const session = await auth();
+  const userId = session?.user?.id ?? null;
+
+  if (!userId) {
+    return {
+      success: false,
+      error: "You must be signed in to explain code.",
+    };
+  }
+
+  const billingState = await getBillingState(userId);
+
+  if (!billingState) {
+    return {
+      success: false,
+      error: "User not found.",
+    };
+  }
+
+  if (!canUseAiFeatures({ isPro: billingState.isPro })) {
+    return {
+      success: false,
+      error: "Upgrade to Pro to use AI code explanations.",
+    };
+  }
+
+  const rateLimitResult = await checkAiRateLimit({
+    identifier: userId,
+    type: "explain",
+  });
+
+  if (!rateLimitResult.success) {
+    return {
+      success: false,
+      error: isRateLimitUnavailable(rateLimitResult)
+        ? AUTO_TAG_RATE_LIMIT_UNAVAILABLE_MESSAGE
+        : getRateLimitMessage(rateLimitResult.reset),
+    };
+  }
+
+  try {
+    const response = await getOpenAIClient().responses.create({
+      model: AI_MODEL,
+      instructions:
+        'You explain developer code and shell commands. Return JSON only in the shape {"explanation":"markdown"}. Write a concise explanation around 200 to 300 words. Cover what it does, how it works, and the key concepts or risks. Use short markdown paragraphs or bullets. Do not invent behavior not supported by the content.',
+      input: buildExplainCodePrompt(parsedPayload.data),
+      metadata: {
+        feature: "explain-code",
+        userId,
+      },
+      text: {
+        format: {
+          type: "json_object",
+        },
+      },
+    });
+
+    if (!response.output_text) {
+      return {
+        success: false,
+        error: "Unable to explain this code right now.",
+      };
+    }
+
+    return {
+      success: true,
+      data: {
+        explanation: parseExplainCodeResponse(response.output_text),
+      },
+    };
+  } catch (error) {
+    const status = getOpenAIErrorStatus(error);
+    const requestId = getOpenAIErrorRequestId(error);
+
+    console.error("Failed to explain code.", {
+      error,
+      feature: "explain-code",
+      requestId,
+      status,
+      userId,
+    });
+
+    if (status === 429) {
+      return {
+        success: false,
+        error: "AI suggestions are temporarily rate limited. Please try again shortly.",
+      };
+    }
+
+    if (status === 400 || status === 401 || status === 403 || status === 422 || (status ?? 0) >= 500) {
+      return {
+        success: false,
+        error: AUTO_TAG_RATE_LIMIT_UNAVAILABLE_MESSAGE,
+      };
+    }
+
+    return {
+      success: false,
+      error: "Unable to explain this code right now.",
     };
   }
 };

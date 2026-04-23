@@ -11,6 +11,7 @@ import { Copy, Download, FileText, Link2, Pencil, Pin, Star, Trash2 } from 'luci
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
+import { explainCode } from '@/actions/ai';
 import { deleteItem, updateItem, type UpdateItemActionError } from '@/actions/items';
 import type { CollectionOption } from '@/lib/db/collections';
 import type { DashboardItem, ItemDrawerDetail } from '@/lib/db/items';
@@ -262,14 +263,65 @@ const ItemDrawerTags = ({ tags }: { tags: string[] }) => {
   );
 };
 
-const ItemDrawerContent = ({ item }: { item: ItemDrawerDetail }) => {
+const ItemDrawerContent = ({
+  isPro,
+  item,
+}: {
+  isPro: boolean;
+  item: ItemDrawerDetail;
+}) => {
+  const [explanation, setExplanation] = useState<string | null>(null);
+  const [isExplaining, setIsExplaining] = useState(false);
+  const [explanationView, setExplanationView] = useState<'code' | 'explain'>('code');
+
   if (!item.content) {
     return null;
   }
 
   if (usesCodeEditor(item.itemType.name)) {
+    const normalizedItemType =
+      item.itemType.name.trim().toLowerCase() === 'command' ? 'command' : 'snippet';
+
     return (
       <CodeEditor
+        aiExplanation={{
+          isPending: isExplaining,
+          isPro,
+          onExplain: () => {
+            if (!isPro) {
+              toast.error('AI features require Pro subscription.');
+              return;
+            }
+
+            setIsExplaining(true);
+
+            void explainCode({
+              content: item.content ?? '',
+              itemType: normalizedItemType,
+              language: item.language ?? '',
+              title: item.title,
+            })
+              .then((result) => {
+                setIsExplaining(false);
+
+                if (!result.success || !result.data) {
+                  toast.error(result.error ?? 'Unable to explain this code.');
+                  return;
+                }
+
+                setExplanation(result.data.explanation);
+                setExplanationView('explain');
+              })
+              .catch((error: unknown) => {
+                console.error('Failed to explain code in item drawer.', error);
+                setIsExplaining(false);
+                toast.error('Unable to explain this code.');
+              });
+          },
+          onViewChange: setExplanationView,
+          value: explanation,
+          view: explanationView,
+        }}
         itemType={item.itemType.name}
         language={item.language}
         readOnly
@@ -374,7 +426,13 @@ const ItemDrawerFile = ({ item }: { item: ItemDrawerDetail }) => {
   );
 };
 
-const ItemDrawerBody = ({ item }: { item: ItemDrawerDetail }) => {
+const ItemDrawerBody = ({
+  isPro,
+  item,
+}: {
+  isPro: boolean;
+  item: ItemDrawerDetail;
+}) => {
   const itemTypeIcon = createElement(getItemTypeIcon(item.itemType.icon), {
     className: 'size-5',
     style: { color: item.itemType.color },
@@ -399,7 +457,11 @@ const ItemDrawerBody = ({ item }: { item: ItemDrawerDetail }) => {
           </div>
         </div>
 
-        <ItemDrawerContent item={item} />
+        <ItemDrawerContent
+          key={`${item.id}:${item.updatedAt}`}
+          isPro={isPro}
+          item={item}
+        />
         <ItemDrawerUrl url={item.url} />
         <ItemDrawerFile item={item} />
       </div>
@@ -954,7 +1016,7 @@ export const ItemDrawer = ({
                 submitError={submitError}
                 />
               ) : (
-                <ItemDrawerBody item={item} />
+                <ItemDrawerBody isPro={isPro} item={item} />
               )
             ) : (
               <ItemDrawerError message='Select an item to view its details.' />

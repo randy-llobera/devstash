@@ -35,7 +35,7 @@ vi.mock("@/lib/rate-limit", () => ({
     result.reason === "unavailable",
 }));
 
-import { generateAutoTags, generateDescriptionSummary } from "@/actions/ai";
+import { explainCode, generateAutoTags, generateDescriptionSummary } from "@/actions/ai";
 
 describe("generateAutoTags action", () => {
   beforeEach(() => {
@@ -361,6 +361,153 @@ describe("generateDescriptionSummary action", () => {
     expect(result).toEqual({
       success: false,
       error: "Unable to generate a description right now.",
+    });
+  });
+});
+
+describe("explainCode action", () => {
+  beforeEach(() => {
+    authMock.mockReset();
+    checkAiRateLimitMock.mockReset();
+    getBillingStateMock.mockReset();
+    getOpenAIClientMock.mockReset();
+    openAIResponsesCreateMock.mockReset();
+    getOpenAIClientMock.mockReturnValue({
+      responses: {
+        create: openAIResponsesCreateMock,
+      },
+    });
+    checkAiRateLimitMock.mockResolvedValue({
+      remaining: 19,
+      reason: null,
+      reset: Date.now(),
+      success: true,
+    });
+  });
+
+  it("rejects explain requests without code content", async () => {
+    const result = await explainCode({
+      content: "   ",
+      itemType: "snippet",
+      title: "Array helper",
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "Add code or a command before requesting an explanation.",
+    });
+    expect(openAIResponsesCreateMock).not.toHaveBeenCalled();
+  });
+
+  it("blocks free users from AI code explanations", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    getBillingStateMock.mockResolvedValue({
+      isPro: false,
+      itemCount: 2,
+    });
+
+    const result = await explainCode({
+      content: "git rebase -i HEAD~3",
+      itemType: "command",
+      title: "Interactive rebase",
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "Upgrade to Pro to use AI code explanations.",
+    });
+    expect(openAIResponsesCreateMock).not.toHaveBeenCalled();
+  });
+
+  it("uses the explain AI rate-limit bucket", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    getBillingStateMock.mockResolvedValue({
+      isPro: true,
+      itemCount: 2,
+    });
+    openAIResponsesCreateMock.mockResolvedValue({
+      output_text: JSON.stringify({
+        explanation: "This command rewrites the last three commits by opening the interactive rebase todo list.",
+      }),
+    });
+
+    const result = await explainCode({
+      content: "git rebase -i HEAD~3",
+      itemType: "command",
+      title: "Interactive rebase",
+    });
+
+    expect(checkAiRateLimitMock).toHaveBeenCalledWith({
+      identifier: "user-1",
+      type: "explain",
+    });
+    expect(result).toEqual({
+      success: true,
+      data: {
+        explanation: "This command rewrites the last three commits by opening the interactive rebase todo list.",
+      },
+    });
+  });
+
+  it("accepts string-shaped OpenAI explanation responses", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    getBillingStateMock.mockResolvedValue({
+      isPro: true,
+      itemCount: 2,
+    });
+    openAIResponsesCreateMock.mockResolvedValue({
+      output_text: JSON.stringify("This snippet sorts items in place and relies on the provided comparator to control the final order."),
+    });
+
+    const result = await explainCode({
+      content: "items.sort(compare)",
+      itemType: "snippet",
+      title: "Sort helper",
+    });
+
+    expect(result).toEqual({
+      success: true,
+      data: {
+        explanation: "This snippet sorts items in place and relies on the provided comparator to control the final order.",
+      },
+    });
+  });
+
+  it("returns a safe error when the AI explanation response is invalid", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    getBillingStateMock.mockResolvedValue({
+      isPro: true,
+      itemCount: 2,
+    });
+    openAIResponsesCreateMock.mockResolvedValue({
+      output_text: "not json",
+    });
+
+    const result = await explainCode({
+      content: "items.sort(compare)",
+      itemType: "snippet",
+      title: "Sort helper",
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "Unable to explain this code right now.",
     });
   });
 });

@@ -1,16 +1,29 @@
-# Current Feature
+# Current Feature: AI Explain Code
 
 ## Status
 
-Complete
+In Progress
 
 ## Goals
 
-<!-- Add goals here -->
+- Add an `explainCode` server action with auth, Pro gating, Zod validation, and rate limiting using the existing AI patterns.
+- Add an `Explain` control with a Sparkles icon in the code editor header for snippet and command items in the item drawer read view only.
+- Show generated explanations inline in the code editor container using Code and Explain tabs after generation.
+- Render concise markdown explanations around 200 to 300 words, with loading and toast-based error handling.
+- Show Pro gating in the UI for free users with a Crown icon and tooltip.
+- Add unit tests for the new server action.
 
 ## Notes
 
-<!-- Add notes here -->
+Only applies to snippets and commands in the item drawer read view. Do not add this to create or edit forms.
+
+Explanations are not persisted. They are generated on demand each time.
+
+The explanation should render in the same container space as the code editor, toggled through tabs in the editor header rather than a separate panel.
+
+`isPro` will need to flow into the relevant item drawer or code editor path so the UI can show either the action or the Pro gate state.
+
+See `docs/ai-integration-plan.md` for additional architectural context if needed.
 
 ## History
 
