@@ -18,6 +18,7 @@ import {
 import type { SidebarCollection } from "@/lib/db/collections";
 import type { DashboardUser } from "@/lib/db/dashboard-user";
 import type { SidebarItemType } from "@/lib/db/items";
+import { getItemTypeHref, isProOnlyItemRoute } from "@/lib/items-navigation";
 
 import { UserAvatar } from "@/components/auth/user-avatar";
 import { Badge } from "@/components/ui/badge";
@@ -41,9 +42,6 @@ interface SidebarProps {
   onNavigate?: () => void;
   onToggleCollapsed?: () => void;
 }
-
-const proItemTypeSlugs = new Set(["files", "images"]);
-
 export const Sidebar = ({
   user,
   itemTypes,
@@ -113,11 +111,8 @@ export const Sidebar = ({
           <nav className="space-y-1">
             {itemTypes.map((itemType) => {
               const Icon = getItemTypeIcon(itemType.icon);
-              const showProBadge = proItemTypeSlugs.has(itemType.slug);
-              const href =
-                showProBadge && !user?.isPro
-                  ? "/settings?billing=upgrade"
-                  : `/items/${itemType.slug}`;
+              const showProBadge = isProOnlyItemRoute(itemType.slug);
+              const href = getItemTypeHref(itemType.slug);
 
               return (
                 <Link

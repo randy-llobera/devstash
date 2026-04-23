@@ -15,6 +15,7 @@ import { ITEMS_PER_PAGE, parsePageParam } from "@/lib/pagination";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardItemsList } from "@/components/dashboard/dashboard-items-list";
 import { PaginationControls } from "@/components/dashboard/pagination-controls";
+import { ItemsUpgradePage } from "@/components/items/items-upgrade-page";
 
 interface ItemsByTypePageProps {
   params: Promise<{
@@ -25,6 +26,8 @@ interface ItemsByTypePageProps {
   }>;
 }
 
+const PRO_ONLY_ITEM_ROUTE_TYPES = new Set(["files", "images"]);
+
 const ItemsByTypePage = async ({
   params,
   searchParams,
@@ -32,14 +35,28 @@ const ItemsByTypePage = async ({
   const { type } = await params;
   const resolvedSearchParams = await searchParams;
   const page = parsePageParam(resolvedSearchParams?.page);
-  const [user, itemTypes, sidebarCollections, collections, result] =
-    await Promise.all([
-      getDashboardUser(),
-      getSidebarItemTypes(),
-      getSidebarCollectionsData(),
-      getAvailableCollections(),
-      getItemsByTypeSlug(type, page, ITEMS_PER_PAGE),
-    ]);
+  const [user, itemTypes, sidebarCollections, collections] = await Promise.all([
+    getDashboardUser(),
+    getSidebarItemTypes(),
+    getSidebarCollectionsData(),
+    getAvailableCollections(),
+  ]);
+
+  if (PRO_ONLY_ITEM_ROUTE_TYPES.has(type) && !user?.isPro) {
+    return (
+      <DashboardShell
+        user={user}
+        collections={collections}
+        itemTypes={itemTypes}
+        favoriteCollections={sidebarCollections.favoriteCollections}
+        recentCollections={sidebarCollections.recentCollections}
+      >
+        <ItemsUpgradePage itemTypeLabel={type === "files" ? "Files" : "Images"} />
+      </DashboardShell>
+    );
+  }
+
+  const result = await getItemsByTypeSlug(type, page, ITEMS_PER_PAGE);
 
   if (!result) {
     notFound();

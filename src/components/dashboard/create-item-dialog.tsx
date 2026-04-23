@@ -9,6 +9,7 @@ import { createItem, type CreateItemActionError } from '@/actions/items';
 import type { CollectionOption } from '@/lib/db/collections';
 import { isFileUploadItemType, type FileUploadItemType } from '@/lib/file-upload';
 import { ItemFormType, ITEM_FORM_TYPES, isContentItemType, isFileItemType, isLanguageItemType, parseItemTagsInput, isUrlItemType } from '@/lib/item-form';
+import { getItemTypeHref } from '@/lib/items-navigation';
 import type { SidebarItemType } from '@/lib/db/items';
 import { isCodeEditorItemType } from '@/lib/code-editor';
 import { isMarkdownEditorItemType } from '@/lib/markdown-editor';
@@ -238,11 +239,15 @@ const CreateItemTypePicker = ({
     </div>
     {!isPro ? (
       <p className='text-sm text-muted-foreground'>
-        File and image items require Pro. Upgrade in{' '}
-        <Link href='/settings?billing=upgrade' className='font-medium text-primary hover:text-primary/80'>
-          Settings
+        File and image items require Pro. See the{' '}
+        <Link href={getItemTypeHref('files')} className='font-medium text-primary hover:text-primary/80'>
+          Files
+        </Link>{' '}
+        and{' '}
+        <Link href={getItemTypeHref('images')} className='font-medium text-primary hover:text-primary/80'>
+          Images
         </Link>
-        .
+        {' '}pages to upgrade.
       </p>
     ) : null}
     <FieldErrorText errors={fieldErrors.itemType} />
