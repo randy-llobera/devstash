@@ -2,16 +2,17 @@
 
 import {
   createElement,
+  useEffect,
   useState,
   type ComponentProps,
   type CSSProperties,
   type FormEvent,
 } from 'react';
-import { Copy, Download, FileText, Link2, Pencil, Pin, Star, Trash2 } from 'lucide-react';
+import { Copy, Crown, Download, FileText, Link2, Loader2, Pencil, Pin, Sparkles, Star, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
-import { explainCode } from '@/actions/ai';
+import { explainCode, optimizePrompt } from '@/actions/ai';
 import { deleteItem, updateItem, type UpdateItemActionError } from '@/actions/items';
 import type { CollectionOption } from '@/lib/db/collections';
 import type { DashboardItem, ItemDrawerDetail } from '@/lib/db/items';
@@ -104,6 +105,7 @@ const usesMarkdownEditor = (itemTypeName: string) => isMarkdownEditorItemType(it
 const isImageItem = (item: ItemDrawerDetail) => item.itemType.name.toLowerCase() === 'image';
 const supportsInlineImagePreview = (item: ItemDrawerDetail) =>
   isImageItem(item) && !isSvgFileName(item.fileName);
+const isPromptItem = (itemTypeName: string) => itemTypeName.trim().toLowerCase() === 'prompt';
 
 const DrawerActionButton = ({
   active = false,
@@ -266,13 +268,29 @@ const ItemDrawerTags = ({ tags }: { tags: string[] }) => {
 const ItemDrawerContent = ({
   isPro,
   item,
+  onItemUpdated,
+  onPromptOptimizationPendingChange,
 }: {
   isPro: boolean;
   item: ItemDrawerDetail;
+  onItemUpdated: (item: ItemDrawerDetail) => void;
+  onPromptOptimizationPendingChange: (pending: boolean) => void;
 }) => {
   const [explanation, setExplanation] = useState<string | null>(null);
   const [isExplaining, setIsExplaining] = useState(false);
   const [explanationView, setExplanationView] = useState<'code' | 'explain'>('code');
+  const [isOptimizingPrompt, setIsOptimizingPrompt] = useState(false);
+  const [optimizedPrompt, setOptimizedPrompt] = useState<string | null>(null);
+  const [isApplyingOptimizedPrompt, setIsApplyingOptimizedPrompt] = useState(false);
+  const [promptView, setPromptView] = useState<'current' | 'optimized'>('current');
+
+  useEffect(() => {
+    onPromptOptimizationPendingChange(isOptimizingPrompt || isApplyingOptimizedPrompt);
+
+    return () => {
+      onPromptOptimizationPendingChange(false);
+    };
+  }, [isApplyingOptimizedPrompt, isOptimizingPrompt, onPromptOptimizationPendingChange]);
 
   if (!item.content) {
     return null;
@@ -331,7 +349,166 @@ const ItemDrawerContent = ({
   }
 
   if (usesMarkdownEditor(item.itemType.name)) {
-    return <MarkdownEditor readOnly value={item.content} />;
+    const promptPreviewValue =
+      promptView === 'optimized' && optimizedPrompt ? optimizedPrompt : item.content;
+
+    return (
+      <div className='space-y-3'>
+        <MarkdownEditor
+          readOnly
+          readOnlyView={promptView}
+          readOnlyViewLabels={{
+            current: 'Current',
+            optimized: 'Optimized',
+          }}
+          onReadOnlyViewChange={
+            optimizedPrompt
+              ? (view) => {
+                  setPromptView(view);
+                }
+              : undefined
+          }
+          value={promptPreviewValue}
+          headerActions={
+            isPromptItem(item.itemType.name) ? (
+              optimizedPrompt ? (
+                <>
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='sm'
+                    className='h-8 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2.5 text-emerald-200 hover:bg-emerald-500/15 hover:text-emerald-100'
+                    onClick={() => {
+                      setIsApplyingOptimizedPrompt(true);
+
+                      void updateItem(item.id, {
+                        collectionIds: item.collections.map((collection) => collection.id),
+                        content: optimizedPrompt,
+                        description: item.description ?? '',
+                        language: item.language ?? '',
+                        tags: item.tags,
+                        title: item.title,
+                        url: item.url ?? '',
+                      })
+                        .then((result) => {
+                          setIsApplyingOptimizedPrompt(false);
+
+                          if (!result.success || !result.data) {
+                            toast.error(
+                              typeof result.error === 'string'
+                                ? result.error
+                                : result.error?.message ?? 'Unable to update item.',
+                            );
+                            return;
+                          }
+
+                          onItemUpdated(result.data);
+                          setOptimizedPrompt(null);
+                          setPromptView('current');
+                          toast.success('Optimized prompt saved.');
+                        })
+                        .catch((error: unknown) => {
+                          console.error('Failed to apply optimized prompt.', error);
+                          setIsApplyingOptimizedPrompt(false);
+                          toast.error('Unable to update item.');
+                        });
+                    }}
+                    disabled={isApplyingOptimizedPrompt}
+                  >
+                    {isApplyingOptimizedPrompt ? (
+                      <Loader2 className='size-4 animate-spin' />
+                    ) : (
+                      <Sparkles className='size-4' />
+                    )}
+                    {isApplyingOptimizedPrompt ? 'Saving...' : 'Use optimized'}
+                  </Button>
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='sm'
+                    className='h-8 rounded-lg border border-[#4b5563] bg-[#1e1e1e] px-2.5 text-slate-300 hover:bg-[#242424] hover:text-slate-100'
+                    onClick={() => {
+                      setOptimizedPrompt(null);
+                      setPromptView('current');
+                    }}
+                    disabled={isApplyingOptimizedPrompt}
+                  >
+                    Keep current
+                  </Button>
+                </>
+              ) : isPro ? (
+                <Button
+                  type='button'
+                  variant='ghost'
+                  size='sm'
+                  className='h-8 rounded-lg border border-[#4b5563] bg-[#1e1e1e] px-2.5 text-slate-300 hover:bg-[#242424] hover:text-slate-100'
+                  onClick={() => {
+                    setIsOptimizingPrompt(true);
+
+                    void optimizePrompt({
+                      content: item.content ?? '',
+                      description: item.description ?? '',
+                      title: item.title,
+                    })
+                      .then((result) => {
+                        setIsOptimizingPrompt(false);
+
+                        if (!result.success || !result.data) {
+                          toast.error(result.error ?? 'Unable to optimize this prompt.');
+                          return;
+                        }
+
+                        if (!result.data.changed || !result.data.optimizedPrompt) {
+                          toast.success('This prompt already looks good.');
+                          return;
+                        }
+
+                        setOptimizedPrompt(result.data.optimizedPrompt);
+                        setPromptView('optimized');
+                        toast.success('Review the optimized prompt and choose whether to use it.');
+                      })
+                      .catch((error: unknown) => {
+                        console.error('Failed to optimize prompt in item drawer.', error);
+                        setIsOptimizingPrompt(false);
+                        toast.error('Unable to optimize this prompt.');
+                      });
+                  }}
+                  disabled={!item.content.trim() || isOptimizingPrompt}
+                  aria-label='Optimize prompt'
+                >
+                  {isOptimizingPrompt ? (
+                    <Loader2 className='size-4 animate-spin' />
+                  ) : (
+                    <Sparkles className='size-4' />
+                  )}
+                  {isOptimizingPrompt ? 'Optimizing...' : 'Optimize'}
+                </Button>
+              ) : (
+                <Button
+                  type='button'
+                  variant='ghost'
+                  size='sm'
+                  title='AI features require Pro subscription'
+                  className='h-8 rounded-lg border border-amber-500/40 bg-amber-500/10 px-2.5 text-amber-200 hover:bg-amber-500/15 hover:text-amber-100'
+                  onClick={() => {
+                    toast.error('AI features require Pro subscription.');
+                  }}
+                  aria-label='AI features require Pro subscription'
+                >
+                  <Crown className='size-4' />
+                  Pro
+                </Button>
+              )
+            ) : null
+          }
+        />
+        {optimizedPrompt ? (
+          <p className='text-sm text-muted-foreground'>
+            Toggle between the current and optimized prompt, then save only if you want to keep the optimized version.
+          </p>
+        ) : null}
+      </div>
+    );
   }
 
   return (
@@ -429,9 +606,13 @@ const ItemDrawerFile = ({ item }: { item: ItemDrawerDetail }) => {
 const ItemDrawerBody = ({
   isPro,
   item,
+  onItemSaved,
+  onPromptOptimizationPendingChange,
 }: {
   isPro: boolean;
   item: ItemDrawerDetail;
+  onItemSaved: (item: ItemDrawerDetail) => void;
+  onPromptOptimizationPendingChange: (pending: boolean) => void;
 }) => {
   const itemTypeIcon = createElement(getItemTypeIcon(item.itemType.icon), {
     className: 'size-5',
@@ -461,6 +642,8 @@ const ItemDrawerBody = ({
           key={`${item.id}:${item.updatedAt}`}
           isPro={isPro}
           item={item}
+          onItemUpdated={onItemSaved}
+          onPromptOptimizationPendingChange={onPromptOptimizationPendingChange}
         />
         <ItemDrawerUrl url={item.url} />
         <ItemDrawerFile item={item} />
@@ -718,6 +901,7 @@ export const ItemDrawer = ({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isPromptOptimizationPending, setIsPromptOptimizationPending] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<EditFormErrors>({});
   const [formState, setFormState] = useState<EditFormState>(() =>
@@ -826,6 +1010,11 @@ export const ItemDrawer = ({
   };
 
   const saveDisabled = isSaving || isDeleting || !formState.title.trim();
+  const handlePersistedItemUpdate = (updatedItem: ItemDrawerDetail) => {
+    onItemUpdated(updatedItem);
+    invalidateSearchData();
+    router.refresh();
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -947,7 +1136,7 @@ export const ItemDrawer = ({
                   </DrawerActionButton>
                   <DrawerActionButton
                     aria-label='Edit'
-                    disabled={!item || isLoading || isDeleting}
+                    disabled={!item || isLoading || isDeleting || isPromptOptimizationPending}
                     onClick={handleEditStart}
                   >
                     <Pencil className='size-4' />
@@ -961,7 +1150,7 @@ export const ItemDrawer = ({
                       <DrawerActionButton
                         aria-label='Delete'
                         className='ml-auto text-destructive hover:text-destructive'
-                        disabled={!item || isLoading || isDeleting}
+                        disabled={!item || isLoading || isDeleting || isPromptOptimizationPending}
                       >
                         <Trash2 className='size-4' />
                         Delete
@@ -1006,17 +1195,22 @@ export const ItemDrawer = ({
               <ItemDrawerLoading preview={preview} />
             ) : item ? (
               isEditing ? (
-              <ItemDrawerEditBody
-                collections={collections}
-                fieldErrors={fieldErrors}
-                formState={formState}
-                isPro={isPro}
-                item={item}
-                onFieldChange={handleFieldChange}
-                submitError={submitError}
+                <ItemDrawerEditBody
+                  collections={collections}
+                  fieldErrors={fieldErrors}
+                  formState={formState}
+                  isPro={isPro}
+                  item={item}
+                  onFieldChange={handleFieldChange}
+                  submitError={submitError}
                 />
               ) : (
-                <ItemDrawerBody isPro={isPro} item={item} />
+                <ItemDrawerBody
+                  isPro={isPro}
+                  item={item}
+                  onItemSaved={handlePersistedItemUpdate}
+                  onPromptOptimizationPendingChange={setIsPromptOptimizationPending}
+                />
               )
             ) : (
               <ItemDrawerError message='Select an item to view its details.' />

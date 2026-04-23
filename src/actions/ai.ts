@@ -42,6 +42,14 @@ const explainCodeSchema = z.object({
 
 type ExplainCodePayload = z.input<typeof explainCodeSchema>;
 
+const optimizePromptSchema = z.object({
+  title: z.string().trim().max(200).default(""),
+  description: z.string().trim().max(500).optional(),
+  content: z.string().trim().min(1, "Content is required."),
+});
+
+type OptimizePromptPayload = z.input<typeof optimizePromptSchema>;
+
 interface GenerateAutoTagsActionResult {
   success: boolean;
   data?: {
@@ -62,6 +70,15 @@ interface ExplainCodeActionResult {
   success: boolean;
   data?: {
     explanation: string;
+  };
+  error?: string;
+}
+
+interface OptimizePromptActionResult {
+  success: boolean;
+  data?: {
+    changed: boolean;
+    optimizedPrompt: string | null;
   };
   error?: string;
 }
@@ -89,6 +106,11 @@ const explainCodeResponseSchema = z.union([
     explanation: z.string(),
   }),
 ]);
+
+const optimizePromptResponseSchema = z.object({
+  changed: z.boolean(),
+  optimizedPrompt: z.string(),
+});
 
 const normalizeTag = (value: string) =>
   value
@@ -196,6 +218,22 @@ const parseExplainCodeResponse = (outputText: string) => {
   return normalizedExplanation;
 };
 
+const parseOptimizePromptResponse = (
+  outputText: string,
+  currentPrompt: string,
+) => {
+  const parsedJson = JSON.parse(outputText) as unknown;
+  const parsedResponse = optimizePromptResponseSchema.parse(parsedJson);
+  const normalizedPrompt = parsedResponse.optimizedPrompt.trim();
+  const hasMeaningfulChange =
+    parsedResponse.changed && normalizedPrompt.length > 0 && normalizedPrompt !== currentPrompt.trim();
+
+  return {
+    changed: hasMeaningfulChange,
+    optimizedPrompt: hasMeaningfulChange ? normalizedPrompt : null,
+  };
+};
+
 const buildAutoTagPrompt = (data: z.output<typeof autoTagSchema>) => {
   const promptSections = [
     'Return valid JSON in the shape {"tags":["tag"]}.',
@@ -235,6 +273,19 @@ const buildExplainCodePrompt = (data: z.output<typeof explainCodeSchema>) => {
     `Title: ${data.title || "N/A"}`,
     `Language: ${data.language || "N/A"}`,
     `Content (truncated to 4000 chars):\n${truncateSummaryContent(data.content)}`,
+  ];
+
+  return promptSections.join("\n\n");
+};
+
+const buildOptimizePromptInput = (data: z.output<typeof optimizePromptSchema>) => {
+  const promptSections = [
+    'Return valid JSON in the shape {"changed":boolean,"optimizedPrompt":"text"}.',
+    "If the prompt is already clear, specific, and well-structured, set changed to false and optimizedPrompt to an empty string.",
+    "If it needs improvement, keep the original intent and output only the refined prompt text in optimizedPrompt.",
+    `Title: ${data.title || "N/A"}`,
+    `Description: ${data.description || "N/A"}`,
+    `Current prompt (truncated to 4000 chars):\n${truncateSummaryContent(data.content)}`,
   ];
 
   return promptSections.join("\n\n");
@@ -643,6 +694,124 @@ export const explainCode = async (
     return {
       success: false,
       error: "Unable to explain this code right now.",
+    };
+  }
+};
+
+export const optimizePrompt = async (
+  data: OptimizePromptPayload,
+): Promise<OptimizePromptActionResult> => {
+  const parsedPayload = optimizePromptSchema.safeParse({
+    ...data,
+    content: data.content?.trim() ?? "",
+    description: data.description?.trim() ?? "",
+    title: data.title?.trim() ?? "",
+  });
+
+  if (!parsedPayload.success) {
+    return {
+      success: false,
+      error: "Add prompt text before requesting optimization.",
+    };
+  }
+
+  const session = await auth();
+  const userId = session?.user?.id ?? null;
+
+  if (!userId) {
+    return {
+      success: false,
+      error: "You must be signed in to optimize prompts.",
+    };
+  }
+
+  const billingState = await getBillingState(userId);
+
+  if (!billingState) {
+    return {
+      success: false,
+      error: "User not found.",
+    };
+  }
+
+  if (!canUseAiFeatures({ isPro: billingState.isPro })) {
+    return {
+      success: false,
+      error: "Upgrade to Pro to use AI prompt optimization.",
+    };
+  }
+
+  const rateLimitResult = await checkAiRateLimit({
+    identifier: userId,
+    type: "optimizePrompt",
+  });
+
+  if (!rateLimitResult.success) {
+    return {
+      success: false,
+      error: isRateLimitUnavailable(rateLimitResult)
+        ? AUTO_TAG_RATE_LIMIT_UNAVAILABLE_MESSAGE
+        : getRateLimitMessage(rateLimitResult.reset),
+    };
+  }
+
+  try {
+    const response = await getOpenAIClient().responses.create({
+      model: AI_MODEL,
+      instructions:
+        'You improve prompts for developer workflows. Return JSON only in the shape {"changed":boolean,"optimizedPrompt":"text"}. Preserve the original intent. Improve clarity, structure, constraints, and output instructions only when needed. If the prompt is already strong, return {"changed":false,"optimizedPrompt":""}.',
+      input: buildOptimizePromptInput(parsedPayload.data),
+      metadata: {
+        feature: "prompt-optimization",
+        userId,
+      },
+      text: {
+        format: {
+          type: "json_object",
+        },
+      },
+    });
+
+    if (!response.output_text) {
+      return {
+        success: false,
+        error: "Unable to optimize this prompt right now.",
+      };
+    }
+
+    return {
+      success: true,
+      data: parseOptimizePromptResponse(response.output_text, parsedPayload.data.content),
+    };
+  } catch (error) {
+    const status = getOpenAIErrorStatus(error);
+    const requestId = getOpenAIErrorRequestId(error);
+
+    console.error("Failed to optimize prompt.", {
+      error,
+      feature: "prompt-optimization",
+      requestId,
+      status,
+      userId,
+    });
+
+    if (status === 429) {
+      return {
+        success: false,
+        error: "AI suggestions are temporarily rate limited. Please try again shortly.",
+      };
+    }
+
+    if (status === 400 || status === 401 || status === 403 || status === 422 || (status ?? 0) >= 500) {
+      return {
+        success: false,
+        error: AUTO_TAG_RATE_LIMIT_UNAVAILABLE_MESSAGE,
+      };
+    }
+
+    return {
+      success: false,
+      error: "Unable to optimize this prompt right now.",
     };
   }
 };

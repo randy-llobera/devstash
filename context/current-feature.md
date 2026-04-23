@@ -1,16 +1,22 @@
-# Current Feature
+# Current Feature: Prompt Optimization for Prompt Types
 
 ## Status
 
-Complete
+In Progress
 
 ## Goals
 
-<!-- Add goals here -->
+- Add an AI prompt optimization flow for prompt items in the item drawer read-only view.
+- Show an `Optimize` header button for prompt items in the same header area pattern used by `Explain` for snippets and commands.
+- When triggered, analyze the current prompt content and return a refined version only when improvement is warranted.
+- Ask the user whether they want to use the optimized prompt before replacing the visible content.
+- Keep Pro gating, auth checks, and AI rate limiting aligned with the existing AI action patterns.
 
 ## Notes
 
-<!-- Add notes here -->
+- Inline feature request: "Implement prompt optimization for the prompt types. It should look at the current prompt and refine if needed, then ask the user if they want to use that updated prompt. Put the `Optimize` button in the header, much like the `Explain` button in the snippets and command header."
+- Likely scope includes shared markdown editor header controls, AI server action(s), prompt drawer integration, and focused unit coverage for the new AI path.
+- Keep the change incremental and aligned with the current drawer/editor UX rather than introducing a new panel or route.
 
 ## History
 
