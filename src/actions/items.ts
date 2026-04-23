@@ -3,6 +3,8 @@
 import { z } from "zod";
 
 import { auth } from "@/auth";
+import { canCreateItemForPlan } from "@/lib/billing";
+import { getBillingState } from "@/lib/db/billing";
 import { deleteR2Object } from "@/lib/r2";
 import { getObjectKeyFromFileUrl } from "@/lib/file-upload";
 import {
@@ -294,6 +296,28 @@ export const createItem = async (data: CreateItemPayload): Promise<CreateItemAct
         error: ownershipError,
       };
     }
+  }
+
+  const billingState = await getBillingState(userId);
+
+  if (!billingState) {
+    return {
+      success: false,
+      error: "User not found.",
+    };
+  }
+
+  const billingGuard = canCreateItemForPlan({
+    isPro: billingState.isPro,
+    itemCount: billingState.itemCount,
+    itemType: parsedPayload.data.itemType,
+  });
+
+  if (!billingGuard.allowed) {
+    return {
+      success: false,
+      error: billingGuard.message ?? "Unable to create item.",
+    };
   }
 
   try {

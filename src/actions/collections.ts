@@ -3,6 +3,8 @@
 import { z } from "zod";
 
 import { auth } from "@/auth";
+import { canCreateCollectionForPlan } from "@/lib/billing";
+import { getBillingState } from "@/lib/db/billing";
 import {
   createCollection as createCollectionRecord,
   deleteCollection as deleteCollectionRecord,
@@ -109,6 +111,27 @@ export const createCollection = async (
     return {
       success: false,
       error: "You must be signed in to create collections.",
+    };
+  }
+
+  const billingState = await getBillingState(userId);
+
+  if (!billingState) {
+    return {
+      success: false,
+      error: "User not found.",
+    };
+  }
+
+  const billingGuard = canCreateCollectionForPlan({
+    isPro: billingState.isPro,
+    collectionCount: billingState.collectionCount,
+  });
+
+  if (!billingGuard.allowed) {
+    return {
+      success: false,
+      error: billingGuard.message ?? "Unable to create collection.",
     };
   }
 

@@ -1,16 +1,36 @@
-# Current Feature
+# Current Feature: Stripe Integration Phase 2 - Integration and UI
 
 ## Status
 
-Complete
+In Progress
 
 ## Goals
 
-<!-- Add goals here -->
+- Add authenticated Stripe checkout session creation for monthly and yearly Pro plans
+- Add authenticated Stripe billing portal session creation for existing Pro customers
+- Add a Stripe webhook route that verifies signatures and syncs billing state
+- Enforce server-side feature gating for item creation, collection creation, and uploads using the shared Phase 1 usage-limit helpers
+- Block free users from creating file or image items and from uploading files or images
+- Add billing UI in Settings with upgrade, manage billing, and usage summary actions
+- Update signed-in pricing CTA paths to send users to Settings billing
+- Keep server-side gating as the source of truth even when UI controls are hidden or disabled
 
 ## Notes
 
-<!-- Add notes here -->
+- Spec source: `context/features/stripe-phase-2-spec.md`
+- New routes: checkout, billing portal, and Stripe webhook handlers with route-level tests
+- UI scope includes `Settings` billing plus related entry points in the create-item flow, sidebar, and homepage pricing CTA
+- Webhook v1 scope: `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`
+- Billing sync rules: set `isPro = true` for `active` and `trialing`; set `isPro = false` for canceled, unpaid, incomplete-expired, or missing subscription states
+- Persist `stripeCustomerId` and `stripeSubscriptionId` when available
+- Use Phase 1 shared helpers as the single source of truth for free-tier limits: `50` items, `3` collections, no file/image item creation, no file/image uploads
+- Stripe webhooks must verify signatures against the raw request body
+- Checkout and portal routes must require auth
+- Include `userId` metadata on checkout session and subscription creation paths for reliable user mapping
+- Automated verification target:
+  `npm run test -- src/app/api/stripe/checkout/route.test.ts src/app/api/stripe/portal/route.test.ts src/app/api/webhooks/stripe/route.test.ts`
+- Additional verification target: `npm run lint`
+- Local integration depends on Stripe CLI forwarding to `localhost:3000/api/webhooks/stripe`
 
 ## History
 

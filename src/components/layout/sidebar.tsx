@@ -114,11 +114,15 @@ export const Sidebar = ({
             {itemTypes.map((itemType) => {
               const Icon = getItemTypeIcon(itemType.icon);
               const showProBadge = proItemTypeSlugs.has(itemType.slug);
+              const href =
+                showProBadge && !user?.isPro
+                  ? "/settings?billing=upgrade"
+                  : `/items/${itemType.slug}`;
 
               return (
                 <Link
                   key={itemType.id}
-                  href={`/items/${itemType.slug}`}
+                  href={href}
                   onClick={onNavigate}
                   title={itemType.name}
                   className={cn(

@@ -24,7 +24,11 @@ export default defineConfig({
     environment: "node",
     exclude: ["**/node_modules/**", "**/dist/**", "**/.next/**"],
     globals: true,
-    include: ["src/lib/**/*.test.ts", "src/actions/**/*.test.ts"],
+    include: [
+      "src/lib/**/*.test.ts",
+      "src/actions/**/*.test.ts",
+      "src/app/api/**/*.test.ts",
+    ],
     setupFiles: ["./vitest.setup.ts"],
   },
 });

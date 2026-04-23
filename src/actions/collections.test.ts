@@ -2,18 +2,30 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
   authMock,
+  canCreateCollectionForPlanMock,
   createCollectionRecordMock,
   deleteCollectionRecordMock,
+  getBillingStateMock,
   updateCollectionRecordMock,
 } = vi.hoisted(() => ({
   authMock: vi.fn(),
+  canCreateCollectionForPlanMock: vi.fn(),
   createCollectionRecordMock: vi.fn(),
   deleteCollectionRecordMock: vi.fn(),
+  getBillingStateMock: vi.fn(),
   updateCollectionRecordMock: vi.fn(),
 }));
 
 vi.mock("@/auth", () => ({
   auth: authMock,
+}));
+
+vi.mock("@/lib/billing", () => ({
+  canCreateCollectionForPlan: canCreateCollectionForPlanMock,
+}));
+
+vi.mock("@/lib/db/billing", () => ({
+  getBillingState: getBillingStateMock,
 }));
 
 vi.mock("@/lib/db/collections", () => ({
@@ -32,9 +44,12 @@ import {
 describe("collections actions", () => {
   beforeEach(() => {
     authMock.mockReset();
+    canCreateCollectionForPlanMock.mockReset();
     createCollectionRecordMock.mockReset();
     deleteCollectionRecordMock.mockReset();
+    getBillingStateMock.mockReset();
     updateCollectionRecordMock.mockReset();
+    canCreateCollectionForPlanMock.mockReturnValue({ allowed: true });
   });
 
   it("rejects unauthenticated create requests", async () => {
@@ -75,6 +90,10 @@ describe("collections actions", () => {
         id: "user-1",
       },
     });
+    getBillingStateMock.mockResolvedValue({
+      isPro: false,
+      collectionCount: 1,
+    });
     createCollectionRecordMock.mockResolvedValue({
       id: "collection-1",
       name: "Frontend patterns",
@@ -100,11 +119,41 @@ describe("collections actions", () => {
     });
   });
 
+  it("blocks collection creation at the free-tier limit", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    getBillingStateMock.mockResolvedValue({
+      isPro: false,
+      collectionCount: 3,
+    });
+    canCreateCollectionForPlanMock.mockReturnValue({
+      allowed: false,
+      message: "Free plans are limited to 3 collections. Upgrade to Pro to create more collections.",
+    });
+
+    const result = await createCollection({
+      name: "Frontend patterns",
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "Free plans are limited to 3 collections. Upgrade to Pro to create more collections.",
+    });
+    expect(createCollectionRecordMock).not.toHaveBeenCalled();
+  });
+
   it("returns a generic error when create fails", async () => {
     authMock.mockResolvedValue({
       user: {
         id: "user-1",
       },
+    });
+    getBillingStateMock.mockResolvedValue({
+      isPro: false,
+      collectionCount: 1,
     });
     createCollectionRecordMock.mockRejectedValue(new Error("db failure"));
 
