@@ -1,23 +1,16 @@
-# Current Feature: AI Description Summary
+# Current Feature
 
 ## Status
 
-In Progress
+Complete
 
 ## Goals
 
-- Add an icon button to item create/edit description inputs that generates a concise AI-written description summary.
-- Generate a 1 to 2 sentence summary from the item's current unsaved inputs, including any available title, content, and type-specific fields.
-- Support all content types by using whatever fields are present without requiring the item to be saved first.
-- Keep the flow inline so users can generate and insert the summary directly into the description field.
+<!-- Add goals here -->
 
 ## Notes
 
-This should work from the current form state only. No save is required before generation.
-
-Applies to all item types. The summary should be good and concise, targeting 1 to 2 sentences.
-
-Use whichever item data is available for the current type, such as title, content, code, prompt text, note body, command text, file/image metadata, link URL, and any other form fields already present in the UI.
+<!-- Add notes here -->
 
 ## History
 
@@ -79,3 +72,4 @@ Use whichever item data is available for the current type, such as title, conten
 - Upgrade flow completed with a new protected `/upgrade` page for plan selection, a ghost `Upgrade` header button for free users, Stripe checkout returning to `/upgrade`, and free-user files/images navigation redirecting straight to the shared upgrade flow
 - Code editor language selector update completed with shared language dropdowns above Monaco in the create modal and drawer edit flow, immediate syntax highlighting updates while typing, preserved support for existing custom saved language labels, and focused helper coverage for the shared language options
 - AI Auto-Tagging completed with a shared OpenAI Responses API client for `gpt-5-nano`, a dedicated AI server action module with Pro gating and 20/hour rate limiting, Suggest Tags flows in create and drawer edit UIs, accept/reject tag suggestions, and focused action coverage for the AI path
+- AI Description Summary completed with a shared AI summary server action for `gpt-5-nano`, a new description-generate button in create and drawer edit flows, unsaved-form support across all item types including file metadata, and focused unit coverage for the new AI path
