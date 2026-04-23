@@ -11,7 +11,7 @@ import { isFileUploadItemType, type FileUploadItemType } from '@/lib/file-upload
 import { ItemFormType, ITEM_FORM_TYPES, isContentItemType, isFileItemType, isLanguageItemType, parseItemTagsInput, isUrlItemType } from '@/lib/item-form';
 import { getItemTypeHref } from '@/lib/items-navigation';
 import type { SidebarItemType } from '@/lib/db/items';
-import { isCodeEditorItemType } from '@/lib/code-editor';
+import { getCodeEditorLanguageOptions, isCodeEditorItemType } from '@/lib/code-editor';
 import { isMarkdownEditorItemType } from '@/lib/markdown-editor';
 
 import { cn } from '@/lib/utils';
@@ -329,6 +329,7 @@ const CreateItemDynamicFields = ({
   const showsUrl = isUrlItemType(formState.itemType);
   const usesCodeEditor = isCodeEditorItemType(formState.itemType);
   const usesMarkdownEditor = isMarkdownEditorItemType(formState.itemType);
+  const languageOptions = getCodeEditorLanguageOptions(formState.language);
 
   return (
     <>
@@ -350,11 +351,35 @@ const CreateItemDynamicFields = ({
           <label className='text-sm font-medium' htmlFor='create-item-content'>
             Content
           </label>
+          {usesCodeEditor && showsLanguage ? (
+            <div className='space-y-2'>
+              <label className='text-sm font-medium' htmlFor='create-item-language'>
+                Language
+              </label>
+              <select
+                id='create-item-language'
+                value={formState.language}
+                onChange={(event) => onFieldChange('language', event.target.value)}
+                className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+              >
+                <option value=''>
+                  {formState.itemType === 'command' ? 'Default (Shell)' : 'Plain text'}
+                </option>
+                {languageOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <FieldErrorText errors={fieldErrors.language} />
+            </div>
+          ) : null}
           {usesCodeEditor ? (
             <CodeEditor
               id='create-item-content'
               itemType={formState.itemType}
               language={formState.language}
+              showLanguageBadge={false}
               value={formState.content}
               onChange={(value) => onFieldChange('content', value)}
             />
@@ -388,7 +413,7 @@ const CreateItemDynamicFields = ({
         </div>
       ) : null}
 
-      {showsLanguage ? (
+      {showsLanguage && !usesCodeEditor ? (
         <div className='space-y-2'>
           <label className='text-sm font-medium' htmlFor='create-item-language'>
             Language

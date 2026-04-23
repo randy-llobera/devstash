@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { deleteItem, updateItem, type UpdateItemActionError } from '@/actions/items';
 import type { CollectionOption } from '@/lib/db/collections';
 import type { DashboardItem, ItemDrawerDetail } from '@/lib/db/items';
-import { isCodeEditorItemType } from '@/lib/code-editor';
+import { getCodeEditorLanguageOptions, isCodeEditorItemType } from '@/lib/code-editor';
 import { formatFileSize } from '@/lib/file-size';
 import { isSvgFileName } from '@/lib/file-upload';
 import { isContentItemType, isFileItemType, isLanguageItemType, isUrlItemType, parseItemTagsInput } from '@/lib/item-form';
@@ -425,6 +425,8 @@ const ItemDrawerEditBody = ({
   const showContentField = isContentItemType(item.itemType.name);
   const showLanguageField = isLanguageItemType(item.itemType.name);
   const showUrlField = isUrlItemType(item.itemType.name);
+  const showCodeLanguageDropdown = showLanguageField && usesCodeEditor(item.itemType.name);
+  const languageOptions = getCodeEditorLanguageOptions(formState.language);
 
   return (
     <div className='space-y-6'>
@@ -505,11 +507,35 @@ const ItemDrawerEditBody = ({
           <label htmlFor='item-content' className='text-sm font-medium'>
             Content
           </label>
+          {showCodeLanguageDropdown ? (
+            <div className='space-y-2'>
+              <label htmlFor='item-language' className='text-sm font-medium'>
+                Language
+              </label>
+              <select
+                id='item-language'
+                value={formState.language}
+                onChange={(event) => onFieldChange('language', event.target.value)}
+                className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+              >
+                <option value=''>
+                  {item.itemType.name.toLowerCase() === 'command' ? 'Default (Shell)' : 'Plain text'}
+                </option>
+                {languageOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <FieldErrorText errors={fieldErrors.language} />
+            </div>
+          ) : null}
           {usesCodeEditor(item.itemType.name) ? (
             <CodeEditor
               id='item-content'
               itemType={item.itemType.name}
               language={formState.language}
+              showLanguageBadge={false}
               value={formState.content}
               onChange={(value) => onFieldChange('content', value)}
             />
@@ -537,7 +563,7 @@ const ItemDrawerEditBody = ({
         </div>
       ) : null}
 
-      {showLanguageField ? (
+      {showLanguageField && !showCodeLanguageDropdown ? (
         <div className='space-y-2'>
           <label htmlFor='item-language' className='text-sm font-medium'>
             Language

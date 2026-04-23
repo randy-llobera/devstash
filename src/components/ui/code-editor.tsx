@@ -42,6 +42,7 @@ interface CodeEditorProps {
   minHeight?: number;
   onChange?: (value: string) => void;
   readOnly?: boolean;
+  showLanguageBadge?: boolean;
   value: string;
 }
 
@@ -109,6 +110,7 @@ export const CodeEditor = ({
   minHeight = DEFAULT_MIN_HEIGHT,
   onChange,
   readOnly = false,
+  showLanguageBadge = true,
   value,
 }: CodeEditorProps) => {
   const [copied, setCopied] = useState(false);
@@ -198,9 +200,11 @@ export const CodeEditor = ({
             <span className='size-3 rounded-full bg-amber-400' />
             <span className='size-3 rounded-full bg-emerald-500' />
           </div>
-          <span className='truncate rounded-full border border-slate-700/80 bg-slate-900/70 px-2.5 py-1 text-[11px] font-medium tracking-[0.18em] text-slate-300 uppercase'>
-            {label}
-          </span>
+          {showLanguageBadge ? (
+            <span className='truncate rounded-full border border-slate-700/80 bg-slate-900/70 px-2.5 py-1 text-[11px] font-medium tracking-[0.18em] text-slate-300 uppercase'>
+              {label}
+            </span>
+          ) : null}
         </div>
 
         <Button

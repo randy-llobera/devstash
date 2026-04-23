@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   getCodeEditorLanguage,
+  getCodeEditorLanguageOptions,
   getCodeEditorWordWrap,
   isCodeEditorItemType,
 } from '@/lib/code-editor';
@@ -42,6 +43,26 @@ describe('getCodeEditorLanguage', () => {
   it('preserves unknown custom language labels while using plaintext mode', () => {
     expect(getCodeEditorLanguage('Custom DSL', 'snippet')).toEqual({
       editorLanguage: 'plaintext',
+      label: 'Custom DSL',
+    });
+  });
+});
+
+describe('getCodeEditorLanguageOptions', () => {
+  it('returns shared dropdown options for known languages', () => {
+    expect(getCodeEditorLanguageOptions()).toContainEqual({
+      value: 'typescript',
+      label: 'TypeScript',
+    });
+    expect(getCodeEditorLanguageOptions()).toContainEqual({
+      value: 'shell',
+      label: 'Shell',
+    });
+  });
+
+  it('preserves unknown saved languages in the dropdown', () => {
+    expect(getCodeEditorLanguageOptions('Custom DSL')).toContainEqual({
+      value: 'Custom DSL',
       label: 'Custom DSL',
     });
   });
