@@ -35,7 +35,7 @@ vi.mock("@/lib/rate-limit", () => ({
     result.reason === "unavailable",
 }));
 
-import { generateAutoTags } from "@/actions/ai";
+import { generateAutoTags, generateDescriptionSummary } from "@/actions/ai";
 
 describe("generateAutoTags action", () => {
   beforeEach(() => {
@@ -212,6 +212,155 @@ describe("generateAutoTags action", () => {
     expect(result).toEqual({
       success: false,
       error: "Unable to generate tag suggestions right now.",
+    });
+  });
+});
+
+describe("generateDescriptionSummary action", () => {
+  beforeEach(() => {
+    authMock.mockReset();
+    checkAiRateLimitMock.mockReset();
+    getBillingStateMock.mockReset();
+    getOpenAIClientMock.mockReset();
+    openAIResponsesCreateMock.mockReset();
+    getOpenAIClientMock.mockReturnValue({
+      responses: {
+        create: openAIResponsesCreateMock,
+      },
+    });
+    checkAiRateLimitMock.mockResolvedValue({
+      remaining: 19,
+      reason: null,
+      reset: Date.now(),
+      success: true,
+    });
+  });
+
+  it("rejects summary requests with no usable item input", async () => {
+    const result = await generateDescriptionSummary({
+      itemType: "snippet",
+      title: "   ",
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "Add a title, content, URL, or file before generating a description.",
+    });
+    expect(openAIResponsesCreateMock).not.toHaveBeenCalled();
+  });
+
+  it("blocks free users from AI descriptions", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    getBillingStateMock.mockResolvedValue({
+      isPro: false,
+      itemCount: 2,
+    });
+
+    const result = await generateDescriptionSummary({
+      content: "Build a sorted helper for arrays.",
+      itemType: "snippet",
+      title: "Sort helper",
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "Upgrade to Pro to use AI descriptions.",
+    });
+    expect(openAIResponsesCreateMock).not.toHaveBeenCalled();
+  });
+
+  it("uses the summary AI rate-limit bucket", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    getBillingStateMock.mockResolvedValue({
+      isPro: true,
+      itemCount: 2,
+    });
+    openAIResponsesCreateMock.mockResolvedValue({
+      output_text: JSON.stringify({
+        summary: "A helper for sorting arrays with a reusable compare callback.",
+      }),
+    });
+
+    const result = await generateDescriptionSummary({
+      content: "const sorted = items.sort(compare);",
+      itemType: "snippet",
+      title: "Sort helper",
+    });
+
+    expect(checkAiRateLimitMock).toHaveBeenCalledWith({
+      identifier: "user-1",
+      type: "summary",
+    });
+    expect(result).toEqual({
+      success: true,
+      data: {
+        summary: "A helper for sorting arrays with a reusable compare callback.",
+      },
+    });
+  });
+
+  it("accepts file metadata for file and image summaries", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    getBillingStateMock.mockResolvedValue({
+      isPro: true,
+      itemCount: 2,
+    });
+    openAIResponsesCreateMock.mockResolvedValue({
+      output_text: JSON.stringify({
+        summary: "A deployment checklist PDF for release prep and handoff reference.",
+      }),
+    });
+
+    const result = await generateDescriptionSummary({
+      fileName: "deployment-checklist.pdf",
+      fileSize: 2048,
+      itemType: "file",
+      title: "Deployment checklist",
+    });
+
+    expect(result).toEqual({
+      success: true,
+      data: {
+        summary: "A deployment checklist PDF for release prep and handoff reference.",
+      },
+    });
+  });
+
+  it("returns a safe error when the AI response is invalid", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    getBillingStateMock.mockResolvedValue({
+      isPro: true,
+      itemCount: 2,
+    });
+    openAIResponsesCreateMock.mockResolvedValue({
+      output_text: "not json",
+    });
+
+    const result = await generateDescriptionSummary({
+      content: "Use a route handler to verify a webhook signature.",
+      itemType: "note",
+      title: "Webhook notes",
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "Unable to generate a description right now.",
     });
   });
 });

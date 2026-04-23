@@ -20,10 +20,31 @@ const autoTagSchema = z.object({
 
 type GenerateAutoTagsPayload = z.input<typeof autoTagSchema>;
 
+const descriptionSummarySchema = z.object({
+  itemType: z.string().trim().min(1, "Item type is required."),
+  title: z.string().trim().max(200).default(""),
+  description: z.string().trim().max(500).optional(),
+  content: z.string().trim().optional(),
+  language: z.string().trim().max(100).optional(),
+  url: z.string().trim().url("Enter a valid URL.").optional().or(z.literal("")),
+  fileName: z.string().trim().max(255).optional(),
+  fileSize: z.number().int().nonnegative().optional(),
+});
+
+type GenerateDescriptionSummaryPayload = z.input<typeof descriptionSummarySchema>;
+
 interface GenerateAutoTagsActionResult {
   success: boolean;
   data?: {
     tags: string[];
+  };
+  error?: string;
+}
+
+interface GenerateDescriptionSummaryActionResult {
+  success: boolean;
+  data?: {
+    summary: string;
   };
   error?: string;
 }
@@ -35,6 +56,13 @@ const autoTagResponseSchema = z.union([
   z.array(z.string()),
   z.object({
     tags: z.array(z.string()),
+  }),
+]);
+
+const descriptionSummaryResponseSchema = z.union([
+  z.string(),
+  z.object({
+    summary: z.string(),
   }),
 ]);
 
@@ -51,6 +79,14 @@ const truncateAutoTagContent = (value: string | null | undefined) => {
   }
 
   return value.slice(0, 2_000);
+};
+
+const truncateSummaryContent = (value: string | null | undefined) => {
+  if (!value) {
+    return "";
+  }
+
+  return value.slice(0, 4_000);
 };
 
 const getUrlHostname = (value: string | null | undefined) => {
@@ -85,6 +121,41 @@ const parseAutoTagResponse = (outputText: string, existingTags: string[]) => {
   return normalizedTags;
 };
 
+const formatFileSize = (value: number | null | undefined) => {
+  if (value === null || value === undefined || value <= 0) {
+    return null;
+  }
+
+  if (value < 1024) {
+    return `${value} B`;
+  }
+
+  const units = ["KB", "MB", "GB"];
+  let size = value / 1024;
+  let unitIndex = 0;
+
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex += 1;
+  }
+
+  return `${size >= 10 ? Math.round(size) : size.toFixed(1)} ${units[unitIndex]}`;
+};
+
+const parseDescriptionSummaryResponse = (outputText: string) => {
+  const parsedJson = JSON.parse(outputText) as unknown;
+  const parsedResponse = descriptionSummaryResponseSchema.parse(parsedJson);
+  const summary =
+    typeof parsedResponse === "string" ? parsedResponse : parsedResponse.summary;
+  const normalizedSummary = summary.replace(/\s+/g, " ").trim();
+
+  if (!normalizedSummary) {
+    throw new Error("No summary was returned.");
+  }
+
+  return normalizedSummary;
+};
+
 const buildAutoTagPrompt = (data: z.output<typeof autoTagSchema>) => {
   const promptSections = [
     'Return valid JSON in the shape {"tags":["tag"]}.',
@@ -95,6 +166,23 @@ const buildAutoTagPrompt = (data: z.output<typeof autoTagSchema>) => {
     `URL hostname: ${getUrlHostname(data.url) || "N/A"}`,
     `Existing tags: ${data.tags.length > 0 ? data.tags.join(", ") : "None"}`,
     `Content (truncated to 2000 chars):\n${truncateAutoTagContent(data.content) || "N/A"}`,
+  ];
+
+  return promptSections.join("\n\n");
+};
+
+const buildDescriptionSummaryPrompt = (data: z.output<typeof descriptionSummarySchema>) => {
+  const promptSections = [
+    'Return valid JSON in the shape {"summary":"text"}.',
+    `Item type: ${data.itemType}`,
+    `Title: ${data.title || "N/A"}`,
+    `Existing description: ${data.description || "N/A"}`,
+    `Language: ${data.language || "N/A"}`,
+    `URL: ${data.url || "N/A"}`,
+    `URL hostname: ${getUrlHostname(data.url) || "N/A"}`,
+    `File name: ${data.fileName || "N/A"}`,
+    `File size: ${formatFileSize(data.fileSize) || "N/A"}`,
+    `Content (truncated to 4000 chars):\n${truncateSummaryContent(data.content) || "N/A"}`,
   ];
 
   return promptSections.join("\n\n");
@@ -247,6 +335,142 @@ export const generateAutoTags = async (
     return {
       success: false,
       error: "Unable to generate tag suggestions right now.",
+    };
+  }
+};
+
+export const generateDescriptionSummary = async (
+  data: GenerateDescriptionSummaryPayload,
+): Promise<GenerateDescriptionSummaryActionResult> => {
+  const parsedPayload = descriptionSummarySchema.safeParse({
+    ...data,
+    content: data.content?.trim() ?? "",
+    description: data.description?.trim() ?? "",
+    fileName: data.fileName?.trim() ?? "",
+    language: data.language?.trim() ?? "",
+    title: data.title?.trim() ?? "",
+    url: data.url?.trim() ?? "",
+  });
+
+  if (!parsedPayload.success) {
+    return {
+      success: false,
+      error: "Enter a valid item before generating a description.",
+    };
+  }
+
+  if (
+    !parsedPayload.data.title &&
+    !parsedPayload.data.description &&
+    !parsedPayload.data.content &&
+    !parsedPayload.data.url &&
+    !parsedPayload.data.fileName
+  ) {
+    return {
+      success: false,
+      error: "Add a title, content, URL, or file before generating a description.",
+    };
+  }
+
+  const session = await auth();
+  const userId = session?.user?.id ?? null;
+
+  if (!userId) {
+    return {
+      success: false,
+      error: "You must be signed in to generate descriptions.",
+    };
+  }
+
+  const billingState = await getBillingState(userId);
+
+  if (!billingState) {
+    return {
+      success: false,
+      error: "User not found.",
+    };
+  }
+
+  if (!canUseAiFeatures({ isPro: billingState.isPro })) {
+    return {
+      success: false,
+      error: "Upgrade to Pro to use AI descriptions.",
+    };
+  }
+
+  const rateLimitResult = await checkAiRateLimit({
+    identifier: userId,
+    type: "summary",
+  });
+
+  if (!rateLimitResult.success) {
+    return {
+      success: false,
+      error: isRateLimitUnavailable(rateLimitResult)
+        ? AUTO_TAG_RATE_LIMIT_UNAVAILABLE_MESSAGE
+        : getRateLimitMessage(rateLimitResult.reset),
+    };
+  }
+
+  try {
+    const response = await getOpenAIClient().responses.create({
+      model: AI_MODEL,
+      instructions:
+        'You write concise descriptions for developer knowledge items. Return JSON only in the shape {"summary":"text"}. Write 1 to 2 sentences, keep it specific, use the provided item details only, and avoid filler.',
+      input: buildDescriptionSummaryPrompt(parsedPayload.data),
+      metadata: {
+        feature: "description-summary",
+        userId,
+      },
+      text: {
+        format: {
+          type: "json_object",
+        },
+      },
+    });
+
+    if (!response.output_text) {
+      return {
+        success: false,
+        error: "Unable to generate a description right now.",
+      };
+    }
+
+    return {
+      success: true,
+      data: {
+        summary: parseDescriptionSummaryResponse(response.output_text),
+      },
+    };
+  } catch (error) {
+    const status = getOpenAIErrorStatus(error);
+    const requestId = getOpenAIErrorRequestId(error);
+
+    console.error("Failed to generate description summary.", {
+      error,
+      feature: "description-summary",
+      requestId,
+      status,
+      userId,
+    });
+
+    if (status === 429) {
+      return {
+        success: false,
+        error: "AI suggestions are temporarily rate limited. Please try again shortly.",
+      };
+    }
+
+    if (status === 400 || status === 401 || status === 403 || status === 422 || (status ?? 0) >= 500) {
+      return {
+        success: false,
+        error: AUTO_TAG_RATE_LIMIT_UNAVAILABLE_MESSAGE,
+      };
+    }
+
+    return {
+      success: false,
+      error: "Unable to generate a description right now.",
     };
   }
 };

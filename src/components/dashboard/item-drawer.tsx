@@ -23,6 +23,7 @@ import { isMarkdownEditorItemType } from '@/lib/markdown-editor';
 import { cn } from '@/lib/utils';
 
 import { CollectionPicker } from '@/components/dashboard/collection-picker';
+import { AiDescriptionSummaryButton } from '@/components/dashboard/ai-description-summary-button';
 import { AiTagSuggestions } from '@/components/dashboard/ai-tag-suggestions';
 import { ItemFavoriteButton } from '@/components/dashboard/item-favorite-button';
 import { ItemPinButton } from '@/components/dashboard/item-pin-button';
@@ -454,9 +455,19 @@ const ItemDrawerEditBody = ({
       </div>
 
       <div className='space-y-2'>
-        <label htmlFor='item-description' className='text-sm font-medium'>
-          Description
-        </label>
+        <AiDescriptionSummaryButton
+          content={formState.content}
+          description={formState.description}
+          fileName={item.fileName ?? undefined}
+          fileSize={item.fileSize ?? undefined}
+          inputId='item-description'
+          isPro={isPro}
+          itemType={item.itemType.name}
+          language={formState.language}
+          title={formState.title}
+          url={formState.url}
+          onSummaryChange={(value) => onFieldChange('description', value)}
+        />
         <Textarea
           id='item-description'
           value={formState.description}

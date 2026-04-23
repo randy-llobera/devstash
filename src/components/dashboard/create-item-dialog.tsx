@@ -17,6 +17,7 @@ import { isMarkdownEditorItemType } from '@/lib/markdown-editor';
 import { cn } from '@/lib/utils';
 
 import { FileUpload } from '@/components/dashboard/file-upload';
+import { AiDescriptionSummaryButton } from '@/components/dashboard/ai-description-summary-button';
 import { AiTagSuggestions } from '@/components/dashboard/ai-tag-suggestions';
 import { CollectionPicker } from '@/components/dashboard/collection-picker';
 import { useSearch } from '@/components/dashboard/search-provider';
@@ -258,6 +259,8 @@ const CreateItemTypePicker = ({
 interface CreateItemMainFieldsProps {
   fieldErrors: CreateItemFormErrors;
   formState: CreateItemFormState;
+  isPro: boolean;
+  selectedFile: File | null;
   onFieldChange: <T extends CreateItemFormField>(
     field: T,
     value: CreateItemFormState[T],
@@ -267,6 +270,8 @@ interface CreateItemMainFieldsProps {
 const CreateItemMainFields = ({
   fieldErrors,
   formState,
+  isPro,
+  selectedFile,
   onFieldChange,
 }: CreateItemMainFieldsProps) => (
   <>
@@ -285,9 +290,19 @@ const CreateItemMainFields = ({
     </div>
 
     <div className='space-y-2 sm:col-span-2'>
-      <label className='text-sm font-medium' htmlFor='create-item-description'>
-        Description
-      </label>
+      <AiDescriptionSummaryButton
+        content={formState.content}
+        description={formState.description}
+        fileName={selectedFile?.name}
+        fileSize={selectedFile?.size}
+        inputId='create-item-description'
+        isPro={isPro}
+        itemType={formState.itemType}
+        language={formState.language}
+        title={formState.title}
+        url={formState.url}
+        onSummaryChange={(value) => onFieldChange('description', value)}
+      />
       <Textarea
         id='create-item-description'
         value={formState.description}
@@ -669,7 +684,9 @@ export const CreateItemDialog = ({
               <CreateItemMainFields
                 fieldErrors={fieldErrors}
                 formState={formState}
+                isPro={isPro}
                 onFieldChange={handleFieldChange}
+                selectedFile={selectedFile}
               />
 
               <CreateItemDynamicFields

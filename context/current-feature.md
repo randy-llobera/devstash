@@ -1,16 +1,23 @@
-# Current Feature
+# Current Feature: AI Description Summary
 
 ## Status
 
-Complete
+In Progress
 
 ## Goals
 
-<!-- Add goals here -->
+- Add an icon button to item create/edit description inputs that generates a concise AI-written description summary.
+- Generate a 1 to 2 sentence summary from the item's current unsaved inputs, including any available title, content, and type-specific fields.
+- Support all content types by using whatever fields are present without requiring the item to be saved first.
+- Keep the flow inline so users can generate and insert the summary directly into the description field.
 
 ## Notes
 
-<!-- Add notes here -->
+This should work from the current form state only. No save is required before generation.
+
+Applies to all item types. The summary should be good and concise, targeting 1 to 2 sentences.
+
+Use whichever item data is available for the current type, such as title, content, code, prompt text, note body, command text, file/image metadata, link URL, and any other form fields already present in the UI.
 
 ## History
 
