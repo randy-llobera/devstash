@@ -60,7 +60,13 @@ vi.mock("@/lib/r2", () => ({
   deleteR2Object: deleteR2ObjectMock,
 }));
 
-import { createItem, deleteItem, toggleItemFavorite, toggleItemPin, updateItem } from "@/actions/items";
+import {
+  createItem,
+  deleteItem,
+  toggleItemFavorite,
+  toggleItemPin,
+  updateItem,
+} from "@/actions/items";
 
 describe("createItem action", () => {
   beforeEach(() => {

@@ -39,9 +39,11 @@ const parseItemResponse = async (response: Response) => {
 export const ItemDrawerProvider = ({
   children,
   collections,
+  isPro,
 }: {
   children: ReactNode;
   collections: CollectionOption[];
+  isPro: boolean;
 }) => {
   const cacheRef = useRef<Map<string, ItemDrawerDetail>>(new Map());
   const requestIdRef = useRef(0);
@@ -158,6 +160,7 @@ export const ItemDrawerProvider = ({
         collections={collections}
         error={error}
         isLoading={isLoading}
+        isPro={isPro}
         item={item}
         key={`${item?.id ?? preview?.id ?? "empty"}:${item?.updatedAt ?? "stale"}:${open ? "open" : "closed"}`}
         onCopy={handleCopy}
