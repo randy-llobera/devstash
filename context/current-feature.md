@@ -1,22 +1,16 @@
-# Current Feature: Prompt Optimization for Prompt Types
+# Current Feature
 
 ## Status
 
-In Progress
+Complete
 
 ## Goals
 
-- Add an AI prompt optimization flow for prompt items in the item drawer read-only view.
-- Show an `Optimize` header button for prompt items in the same header area pattern used by `Explain` for snippets and commands.
-- When triggered, analyze the current prompt content and return a refined version only when improvement is warranted.
-- Ask the user whether they want to use the optimized prompt before replacing the visible content.
-- Keep Pro gating, auth checks, and AI rate limiting aligned with the existing AI action patterns.
+<!-- Add goals here -->
 
 ## Notes
 
-- Inline feature request: "Implement prompt optimization for the prompt types. It should look at the current prompt and refine if needed, then ask the user if they want to use that updated prompt. Put the `Optimize` button in the header, much like the `Explain` button in the snippets and command header."
-- Likely scope includes shared markdown editor header controls, AI server action(s), prompt drawer integration, and focused unit coverage for the new AI path.
-- Keep the change incremental and aligned with the current drawer/editor UX rather than introducing a new panel or route.
+<!-- Add notes here -->
 
 ## History
 
@@ -78,5 +72,6 @@ In Progress
 - Upgrade flow completed with a new protected `/upgrade` page for plan selection, a ghost `Upgrade` header button for free users, Stripe checkout returning to `/upgrade`, and free-user files/images navigation redirecting straight to the shared upgrade flow
 - Code editor language selector update completed with shared language dropdowns above Monaco in the create modal and drawer edit flow, immediate syntax highlighting updates while typing, preserved support for existing custom saved language labels, and focused helper coverage for the shared language options
 - AI Auto-Tagging completed with a shared OpenAI Responses API client for `gpt-5-nano`, a dedicated AI server action module with Pro gating and 20/hour rate limiting, Suggest Tags flows in create and drawer edit UIs, accept/reject tag suggestions, and focused action coverage for the AI path
+- Prompt optimization for prompt items completed with a new AI prompt optimization server action, a dedicated prompt optimization rate-limit bucket, shared markdown header controls for current/optimized toggling, prompt drawer optimize/use-current flows, and focused AI action coverage
 - AI Description Summary completed with a shared AI summary server action for `gpt-5-nano`, a new description-generate button in create and drawer edit flows, unsaved-form support across all item types including file metadata, and focused unit coverage for the new AI path
 - AI Explain Code completed with a shared `explainCode` server action for `gpt-5-nano`, a new explain flow in read-only snippet and command drawer views, inline Code and Explain tabs in the shared code editor, Pro gating in the editor header, and focused unit coverage for the new AI path
