@@ -32,9 +32,9 @@ const proFeatures = [
 export function HomepagePricing({ isSignedIn }: HomepagePricingProps) {
   const [isYearly, setIsYearly] = React.useState(false);
 
-  const primaryHref = isSignedIn ? "/dashboard" : "/register";
-  const freeLabel = isSignedIn ? "Open Dashboard" : "Get Started";
-  const proLabel = isSignedIn ? "Open Dashboard" : "Start Free Trial";
+  const primaryHref = isSignedIn ? "/settings?billing=upgrade" : "/register";
+  const freeLabel = isSignedIn ? "View Plans" : "Get Started";
+  const proLabel = isSignedIn ? "Upgrade to Pro" : "Start Free Trial";
 
   return (
     <>

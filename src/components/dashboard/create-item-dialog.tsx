@@ -1,6 +1,7 @@
 'use client';
 
 import { createElement, useMemo, useState, useTransition, type FormEvent } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -63,6 +64,7 @@ const TYPE_SLUGS: Record<CreateItemType, string> = {
 
 interface CreateItemDialogProps {
   collections: CollectionOption[];
+  isPro: boolean;
   itemTypes: SidebarItemType[];
   onOpenChange: (open: boolean) => void;
   open: boolean;
@@ -108,6 +110,7 @@ const FieldErrorText = ({ errors }: { errors?: string[] }) => {
 };
 
 interface TypeOption {
+  disabled?: boolean;
   color?: string;
   icon: string;
   label: string;
@@ -166,6 +169,7 @@ const cleanupUploadedFile = async (fileUrl: string) => {
 interface CreateItemTypePickerProps {
   fieldErrors: CreateItemFormErrors;
   formState: CreateItemFormState;
+  isPro: boolean;
   onTypeChange: (itemType: CreateItemType) => void;
   typeOptions: TypeOption[];
 }
@@ -173,6 +177,7 @@ interface CreateItemTypePickerProps {
 const CreateItemTypePicker = ({
   fieldErrors,
   formState,
+  isPro,
   onTypeChange,
   typeOptions,
 }: CreateItemTypePickerProps) => (
@@ -201,11 +206,13 @@ const CreateItemTypePicker = ({
             type='button'
             role='radio'
             aria-checked={isActive}
+            disabled={option.disabled}
             className={cn(
               'flex min-h-24 flex-col items-start justify-between rounded-2xl border px-4 py-3 text-left transition-colors',
               isActive
                 ? 'border-foreground/30 bg-muted/60 text-foreground'
                 : 'border-border/70 bg-background hover:bg-muted/40',
+              option.disabled && 'cursor-not-allowed opacity-50 hover:bg-background',
             )}
             onClick={() => onTypeChange(option.value)}
           >
@@ -217,11 +224,27 @@ const CreateItemTypePicker = ({
                 className: 'size-4',
               })}
             </span>
-            <span className='text-sm font-medium'>{option.label}</span>
+            <div className='flex items-center gap-2'>
+              <span className='text-sm font-medium'>{option.label}</span>
+              {option.disabled ? (
+                <span className='text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground'>
+                  Pro
+                </span>
+              ) : null}
+            </div>
           </button>
         );
       })}
     </div>
+    {!isPro ? (
+      <p className='text-sm text-muted-foreground'>
+        File and image items require Pro. Upgrade in{' '}
+        <Link href='/settings?billing=upgrade' className='font-medium text-primary hover:text-primary/80'>
+          Settings
+        </Link>
+        .
+      </p>
+    ) : null}
     <FieldErrorText errors={fieldErrors.itemType} />
   </div>
 );
@@ -418,6 +441,7 @@ const CreateItemFooter = ({
 
 export const CreateItemDialog = ({
   collections,
+  isPro,
   itemTypes,
   onOpenChange,
   open,
@@ -443,10 +467,11 @@ export const CreateItemDialog = ({
         value: itemType,
         label: TYPE_LABELS[itemType],
         color: itemTypeMeta?.color,
+        disabled: !isPro && (itemType === 'file' || itemType === 'image'),
         icon: itemTypeMeta?.icon ?? TYPE_ICON_FALLBACKS[itemType],
       };
     });
-  }, [itemTypes]);
+  }, [isPro, itemTypes]);
 
   const resetForm = () => {
     setFormState(INITIAL_FORM_STATE);
@@ -485,6 +510,10 @@ export const CreateItemDialog = ({
   };
 
   const handleTypeChange = (itemType: CreateItemType) => {
+    if (!isPro && (itemType === 'file' || itemType === 'image')) {
+      return;
+    }
+
     setFormState((currentState) => ({
       ...currentState,
       itemType,
@@ -600,6 +629,7 @@ export const CreateItemDialog = ({
             <CreateItemTypePicker
               fieldErrors={fieldErrors}
               formState={formState}
+              isPro={isPro}
               onTypeChange={handleTypeChange}
               typeOptions={typeOptions}
             />

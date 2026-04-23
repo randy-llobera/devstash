@@ -2,18 +2,22 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
   authMock,
+  canCreateItemForPlanMock,
   createItemRecordMock,
   deleteItemRecordMock,
   deleteR2ObjectMock,
+  getBillingStateMock,
   getItemDrawerDetailMock,
   setItemFavoriteStateRecordMock,
   setItemPinnedStateRecordMock,
   updateItemRecordMock,
 } = vi.hoisted(() => ({
   authMock: vi.fn(),
+  canCreateItemForPlanMock: vi.fn(),
   createItemRecordMock: vi.fn(),
   deleteItemRecordMock: vi.fn(),
   deleteR2ObjectMock: vi.fn(),
+  getBillingStateMock: vi.fn(),
   getItemDrawerDetailMock: vi.fn(),
   setItemFavoriteStateRecordMock: vi.fn(),
   setItemPinnedStateRecordMock: vi.fn(),
@@ -22,6 +26,14 @@ const {
 
 vi.mock("@/auth", () => ({
   auth: authMock,
+}));
+
+vi.mock("@/lib/billing", () => ({
+  canCreateItemForPlan: canCreateItemForPlanMock,
+}));
+
+vi.mock("@/lib/db/billing", () => ({
+  getBillingState: getBillingStateMock,
 }));
 
 vi.mock("@/lib/db/items", () => ({
@@ -53,13 +65,16 @@ import { createItem, deleteItem, toggleItemFavorite, toggleItemPin, updateItem }
 describe("createItem action", () => {
   beforeEach(() => {
     authMock.mockReset();
+    canCreateItemForPlanMock.mockReset();
     createItemRecordMock.mockReset();
     deleteItemRecordMock.mockReset();
     deleteR2ObjectMock.mockReset();
+    getBillingStateMock.mockReset();
     getItemDrawerDetailMock.mockReset();
     setItemFavoriteStateRecordMock.mockReset();
     setItemPinnedStateRecordMock.mockReset();
     updateItemRecordMock.mockReset();
+    canCreateItemForPlanMock.mockReturnValue({ allowed: true });
   });
 
   it("rejects unauthenticated create requests", async () => {
@@ -105,6 +120,10 @@ describe("createItem action", () => {
       user: {
         id: "user-1",
       },
+    });
+    getBillingStateMock.mockResolvedValue({
+      isPro: false,
+      itemCount: 10,
     });
     createItemRecordMock.mockResolvedValue({
       id: "item-1",
@@ -166,6 +185,10 @@ describe("createItem action", () => {
         id: "user-1",
       },
     });
+    getBillingStateMock.mockResolvedValue({
+      isPro: true,
+      itemCount: 10,
+    });
     createItemRecordMock.mockResolvedValue({
       id: "item-1",
       title: "API Spec",
@@ -221,11 +244,47 @@ describe("createItem action", () => {
     expect(createItemRecordMock).not.toHaveBeenCalled();
   });
 
+  it("blocks file item creation for free users", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    getBillingStateMock.mockResolvedValue({
+      isPro: false,
+      itemCount: 10,
+    });
+    canCreateItemForPlanMock.mockReturnValue({
+      allowed: false,
+      message: "Upgrade to Pro to create file and image items.",
+    });
+
+    const result = await createItem({
+      itemType: "file",
+      title: "API Spec",
+      fileName: "api-spec.pdf",
+      fileSize: 2048,
+      fileUrl: "https://files.example.com/users/user-1/file/spec.pdf",
+      tags: [],
+      collectionIds: [],
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "Upgrade to Pro to create file and image items.",
+    });
+    expect(createItemRecordMock).not.toHaveBeenCalled();
+  });
+
   it("returns a generic error when create fails", async () => {
     authMock.mockResolvedValue({
       user: {
         id: "user-1",
       },
+    });
+    getBillingStateMock.mockResolvedValue({
+      isPro: false,
+      itemCount: 10,
     });
     createItemRecordMock.mockRejectedValue(new Error("db failure"));
 
@@ -246,9 +305,11 @@ describe("createItem action", () => {
 describe("updateItem action", () => {
   beforeEach(() => {
     authMock.mockReset();
+    canCreateItemForPlanMock.mockReset();
     createItemRecordMock.mockReset();
     deleteItemRecordMock.mockReset();
     deleteR2ObjectMock.mockReset();
+    getBillingStateMock.mockReset();
     getItemDrawerDetailMock.mockReset();
     setItemFavoriteStateRecordMock.mockReset();
     setItemPinnedStateRecordMock.mockReset();

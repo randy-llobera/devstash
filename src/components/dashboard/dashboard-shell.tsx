@@ -96,6 +96,7 @@ export const DashboardShell = ({
           <CreateItemDialog
             collections={collections}
             itemTypes={itemTypes}
+            isPro={Boolean(user?.isPro)}
             onOpenChange={setIsCreateDialogOpen}
             open={isCreateDialogOpen}
           />

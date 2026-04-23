@@ -3,7 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const {
   authMock,
   buildUploadedFileUrlMock,
+  canUploadFilesForPlanMock,
   deleteR2ObjectMock,
+  getBillingStateMock,
   getObjectKeyFromFileUrlMock,
   isFileUploadItemTypeMock,
   sanitizeUploadedFileNameMock,
@@ -12,7 +14,9 @@ const {
 } = vi.hoisted(() => ({
   authMock: vi.fn(),
   buildUploadedFileUrlMock: vi.fn(),
+  canUploadFilesForPlanMock: vi.fn(),
   deleteR2ObjectMock: vi.fn(),
+  getBillingStateMock: vi.fn(),
   getObjectKeyFromFileUrlMock: vi.fn(),
   isFileUploadItemTypeMock: vi.fn(),
   sanitizeUploadedFileNameMock: vi.fn(),
@@ -22,6 +26,14 @@ const {
 
 vi.mock("@/auth", () => ({
   auth: authMock,
+}));
+
+vi.mock("@/lib/billing", () => ({
+  canUploadFilesForPlan: canUploadFilesForPlanMock,
+}));
+
+vi.mock("@/lib/db/billing", () => ({
+  getBillingState: getBillingStateMock,
 }));
 
 vi.mock("@/lib/file-upload", () => ({
@@ -43,13 +55,16 @@ describe("uploads route POST", () => {
   beforeEach(() => {
     authMock.mockReset();
     buildUploadedFileUrlMock.mockReset();
+    canUploadFilesForPlanMock.mockReset();
     deleteR2ObjectMock.mockReset();
+    getBillingStateMock.mockReset();
     getObjectKeyFromFileUrlMock.mockReset();
     isFileUploadItemTypeMock.mockReset();
     sanitizeUploadedFileNameMock.mockReset();
     uploadR2ObjectMock.mockReset();
     validateUploadFileMock.mockReset();
     vi.spyOn(globalThis.crypto, "randomUUID").mockReturnValue("uuid-1");
+    canUploadFilesForPlanMock.mockReturnValue({ allowed: true });
   });
 
   it("rejects unauthenticated uploads", async () => {
@@ -82,6 +97,7 @@ describe("uploads route POST", () => {
   it("uploads a validated file to R2", async () => {
     authMock.mockResolvedValue({ user: { id: "user-1" } });
     isFileUploadItemTypeMock.mockReturnValue(true);
+    getBillingStateMock.mockResolvedValue({ isPro: true });
     validateUploadFileMock.mockReturnValue(null);
     sanitizeUploadedFileNameMock.mockReturnValue("spec.pdf");
     buildUploadedFileUrlMock.mockReturnValue("https://files.example.com/spec.pdf");
@@ -108,6 +124,30 @@ describe("uploads route POST", () => {
       fileSize: 5,
       fileUrl: "https://files.example.com/spec.pdf",
     });
+  });
+
+  it("blocks free users from uploading Pro-only item types", async () => {
+    authMock.mockResolvedValue({ user: { id: "user-1" } });
+    isFileUploadItemTypeMock.mockReturnValue(true);
+    getBillingStateMock.mockResolvedValue({ isPro: false });
+    canUploadFilesForPlanMock.mockReturnValue({
+      allowed: false,
+      message: "Upgrade to Pro to upload files and images.",
+    });
+
+    const formData = new FormData();
+    formData.append("itemType", "image");
+    formData.append("file", new File(["test"], "image.png", { type: "image/png" }));
+
+    const response = await POST(
+      new Request("http://localhost/api/uploads", { method: "POST", body: formData })
+    );
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({
+      error: "Upgrade to Pro to upload files and images.",
+    });
+    expect(uploadR2ObjectMock).not.toHaveBeenCalled();
   });
 });
 

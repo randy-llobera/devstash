@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { auth } from "@/auth";
+import { canUploadFilesForPlan } from "@/lib/billing";
+import { getBillingState } from "@/lib/db/billing";
 import {
   buildUploadedFileUrl,
   getObjectKeyFromFileUrl,
@@ -28,6 +30,24 @@ export const POST = async (request: Request) => {
 
   if (typeof itemTypeValue !== "string" || !isFileUploadItemType(itemTypeValue)) {
     return NextResponse.json({ error: "Invalid upload type." }, { status: 400 });
+  }
+
+  const billingState = await getBillingState(session.user.id);
+
+  if (!billingState) {
+    return NextResponse.json({ error: "User not found." }, { status: 404 });
+  }
+
+  const billingGuard = canUploadFilesForPlan({
+    isPro: billingState.isPro,
+    itemType: itemTypeValue,
+  });
+
+  if (!billingGuard.allowed) {
+    return NextResponse.json(
+      { error: billingGuard.message ?? "Upgrade required." },
+      { status: 403 }
+    );
   }
 
   if (!(fileValue instanceof File)) {
