@@ -122,8 +122,8 @@ describe("stripe checkout route POST", () => {
           quantity: 1,
         },
       ],
-      success_url: "http://localhost/settings?billing=success",
-      cancel_url: "http://localhost/settings?billing=cancelled",
+      success_url: "http://localhost/upgrade?billing=success",
+      cancel_url: "http://localhost/upgrade?billing=cancelled",
       metadata: {
         userId: "user-1",
       },

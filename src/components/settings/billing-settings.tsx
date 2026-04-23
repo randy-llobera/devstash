@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import Link from "next/link";
+import { useMemo, useTransition } from "react";
 import { useSearchParams } from "next/navigation";
 import { CreditCard, ExternalLink, LoaderCircle, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
@@ -9,8 +10,6 @@ import {
   FREE_TIER_COLLECTION_LIMIT,
   FREE_TIER_ITEM_LIMIT,
   PRO_PLAN_NAME,
-  PRO_PRICE_LABELS,
-  type BillingInterval,
 } from "@/lib/billing-config";
 
 import { Badge } from "@/components/ui/badge";
@@ -56,25 +55,12 @@ export const BillingSettings = ({
   stripeCustomerId,
 }: BillingSettingsProps) => {
   const searchParams = useSearchParams();
-  const [pendingInterval, setPendingInterval] = useState<BillingInterval | null>(null);
   const [isOpeningPortal, startPortalTransition] = useTransition();
   const statusMessage = useMemo(() => {
     const billingState = searchParams.get("billing");
 
     return billingState ? BILLING_MESSAGES[billingState] ?? null : null;
   }, [searchParams]);
-
-  const handleCheckout = (interval: BillingInterval) => {
-    setPendingInterval(interval);
-
-    void redirectToBillingUrl("/api/stripe/checkout", { interval })
-      .catch((error) => {
-        toast.error(error instanceof Error ? error.message : "Unable to start checkout.");
-      })
-      .finally(() => {
-        setPendingInterval(null);
-      });
-  };
 
   const handlePortal = () => {
     startPortalTransition(async () => {
@@ -136,35 +122,9 @@ export const BillingSettings = ({
                 Manage billing
               </Button>
             ) : (
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Button
-                  type="button"
-                  onClick={() => handleCheckout("monthly")}
-                  disabled={pendingInterval !== null}
-                >
-                  {pendingInterval === "monthly" ? (
-                    <LoaderCircle className="size-4 animate-spin" />
-                  ) : null}
-                  Upgrade monthly
-                  <span className="text-xs text-primary-foreground/80">
-                    {PRO_PRICE_LABELS.monthly}
-                  </span>
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => handleCheckout("yearly")}
-                  disabled={pendingInterval !== null}
-                >
-                  {pendingInterval === "yearly" ? (
-                    <LoaderCircle className="size-4 animate-spin" />
-                  ) : null}
-                  Upgrade yearly
-                  <span className="text-xs text-muted-foreground">
-                    {PRO_PRICE_LABELS.yearly}
-                  </span>
-                </Button>
-              </div>
+              <Button asChild>
+                <Link href="/upgrade">View upgrade options</Link>
+              </Button>
             )}
           </div>
 

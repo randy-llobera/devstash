@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 interface TopBarProps {
+  isPro: boolean;
   mobileSidebar: ReactNode;
   onCreateCollection: () => void;
   onCreateItem: () => void;
 }
 
 export const TopBar = ({
+  isPro,
   mobileSidebar,
   onCreateCollection,
   onCreateItem,
@@ -63,6 +65,11 @@ export const TopBar = ({
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+          {!isPro ? (
+            <Button asChild variant="ghost" className="w-full shrink-0 lg:w-auto">
+              <Link href="/upgrade">Upgrade</Link>
+            </Button>
+          ) : null}
           <Button
             asChild
             variant="outline"

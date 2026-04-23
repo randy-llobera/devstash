@@ -48,6 +48,7 @@ export const DashboardShell = ({
           <main className='min-h-screen bg-background text-foreground'>
             <div className='grid min-h-screen grid-rows-[auto_1fr]'>
               <TopBar
+                isPro={Boolean(user?.isPro)}
                 onCreateCollection={() => setIsCreateCollectionDialogOpen(true)}
                 onCreateItem={() => setIsCreateDialogOpen(true)}
                 mobileSidebar={

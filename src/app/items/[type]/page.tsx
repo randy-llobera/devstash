@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import {
   getItemsByTypeSlug,
@@ -15,7 +15,6 @@ import { ITEMS_PER_PAGE, parsePageParam } from "@/lib/pagination";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardItemsList } from "@/components/dashboard/dashboard-items-list";
 import { PaginationControls } from "@/components/dashboard/pagination-controls";
-import { ItemsUpgradePage } from "@/components/items/items-upgrade-page";
 
 interface ItemsByTypePageProps {
   params: Promise<{
@@ -43,17 +42,7 @@ const ItemsByTypePage = async ({
   ]);
 
   if (PRO_ONLY_ITEM_ROUTE_TYPES.has(type) && !user?.isPro) {
-    return (
-      <DashboardShell
-        user={user}
-        collections={collections}
-        itemTypes={itemTypes}
-        favoriteCollections={sidebarCollections.favoriteCollections}
-        recentCollections={sidebarCollections.recentCollections}
-      >
-        <ItemsUpgradePage itemTypeLabel={type === "files" ? "Files" : "Images"} />
-      </DashboardShell>
-    );
+    redirect("/upgrade");
   }
 
   const result = await getItemsByTypeSlug(type, page, ITEMS_PER_PAGE);

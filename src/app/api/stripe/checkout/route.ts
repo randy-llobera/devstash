@@ -67,8 +67,8 @@ export const POST = async (request: Request) => {
           quantity: 1,
         },
       ],
-      success_url: `${origin}/settings?billing=success`,
-      cancel_url: `${origin}/settings?billing=cancelled`,
+      success_url: `${origin}/upgrade?billing=success`,
+      cancel_url: `${origin}/upgrade?billing=cancelled`,
       metadata: {
         userId: billingState.id,
       },
