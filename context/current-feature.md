@@ -1,16 +1,26 @@
-# Current Feature
+# Current Feature: Stripe Integration Phase 1 - Core Infrastructure
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Add goals here -->
+- Install the Stripe SDK and add shared Stripe client setup with env validation.
+- Add shared billing constants and price ID mapping helpers.
+- Add a pure `usage-limits` module for free-tier and Pro feature checks.
+- Sync `isPro` from Prisma in auth session loading and expose it on `session.user`.
+- Include current billing fields in shared user reads needed by Settings and gating work.
+- Add unit tests covering item, collection, and Pro-only usage limits.
 
 ## Notes
 
-<!-- Add notes here -->
+- Scope is infrastructure only. Do not add checkout, billing portal, webhooks, or billing UI in this phase.
+- New files expected: `src/lib/stripe.ts`, `src/lib/billing.ts`, `src/lib/usage-limits.ts`, and `src/lib/usage-limits.test.ts`.
+- Existing files expected to change: `package.json`, `src/auth.ts`, `src/types/next-auth.d.ts`, `src/lib/db/dashboard-user.ts`, and `.env.example`.
+- The `usage-limits` module must stay pure and accept plain inputs like `isPro`, `itemCount`, and `collectionCount`.
+- Free-tier rules from the spec: item limit `50`, collection limit `3`, and free users cannot use file uploads, image uploads, or AI features.
+- `isPro` must be re-read from Prisma in the JWT callback on every session load to avoid stale session state.
 
 ## History
 
