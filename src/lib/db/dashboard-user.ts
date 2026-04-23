@@ -14,6 +14,9 @@ export interface DashboardUser {
   image: string | null;
   createdAt: string;
   hasPassword: boolean;
+  isPro: boolean;
+  stripeCustomerId: string | null;
+  stripeSubscriptionId: string | null;
   editorPreferences: EditorPreferences;
 }
 
@@ -35,6 +38,9 @@ export const getDashboardUser = cache(async (): Promise<DashboardUser | null> =>
       image: true,
       createdAt: true,
       password: true,
+      isPro: true,
+      stripeCustomerId: true,
+      stripeSubscriptionId: true,
       editorPreferences: true,
     },
   });
@@ -50,6 +56,9 @@ export const getDashboardUser = cache(async (): Promise<DashboardUser | null> =>
     image: user.image,
     createdAt: user.createdAt.toISOString(),
     hasPassword: Boolean(user.password),
+    isPro: user.isPro,
+    stripeCustomerId: user.stripeCustomerId,
+    stripeSubscriptionId: user.stripeSubscriptionId,
     editorPreferences: normalizeEditorPreferences(user.editorPreferences),
   };
 });
