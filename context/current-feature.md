@@ -1,37 +1,16 @@
-# Current Feature: AI Auto-Tagging
+# Current Feature
 
 ## Status
 
-In Progress
+Complete
 
 ## Goals
 
 <!-- Add goals here -->
 
-- Add AI-powered tag suggestions for items using `gpt-5-nano`
-- Create the OpenAI client utility and shared `AI_MODEL` constant if they do not already exist
-- Implement `generateAutoTags` with auth, Pro gating, Zod validation, and rate limiting
-- Add the AI rate limit config for 20 requests per hour per user if it does not already exist
-- Add a Pro-only `Suggest Tags` UI in create-item and item-drawer edit flows
-- Show 3-5 suggested freeform tags with accept and reject controls
-- Add accepted suggestions into the current item tag list
-- Truncate content to 2000 characters before sending it to OpenAI
-- Surface Pro gating, rate limit, and AI service failures via toast messages
-- Add unit tests for the server action
-
 ## Notes
 
 <!-- Add notes here -->
-
-- Use the OpenAI Responses API, not Chat Completions, because `gpt-5-nano` returns empty content with Chat Completions
-- Read model output from `response.output_text`
-- Request JSON with `text.format: { type: 'json_object' }` and parse manually
-- Handle both `{"tags": [...]}` and `[...]` response shapes
-- Normalize all returned tags to lowercase
-- `zodResponseFormat` is not suitable here because it uses too many tokens with this model
-- `OPENAI_API_KEY` is already present in `.env`
-- UI visibility for the button needs Pro-state access in create and edit surfaces, but server-side gating remains required
-- Full architectural context is in `docs/ai-integration-plan.md`
 
 ## History
 
@@ -92,3 +71,4 @@ In Progress
 - Files and images navigation updated so free-user item-type links now resolve to the shared locked routes instead of billing settings, including the sidebar and create-item Pro prompt
 - Upgrade flow completed with a new protected `/upgrade` page for plan selection, a ghost `Upgrade` header button for free users, Stripe checkout returning to `/upgrade`, and free-user files/images navigation redirecting straight to the shared upgrade flow
 - Code editor language selector update completed with shared language dropdowns above Monaco in the create modal and drawer edit flow, immediate syntax highlighting updates while typing, preserved support for existing custom saved language labels, and focused helper coverage for the shared language options
+- AI Auto-Tagging completed with a shared OpenAI Responses API client for `gpt-5-nano`, a dedicated AI server action module with Pro gating and 20/hour rate limiting, Suggest Tags flows in create and drawer edit UIs, accept/reject tag suggestions, and focused action coverage for the AI path
