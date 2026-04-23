@@ -35,7 +35,12 @@ vi.mock("@/lib/rate-limit", () => ({
     result.reason === "unavailable",
 }));
 
-import { explainCode, generateAutoTags, generateDescriptionSummary } from "@/actions/ai";
+import {
+  explainCode,
+  generateAutoTags,
+  generateDescriptionSummary,
+  optimizePrompt,
+} from "@/actions/ai";
 
 describe("generateAutoTags action", () => {
   beforeEach(() => {
@@ -508,6 +513,156 @@ describe("explainCode action", () => {
     expect(result).toEqual({
       success: false,
       error: "Unable to explain this code right now.",
+    });
+  });
+});
+
+describe("optimizePrompt action", () => {
+  beforeEach(() => {
+    authMock.mockReset();
+    checkAiRateLimitMock.mockReset();
+    getBillingStateMock.mockReset();
+    getOpenAIClientMock.mockReset();
+    openAIResponsesCreateMock.mockReset();
+    getOpenAIClientMock.mockReturnValue({
+      responses: {
+        create: openAIResponsesCreateMock,
+      },
+    });
+    checkAiRateLimitMock.mockResolvedValue({
+      remaining: 19,
+      reason: null,
+      reset: Date.now(),
+      success: true,
+    });
+  });
+
+  it("rejects optimization requests without prompt content", async () => {
+    const result = await optimizePrompt({
+      content: "   ",
+      title: "Prompt draft",
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "Add prompt text before requesting optimization.",
+    });
+    expect(openAIResponsesCreateMock).not.toHaveBeenCalled();
+  });
+
+  it("blocks free users from AI prompt optimization", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    getBillingStateMock.mockResolvedValue({
+      isPro: false,
+      itemCount: 2,
+    });
+
+    const result = await optimizePrompt({
+      content: "Write a release note for this pull request.",
+      title: "Release note prompt",
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "Upgrade to Pro to use AI prompt optimization.",
+    });
+    expect(openAIResponsesCreateMock).not.toHaveBeenCalled();
+  });
+
+  it("uses the prompt optimization AI rate-limit bucket", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    getBillingStateMock.mockResolvedValue({
+      isPro: true,
+      itemCount: 2,
+    });
+    openAIResponsesCreateMock.mockResolvedValue({
+      output_text: JSON.stringify({
+        changed: true,
+        optimizedPrompt:
+          "Write concise release notes for this pull request. Include user-facing changes, breaking changes, and deployment notes.",
+      }),
+    });
+
+    const result = await optimizePrompt({
+      content: "Write a release note for this pull request.",
+      title: "Release note prompt",
+    });
+
+    expect(checkAiRateLimitMock).toHaveBeenCalledWith({
+      identifier: "user-1",
+      type: "optimizePrompt",
+    });
+    expect(result).toEqual({
+      success: true,
+      data: {
+        changed: true,
+        optimizedPrompt:
+          "Write concise release notes for this pull request. Include user-facing changes, breaking changes, and deployment notes.",
+      },
+    });
+  });
+
+  it("returns no-change when the model says the prompt is already good", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    getBillingStateMock.mockResolvedValue({
+      isPro: true,
+      itemCount: 2,
+    });
+    openAIResponsesCreateMock.mockResolvedValue({
+      output_text: JSON.stringify({
+        changed: false,
+        optimizedPrompt: "",
+      }),
+    });
+
+    const result = await optimizePrompt({
+      content: "Summarize this API error and list the likely root cause.",
+      title: "API error summary prompt",
+    });
+
+    expect(result).toEqual({
+      success: true,
+      data: {
+        changed: false,
+        optimizedPrompt: null,
+      },
+    });
+  });
+
+  it("returns a safe error when the AI optimization response is invalid", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+    getBillingStateMock.mockResolvedValue({
+      isPro: true,
+      itemCount: 2,
+    });
+    openAIResponsesCreateMock.mockResolvedValue({
+      output_text: "not json",
+    });
+
+    const result = await optimizePrompt({
+      content: "Summarize this API error and list the likely root cause.",
+      title: "API error summary prompt",
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "Unable to optimize this prompt right now.",
     });
   });
 });

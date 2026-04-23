@@ -3,6 +3,7 @@
 import { Check, Copy } from 'lucide-react';
 import type { ComponentPropsWithoutRef } from 'react';
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { toast } from 'sonner';
@@ -122,26 +123,41 @@ const markdownComponents = {
 };
 
 type MarkdownEditorTab = 'write' | 'preview';
+type MarkdownEditorReadOnlyTab = 'current' | 'optimized';
 
 interface MarkdownEditorProps {
   className?: string;
+  headerActions?: ReactNode;
   id?: string;
   maxHeight?: number;
   minHeight?: number;
   onChange?: (value: string) => void;
+  onReadOnlyViewChange?: (view: MarkdownEditorReadOnlyTab) => void;
   placeholder?: string;
   readOnly?: boolean;
+  readOnlyView?: MarkdownEditorReadOnlyTab;
+  readOnlyViewLabels?: {
+    current: string;
+    optimized: string;
+  };
   value: string;
 }
 
 export const MarkdownEditor = ({
   className,
+  headerActions,
   id,
   maxHeight = DEFAULT_MAX_HEIGHT,
   minHeight = DEFAULT_MIN_HEIGHT,
   onChange,
+  onReadOnlyViewChange,
   placeholder,
   readOnly = false,
+  readOnlyView = 'current',
+  readOnlyViewLabels = {
+    current: 'Current',
+    optimized: 'Optimized',
+  },
   value,
 }: MarkdownEditorProps) => {
   const fallbackId = useId();
@@ -233,9 +249,46 @@ export const MarkdownEditor = ({
           </div>
 
           {readOnly ? (
-            <span className='truncate rounded-full border border-[#4b5563] bg-[#1e1e1e] px-2.5 py-1 text-[11px] font-medium tracking-[0.18em] text-slate-200 uppercase'>
-              {MARKDOWN_LABEL}
-            </span>
+            onReadOnlyViewChange ? (
+              <div
+                className='flex items-center gap-1 rounded-full border border-[#4b5563] bg-[#1e1e1e] p-1'
+                role='tablist'
+                aria-label='Prompt optimization views'
+              >
+                <button
+                  type='button'
+                  role='tab'
+                  aria-selected={readOnlyView === 'current'}
+                  className={cn(
+                    'rounded-full px-3 py-1 text-[11px] font-medium tracking-[0.14em] uppercase transition-colors',
+                    readOnlyView === 'current'
+                      ? 'bg-slate-200 text-slate-950'
+                      : 'text-slate-300 hover:text-white',
+                  )}
+                  onClick={() => onReadOnlyViewChange('current')}
+                >
+                  {readOnlyViewLabels.current}
+                </button>
+                <button
+                  type='button'
+                  role='tab'
+                  aria-selected={readOnlyView === 'optimized'}
+                  className={cn(
+                    'rounded-full px-3 py-1 text-[11px] font-medium tracking-[0.14em] uppercase transition-colors',
+                    readOnlyView === 'optimized'
+                      ? 'bg-slate-200 text-slate-950'
+                      : 'text-slate-300 hover:text-white',
+                  )}
+                  onClick={() => onReadOnlyViewChange('optimized')}
+                >
+                  {readOnlyViewLabels.optimized}
+                </button>
+              </div>
+            ) : (
+              <span className='truncate rounded-full border border-[#4b5563] bg-[#1e1e1e] px-2.5 py-1 text-[11px] font-medium tracking-[0.18em] text-slate-200 uppercase'>
+                {MARKDOWN_LABEL}
+              </span>
+            )
           ) : (
             <div
               className='flex items-center gap-1 rounded-full border border-[#4b5563] bg-[#1e1e1e] p-1'
@@ -278,20 +331,23 @@ export const MarkdownEditor = ({
           )}
         </div>
 
-        <Button
-          type='button'
-          variant='ghost'
-          size='sm'
-          className='h-8 rounded-lg border border-[#4b5563] bg-[#1e1e1e] px-2.5 text-slate-300 hover:bg-[#242424] hover:text-slate-100'
-          onClick={() => {
-            void handleCopy();
-          }}
-          disabled={!value.trim()}
-          aria-label='Copy editor content'
-        >
-          {copied ? <Check className='size-4' /> : <Copy className='size-4' />}
-          {copied ? 'Copied' : 'Copy'}
-        </Button>
+        <div className='flex items-center gap-2'>
+          {headerActions}
+          <Button
+            type='button'
+            variant='ghost'
+            size='sm'
+            className='h-8 rounded-lg border border-[#4b5563] bg-[#1e1e1e] px-2.5 text-slate-300 hover:bg-[#242424] hover:text-slate-100'
+            onClick={() => {
+              void handleCopy();
+            }}
+            disabled={!value.trim()}
+            aria-label='Copy editor content'
+          >
+            {copied ? <Check className='size-4' /> : <Copy className='size-4' />}
+            {copied ? 'Copied' : 'Copy'}
+          </Button>
+        </div>
       </div>
 
       <div style={{ height: bodyHeight }}>
