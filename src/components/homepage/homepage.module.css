@@ -251,6 +251,10 @@
   flex-wrap: wrap;
 }
 
+.heroCtas > * {
+  min-width: 190px;
+}
+
 .heroVisual {
   display: flex;
   align-items: center;
@@ -539,7 +543,7 @@
 }
 
 .aiSection {
-  padding: 120px 0;
+  padding: 120px 0 72px;
 }
 
 .aiGrid {
@@ -712,7 +716,7 @@
 }
 
 .pricing {
-  padding: 120px 0;
+  padding: 88px 0 112px;
   text-align: center;
 }
 
@@ -783,7 +787,7 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 24px;
-  max-width: 720px;
+  max-width: 960px;
   margin: 0 auto;
 }
 
@@ -891,12 +895,30 @@
 }
 
 .ctaSection {
-  padding: 120px 0;
+  padding: 88px 0 72px;
   text-align: center;
 }
 
 .ctaSubtitle {
   margin: 0 auto 32px;
+}
+
+.ctaProofGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  max-width: 900px;
+  margin: 0 auto 32px;
+}
+
+.ctaProofItem {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 14px 16px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .footer {
@@ -973,26 +995,33 @@
   .hero {
     min-height: auto;
     justify-content: flex-start;
-    padding: 92px 20px 40px;
+    padding: 84px 20px 32px;
   }
 
   .heroText {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
   }
 
   .heroVisual {
+    width: 100%;
+    max-width: 640px;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
 
   .chaosBox,
   .dashboardBox {
     width: 100%;
+    flex: none;
+  }
+
+  .chaosBox {
+    margin-top: 8px;
   }
 
   .chaosContainer,
   .dashboardPreview {
-    height: 188px;
+    height: 168px;
   }
 
   .chaosLabel,
@@ -1001,21 +1030,17 @@
   }
 
   .transformArrow {
-    transform: rotate(90deg);
-    margin: -10px 0;
+    display: flex;
+    flex: none;
+    margin: 2px 0 6px;
   }
 
-  @keyframes pulse-arrow {
-    0%,
-    100% {
-      opacity: 0.4;
-      transform: rotate(90deg) scale(1);
-    }
+  .transformArrow svg {
+    transform: rotate(90deg);
+  }
 
-    50% {
-      opacity: 1;
-      transform: rotate(90deg) scale(1.15);
-    }
+  .dashboardBox {
+    margin-bottom: 10px;
   }
 
   .featuresGrid,
@@ -1026,6 +1051,12 @@
 
   .aiGrid {
     gap: 24px;
+  }
+
+  .ctaProofGrid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 24px;
   }
 
   .footerGrid {
@@ -1080,11 +1111,11 @@
 
 @media (max-width: 480px) {
   .hero {
-    padding: 88px 16px 32px;
+    padding: 80px 16px 28px;
   }
 
   .heroText {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
 
   .heroTitle {
@@ -1101,9 +1132,13 @@
     gap: 12px;
   }
 
+  .heroCtas > * {
+    width: min(100%, 230px);
+  }
+
   .chaosContainer,
   .dashboardPreview {
-    height: 160px;
+    height: 150px;
   }
 
   .sectionInner,
@@ -1147,6 +1182,11 @@
 
   .ctaSection {
     padding: 56px 0;
+  }
+
+  .ctaProofItem {
+    padding: 12px 14px;
+    font-size: 0.85rem;
   }
 
   .footer {
