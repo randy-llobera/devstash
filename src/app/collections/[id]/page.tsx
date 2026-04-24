@@ -20,6 +20,7 @@ import { DashboardItemsList } from "@/components/dashboard/dashboard-items-list"
 import { CollectionActions } from "@/components/dashboard/collection-actions";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { PaginationControls } from "@/components/dashboard/pagination-controls";
+import { AppPageShell } from "@/components/layout/app-page-shell";
 import { formatUpdatedAt } from "@/components/utils/date";
 import { getItemTypeIcon } from "@/components/utils/item-type";
 
@@ -85,7 +86,7 @@ const CollectionDetailPage = async ({
       favoriteCollections={sidebarCollections.favoriteCollections}
       recentCollections={sidebarCollections.recentCollections}
     >
-      <div className="space-y-8">
+      <AppPageShell className="gap-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-3">
             <div className="flex flex-wrap items-baseline gap-3">
@@ -122,7 +123,6 @@ const CollectionDetailPage = async ({
               Updated {formatUpdatedAt(collection.updatedAt)}
             </p>
           </div>
-
           <CollectionActions collection={collection} variant="detail" />
         </div>
 
@@ -199,7 +199,7 @@ const CollectionDetailPage = async ({
             </p>
           </div>
         )}
-      </div>
+      </AppPageShell>
     </DashboardShell>
   );
 };

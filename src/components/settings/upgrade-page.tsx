@@ -20,6 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 interface UpgradePageProps {
   isPro: boolean;
   stripeCustomerId: string | null;
+  showHeader?: boolean;
 }
 
 const BILLING_MESSAGES: Record<string, string> = {
@@ -62,7 +63,11 @@ const redirectToBillingUrl = async (path: string, body?: Record<string, string>)
   window.location.href = payload.url;
 };
 
-export const UpgradePage = ({ isPro, stripeCustomerId }: UpgradePageProps) => {
+export const UpgradePage = ({
+  isPro,
+  stripeCustomerId,
+  showHeader = true,
+}: UpgradePageProps) => {
   const searchParams = useSearchParams();
   const [selectedInterval, setSelectedInterval] = useState<BillingInterval>("monthly");
   const [pendingInterval, setPendingInterval] = useState<BillingInterval | null>(null);
@@ -98,12 +103,14 @@ export const UpgradePage = ({ isPro, stripeCustomerId }: UpgradePageProps) => {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight">Upgrade</h1>
-        <p className="max-w-2xl text-sm text-muted-foreground">
-          Compare Free and Pro, choose monthly or yearly billing, then continue to Stripe checkout.
-        </p>
-      </div>
+      {showHeader ? (
+        <div className="space-y-2">
+          <h1 className="text-3xl font-semibold tracking-tight">Upgrade</h1>
+          <p className="max-w-2xl text-sm text-muted-foreground">
+            Compare Free and Pro, choose monthly or yearly billing, then continue to Stripe checkout.
+          </p>
+        </div>
+      ) : null}
 
       {statusMessage ? (
         <div className="rounded-2xl border border-border/70 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">

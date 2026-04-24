@@ -8,6 +8,8 @@ import { getDashboardUser } from "@/lib/db/dashboard-user";
 import { getDashboardStats, getSidebarItemTypes } from "@/lib/db/items";
 
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { AppPageHeader } from "@/components/layout/app-page-header";
+import { AppPageShell } from "@/components/layout/app-page-shell";
 import { ProfileInfo } from "@/components/profile/profile-info";
 import { ProfileStats } from "@/components/profile/profile-stats";
 
@@ -33,16 +35,14 @@ const ProfilePage = async () => {
       favoriteCollections={sidebarCollections.favoriteCollections}
       recentCollections={sidebarCollections.recentCollections}
     >
-      <div className="space-y-1">
-        <h1 className="text-3xl font-semibold tracking-tight">Profile</h1>
-        <p className="text-sm text-muted-foreground">
-          View your account details and usage.
-        </p>
-      </div>
-
-      <ProfileInfo user={user} />
-
-      <ProfileStats itemTypes={itemTypes} stats={stats} />
+      <AppPageShell>
+        <AppPageHeader
+          title="Profile"
+          description="View your account details and usage."
+        />
+        <ProfileInfo user={user} />
+        <ProfileStats itemTypes={itemTypes} stats={stats} />
+      </AppPageShell>
     </DashboardShell>
   );
 };

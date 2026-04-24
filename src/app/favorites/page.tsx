@@ -13,6 +13,8 @@ import {
 
 import { FavoritesList } from "@/components/dashboard/favorites-list";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { AppPageHeader } from "@/components/layout/app-page-header";
+import { AppPageShell } from "@/components/layout/app-page-shell";
 
 const FavoritesPage = async () => {
   const [user, itemTypes, sidebarCollections, collections, favoriteItems, favoriteCollections] =
@@ -39,16 +41,13 @@ const FavoritesPage = async () => {
       favoriteCollections={sidebarCollections.favoriteCollections}
       recentCollections={sidebarCollections.recentCollections}
     >
-      <div className="space-y-6">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight">Favorites</h1>
-          <p className="text-base text-muted-foreground">
-            {totalFavorites} {totalFavorites === 1 ? "favorite" : "favorites"}
-          </p>
-        </div>
-
+      <AppPageShell>
+        <AppPageHeader
+          title="Favorites"
+          description={`${totalFavorites} ${totalFavorites === 1 ? "favorite" : "favorites"}`}
+        />
         <FavoritesList items={favoriteItems} collections={favoriteCollections} />
-      </div>
+      </AppPageShell>
     </DashboardShell>
   );
 };

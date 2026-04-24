@@ -10,6 +10,8 @@ import { getSidebarItemTypes } from "@/lib/db/items";
 
 import { DashboardCollectionCard } from "@/components/dashboard/dashboard-collection-card";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { AppPageHeader } from "@/components/layout/app-page-header";
+import { AppPageShell } from "@/components/layout/app-page-shell";
 import { Button } from "@/components/ui/button";
 
 const CollectionsPage = async () => {
@@ -30,14 +32,11 @@ const CollectionsPage = async () => {
       favoriteCollections={sidebarCollections.favoriteCollections}
       recentCollections={sidebarCollections.recentCollections}
     >
-      <div className="space-y-6">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight">Collections</h1>
-          <p className="text-base text-muted-foreground">
-            {allCollections.length} {allCollections.length === 1 ? "collection" : "collections"}
-          </p>
-        </div>
-
+      <AppPageShell>
+        <AppPageHeader
+          title="Collections"
+          description={`${allCollections.length} ${allCollections.length === 1 ? "collection" : "collections"}`}
+        />
         {allCollections.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {allCollections.map((collection) => (
@@ -58,7 +57,7 @@ const CollectionsPage = async () => {
             </Button>
           </div>
         )}
-      </div>
+      </AppPageShell>
     </DashboardShell>
   );
 };

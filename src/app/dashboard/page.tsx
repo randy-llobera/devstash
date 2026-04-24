@@ -16,6 +16,8 @@ import { DashboardPinnedItems } from "@/components/dashboard/dashboard-pinned-it
 import { DashboardRecentItems } from "@/components/dashboard/dashboard-recent-items";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardStats } from "@/components/dashboard/dashboard-stats";
+import { AppPageHeader } from "@/components/layout/app-page-header";
+import { AppPageShell } from "@/components/layout/app-page-shell";
 
 const DashboardPage = async () => {
   const [
@@ -45,24 +47,19 @@ const DashboardPage = async () => {
       itemTypes={itemTypes}
       favoriteCollections={sidebarCollections.favoriteCollections}
       recentCollections={sidebarCollections.recentCollections}
-      contentClassName="max-w-none"
     >
-      <div className="mx-auto flex w-full flex-col gap-10 xl:w-[80%]">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground">
-            Your developer knowledge hub
-          </p>
-        </div>
-
+      <AppPageShell className="gap-8">
+        <AppPageHeader
+          title="Dashboard"
+          description="Your developer knowledge hub"
+        />
         <DashboardStats data={stats} />
         <DashboardCollections collections={recentCollections} />
-
         <div className="space-y-10">
           <DashboardPinnedItems items={pinnedItems} />
           <DashboardRecentItems items={recentItems} />
         </div>
-      </div>
+      </AppPageShell>
     </DashboardShell>
   );
 };

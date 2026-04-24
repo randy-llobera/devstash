@@ -1,16 +1,27 @@
-# Current Feature
+# Current Feature: App Page Boxed Layout
 
 ## Status
 
-Complete
+In Progress
 
 ## Goals
 
-<!-- Add goals here -->
+- Define one reusable boxed page-main layout pattern for all `DashboardShell` routes
+- Apply the same centered content width across `/dashboard`, `/collections`, `/collections/[id]`, `/items/[type]`, `/favorites`, `/profile`, `/settings`, and `/upgrade`
+- Remove duplicated route-level page title and description layout where a shared header fits
+- Keep `DashboardShell` responsible only for app chrome, not route-specific main-section layout
+- Preserve page-specific feature components and route behavior while only extracting real layout duplication
 
 ## Notes
 
 <!-- Add notes here -->
+
+- Keep app chrome unchanged: sidebar, top bar, item drawer, drawer providers, mobile sidebar behavior, and search/dialog behavior are out of scope
+- Add shared layout components under `src/components/layout/`, with `AppPageShell` for boxed width/spacing and `AppPageHeader` for simple shared headers
+- Allow richer pages like `/collections/[id]` to keep a custom header inside the shared shell
+- Keep `FavoritesList`, `ProfileStats`, `UpgradePage`, and `DashboardItemsList` as feature-level components
+- Only add a shared empty-state component if it cleanly replaces repeated dashed empty-state boxes without awkward APIs
+- Preserve existing data fetching, pagination, action entry points, and empty-state messaging unless layout extraction clearly improves it
 
 ## History
 

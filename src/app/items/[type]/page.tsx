@@ -15,6 +15,8 @@ import { ITEMS_PER_PAGE, parsePageParam } from "@/lib/pagination";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { DashboardItemsList } from "@/components/dashboard/dashboard-items-list";
 import { PaginationControls } from "@/components/dashboard/pagination-controls";
+import { AppPageHeader } from "@/components/layout/app-page-header";
+import { AppPageShell } from "@/components/layout/app-page-shell";
 
 interface ItemsByTypePageProps {
   params: Promise<{
@@ -59,16 +61,11 @@ const ItemsByTypePage = async ({
       favoriteCollections={sidebarCollections.favoriteCollections}
       recentCollections={sidebarCollections.recentCollections}
     >
-      <div className="space-y-6">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight">
-            {getItemTypeLabel(result.itemType.name)}
-          </h1>
-          <p className="text-base text-muted-foreground">
-            {result.pagination.totalItems} {result.pagination.totalItems === 1 ? "item" : "items"}
-          </p>
-        </div>
-
+      <AppPageShell>
+        <AppPageHeader
+          title={getItemTypeLabel(result.itemType.name)}
+          description={`${result.pagination.totalItems} ${result.pagination.totalItems === 1 ? "item" : "items"}`}
+        />
         <div className="space-y-5">
           <DashboardItemsList itemType={result.itemType} items={result.items} />
           <PaginationControls
@@ -76,7 +73,7 @@ const ItemsByTypePage = async ({
             pagination={result.pagination}
           />
         </div>
-      </div>
+      </AppPageShell>
     </DashboardShell>
   );
 };
