@@ -1,27 +1,16 @@
-# Current Feature: App Page Boxed Layout
+# Current Feature
 
 ## Status
 
-In Progress
+Complete
 
 ## Goals
 
-- Define one reusable boxed page-main layout pattern for all `DashboardShell` routes
-- Apply the same centered content width across `/dashboard`, `/collections`, `/collections/[id]`, `/items/[type]`, `/favorites`, `/profile`, `/settings`, and `/upgrade`
-- Remove duplicated route-level page title and description layout where a shared header fits
-- Keep `DashboardShell` responsible only for app chrome, not route-specific main-section layout
-- Preserve page-specific feature components and route behavior while only extracting real layout duplication
+<!-- Add goals here -->
 
 ## Notes
 
 <!-- Add notes here -->
-
-- Keep app chrome unchanged: sidebar, top bar, item drawer, drawer providers, mobile sidebar behavior, and search/dialog behavior are out of scope
-- Add shared layout components under `src/components/layout/`, with `AppPageShell` for boxed width/spacing and `AppPageHeader` for simple shared headers
-- Allow richer pages like `/collections/[id]` to keep a custom header inside the shared shell
-- Keep `FavoritesList`, `ProfileStats`, `UpgradePage`, and `DashboardItemsList` as feature-level components
-- Only add a shared empty-state component if it cleanly replaces repeated dashed empty-state boxes without awkward APIs
-- Preserve existing data fetching, pagination, action entry points, and empty-state messaging unless layout extraction clearly improves it
 
 ## History
 
@@ -89,3 +78,4 @@ In Progress
 - UI Review Fixes completed with active sidebar highlighting plus `aria-current`, a responsive dashboard top bar with larger touch targets, GitHub OAuth parity on the register page, stronger collections and recent-items empty-state CTAs using existing dialogs, and tighter homepage mobile spacing including a three-column mobile footer
 - Homepage whitespace follow-up completed with a denser mobile/tablet hero that preserves the chaos-to-order story, tighter desktop section spacing, a wider pricing layout, a more substantial CTA section, and mobile hero polish for button width and before/after spacing
 - Dashboard layout polish completed with a centered boxed dashboard canvas, lighter collections and pinned/recent section framing, denser recent-item previews capped at 6, compact color-coded stats, homepage-aligned folder branding in the top bar, and a mobile action row with icon-only search, upgrade, favorites, and create-menu controls
+- App page boxed layout completed with shared `AppPageShell` and `AppPageHeader` layout components, boxed main-section width aligned across all `DashboardShell` routes, the richer collection detail header preserved inside the shared shell, and upgrade header duplication removed
