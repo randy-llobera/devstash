@@ -1,4 +1,4 @@
-import { File, Folder, Pin, Star } from "lucide-react";
+import { Code, Folder, Pin, Star } from "lucide-react";
 
 import type { DashboardStats as DashboardStatsData } from "@/lib/db/items";
 
@@ -14,7 +14,7 @@ export const DashboardStats = ({ data }: DashboardStatsProps) => {
       label: "Items",
       value: data.itemCount,
       helper: "Across your dashboard library",
-      icon: File,
+      icon: Code,
     },
     {
       label: "Collections",
@@ -37,7 +37,7 @@ export const DashboardStats = ({ data }: DashboardStatsProps) => {
   ] as const;
 
   return (
-    <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
       {stats.map((stat) => (
         <DashboardStatCard key={stat.label} {...stat} />
       ))}

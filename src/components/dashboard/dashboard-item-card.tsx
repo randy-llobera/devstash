@@ -31,12 +31,16 @@ export const DashboardItemCard = ({
       className={
         isItemsVariant
           ? "h-full overflow-hidden border-border/60 bg-card/55 shadow-sm shadow-black/10 transition-colors hover:border-foreground/15 hover:bg-card/75"
-          : "h-full border-border/70 bg-background/50 transition-colors hover:border-primary/40 hover:bg-muted/40"
+          : "h-full border-border/70 bg-background/35 transition-colors hover:border-primary/40 hover:bg-muted/30"
       }
       style={{ borderLeftColor: item.itemType.color, borderLeftWidth: "4px" }}
     >
       <CardContent
-        className={isItemsVariant ? "flex h-full items-start gap-4 px-5 py-5" : "flex h-full items-start gap-3"}
+        className={
+          isItemsVariant
+            ? "flex h-full items-start gap-4 px-5 py-5"
+            : "flex h-full items-start gap-3 px-4 py-4"
+        }
       >
         <button
           type="button"
@@ -68,7 +72,7 @@ export const DashboardItemCard = ({
                   ) : null}
                 </div>
 
-                <p className={isItemsVariant ? "mt-1.5 line-clamp-2 text-sm text-muted-foreground" : "mt-1 text-sm text-muted-foreground"}>
+                <p className={isItemsVariant ? "mt-1.5 line-clamp-2 text-sm text-muted-foreground" : "mt-1 line-clamp-2 text-sm text-muted-foreground"}>
                   {item.description}
                 </p>
               </div>
@@ -97,30 +101,30 @@ export const DashboardItemCard = ({
               </div>
             ) : (
               <>
-                <div className="mt-4 flex flex-wrap items-center gap-2">
+                <div className="mt-3 flex flex-wrap items-center gap-1.5">
                   {item.collection ? (
-                    <Badge variant="outline" className="rounded-full px-2.5 py-1">
+                    <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[11px]">
                       {item.collection.name}
                     </Badge>
                   ) : null}
-                  <Badge variant="outline" className="rounded-full px-2.5 py-1">
+                  <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[11px]">
                     {item.itemType.name}
                   </Badge>
                   <Badge
                     variant="outline"
-                    className="rounded-full px-2.5 py-1 text-muted-foreground"
+                    className="rounded-full px-2 py-0.5 text-[11px] text-muted-foreground"
                   >
                     Updated {formatUpdatedAt(item.updatedAt)}
                   </Badge>
                 </div>
 
                 {item.tags.length > 0 ? (
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="mt-2 flex flex-wrap gap-1.5">
                     {item.tags.slice(0, 3).map((tag) => (
                       <Badge
                         key={tag}
                         variant="outline"
-                        className="rounded-full px-2.5 py-1 text-muted-foreground"
+                        className="rounded-full px-2 py-0.5 text-[11px] text-muted-foreground"
                       >
                         #{tag}
                       </Badge>

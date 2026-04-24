@@ -25,6 +25,7 @@ interface DashboardShellProps {
   itemTypes: SidebarItemType[];
   favoriteCollections: SidebarCollection[];
   recentCollections: SidebarCollection[];
+  contentClassName?: string;
   children: ReactNode;
 }
 
@@ -34,6 +35,7 @@ export const DashboardShell = ({
   itemTypes,
   favoriteCollections,
   recentCollections,
+  contentClassName,
   children,
 }: DashboardShellProps) => {
   const pathname = usePathname();
@@ -119,7 +121,12 @@ export const DashboardShell = ({
                 />
 
                 <section className='min-h-0 flex-1 overflow-y-auto p-6 sm:p-8'>
-                  <div className='mx-auto flex w-full max-w-7xl flex-col gap-8'>
+                  <div
+                    className={cn(
+                      'mx-auto flex w-full max-w-7xl flex-col gap-8',
+                      contentClassName,
+                    )}
+                  >
                     {children}
                   </div>
                 </section>

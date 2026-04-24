@@ -3,10 +3,7 @@ import type { DashboardItem } from "@/lib/db/items";
 import { DashboardPinnedItemCard } from "@/components/dashboard/dashboard-pinned-item-card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Card,
-  CardContent,
   CardDescription,
-  CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 
@@ -20,11 +17,11 @@ export const DashboardPinnedItems = ({ items }: DashboardPinnedItemsProps) => {
   }
 
   return (
-    <Card className="border-border/70 bg-card/70 shadow-sm shadow-black/5">
-      <CardHeader className="flex flex-row items-start justify-between gap-3">
-        <div>
-          <CardTitle className="text-xl font-semibold tracking-tight">
-            Pinned Items
+    <section className="space-y-5">
+      <div className="flex flex-row items-start justify-between gap-3">
+        <div className="space-y-1">
+          <CardTitle className="text-2xl font-semibold tracking-tight">
+            Pinned
           </CardTitle>
           <CardDescription>
             Keep your most important references one click away.
@@ -33,12 +30,12 @@ export const DashboardPinnedItems = ({ items }: DashboardPinnedItemsProps) => {
         <Badge variant="outline" className="rounded-full px-3 py-1">
           {items.length} pinned
         </Badge>
-      </CardHeader>
-      <CardContent className="space-y-3">
+      </div>
+      <div className="space-y-2.5">
         {items.map((item) => (
           <DashboardPinnedItemCard key={item.id} item={item} />
         ))}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 };

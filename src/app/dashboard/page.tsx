@@ -39,28 +39,30 @@ const DashboardPage = async () => {
   ]);
 
   return (
-      <DashboardShell
-        user={user}
-        collections={collections}
-        itemTypes={itemTypes}
-        favoriteCollections={sidebarCollections.favoriteCollections}
-        recentCollections={sidebarCollections.recentCollections}
-      >
-      <div className="space-y-1">
-        <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">
-          Your developer knowledge hub
-        </p>
-      </div>
+    <DashboardShell
+      user={user}
+      collections={collections}
+      itemTypes={itemTypes}
+      favoriteCollections={sidebarCollections.favoriteCollections}
+      recentCollections={sidebarCollections.recentCollections}
+      contentClassName="max-w-none"
+    >
+      <div className="mx-auto flex w-full flex-col gap-10 xl:w-[80%]">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">
+            Your developer knowledge hub
+          </p>
+        </div>
 
-      <DashboardStats data={stats} />
-
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(300px,0.9fr)]">
+        <DashboardStats data={stats} />
         <DashboardCollections collections={recentCollections} />
-        <DashboardPinnedItems items={pinnedItems} />
-      </div>
 
-      <DashboardRecentItems items={recentItems} />
+        <div className="space-y-10">
+          <DashboardPinnedItems items={pinnedItems} />
+          <DashboardRecentItems items={recentItems} />
+        </div>
+      </div>
     </DashboardShell>
   );
 };

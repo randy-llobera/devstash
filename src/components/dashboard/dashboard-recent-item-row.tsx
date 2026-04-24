@@ -18,7 +18,7 @@ export const DashboardRecentItemRow = ({ item }: DashboardRecentItemRowProps) =>
   const { openItem } = useItemDrawer();
 
   return (
-    <div className="grid w-full px-5 py-4 text-left transition-colors hover:bg-muted/30 md:grid-cols-[minmax(0,1.6fr)_minmax(0,0.8fr)_auto] md:items-center">
+    <div className="grid w-full px-4 py-3.5 text-left transition-colors hover:bg-muted/25 md:grid-cols-[minmax(0,1.5fr)_minmax(0,0.8fr)_auto] md:items-center">
       <div className="flex min-w-0 items-start gap-3">
         <button
           type="button"
@@ -37,18 +37,9 @@ export const DashboardRecentItemRow = ({ item }: DashboardRecentItemRowProps) =>
 
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold">{item.title}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {item.tags.slice(0, 3).map((tag) => (
-                <Badge
-                  key={tag}
-                  variant="outline"
-                  className="rounded-full px-2.5 py-1 text-muted-foreground"
-                >
-                  #{tag}
-                </Badge>
-              ))}
-            </div>
+            <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+              {item.description}
+            </p>
           </div>
         </button>
 
@@ -64,11 +55,11 @@ export const DashboardRecentItemRow = ({ item }: DashboardRecentItemRowProps) =>
 
       <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground md:mt-0">
         {item.collection ? (
-          <Badge variant="outline" className="rounded-full px-2.5 py-1">
+          <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[11px]">
             {item.collection.name}
           </Badge>
         ) : null}
-        <Badge variant="outline" className="rounded-full px-2.5 py-1">
+        <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[11px]">
           {item.itemType.name}
         </Badge>
       </div>

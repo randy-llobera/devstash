@@ -37,17 +37,20 @@ export const DashboardCollectionCard = ({
         className="absolute inset-0 z-10 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
       />
       <Card
-        className={cn("border border-border/70 border-l-4 bg-background/50 transition-colors hover:border-primary/40 hover:bg-muted/40")}
+        size="sm"
+        className={cn(
+          "border border-border/70 border-l-4 bg-background/40 transition-colors hover:border-primary/40 hover:bg-muted/30"
+        )}
         style={
           collection.dominantTypeColor
             ? { borderLeftColor: collection.dominantTypeColor }
             : undefined
         }
       >
-        <CardHeader>
+        <CardHeader className="gap-3">
           <div className="flex items-start justify-between gap-3">
-            <div className="space-y-3">
-              <Badge variant="outline" className="rounded-full px-3 py-1 text-xs">
+            <div className="space-y-2">
+              <Badge variant="outline" className="rounded-full px-2.5 py-0.5 text-[11px]">
                 <Folder className="size-3.5" />
                 {collection.itemCount} items
               </Badge>
@@ -55,7 +58,7 @@ export const DashboardCollectionCard = ({
                 <CardTitle className="text-base font-semibold">
                   {collection.name}
                 </CardTitle>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
                   {collection.description}
                 </p>
               </div>
@@ -70,8 +73,8 @@ export const DashboardCollectionCard = ({
         </CardHeader>
 
         <CardContent>
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
               <span>{collection.typeCount} types</span>
               <span>{dominantTypeText}</span>
             </div>
@@ -83,10 +86,10 @@ export const DashboardCollectionCard = ({
                   <span
                     key={itemType.id}
                     title={itemType.name}
-                    className="inline-flex size-8 items-center justify-center rounded-full border border-border/70 bg-muted/40"
+                    className="inline-flex size-7 items-center justify-center rounded-full border border-border/70 bg-muted/35"
                   >
                     <Icon
-                      className="size-3.5"
+                      className="size-3"
                       style={itemType.color ? { color: itemType.color } : undefined}
                     />
                   </span>
@@ -96,7 +99,7 @@ export const DashboardCollectionCard = ({
           </div>
         </CardContent>
 
-        <CardFooter className="justify-between border-t-0 bg-transparent pt-0 text-sm text-muted-foreground">
+        <CardFooter className="justify-between border-t-0 bg-transparent pt-0 text-xs text-muted-foreground">
           <span>Updated {formatUpdatedAt(collection.updatedAt)}</span>
           <span className="inline-flex items-center gap-1 font-medium text-foreground transition-colors group-hover:text-primary">
             Open
