@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { signOut as clientSignOut } from "next-auth/react";
 import {
   ChevronDown,
@@ -53,9 +54,18 @@ export const Sidebar = ({
   onNavigate,
   onToggleCollapsed,
 }: SidebarProps) => {
+  const pathname = usePathname();
   const [isCollectionsOpen, setIsCollectionsOpen] = useState(true);
   const collectionsSectionId = mobile ? "sidebar-collections-mobile" : "sidebar-collections";
   const displayName = user?.name?.trim() || "User";
+  const getNavLinkClassName = (isActive: boolean, compact = false) =>
+    cn(
+      "flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors",
+      isActive
+        ? "bg-primary/12 text-foreground shadow-sm shadow-black/5"
+        : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
+      compact && "justify-center px-2"
+    );
 
   const handleSignOut = async () => {
     onNavigate?.();
@@ -76,7 +86,7 @@ export const Sidebar = ({
             <button
               type="button"
               onClick={onToggleCollapsed}
-              className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
+              className="inline-flex size-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
               aria-label="Expand sidebar"
             >
               <PanelLeftOpen className="size-4" />
@@ -91,7 +101,7 @@ export const Sidebar = ({
               <button
                 type="button"
                 onClick={onToggleCollapsed}
-                className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
+                className="inline-flex size-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
                 aria-label="Collapse sidebar"
               >
                 <PanelLeftClose className="size-4" />
@@ -113,6 +123,7 @@ export const Sidebar = ({
               const Icon = getItemTypeIcon(itemType.icon);
               const showProBadge = isProOnlyItemRoute(itemType.slug);
               const href = getItemTypeHref(itemType.slug);
+              const isActive = pathname === href;
 
               return (
                 <Link
@@ -120,10 +131,8 @@ export const Sidebar = ({
                   href={href}
                   onClick={onNavigate}
                   title={itemType.name}
-                  className={cn(
-                    "flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground",
-                    collapsed && !mobile && "justify-center px-2"
-                  )}
+                  aria-current={isActive ? "page" : undefined}
+                  className={getNavLinkClassName(isActive, collapsed && !mobile)}
                 >
                   <Icon
                     className="size-4 shrink-0"
@@ -177,19 +186,24 @@ export const Sidebar = ({
                     Favorites
                   </div>
                   <div className="space-y-1">
-                    {favoriteCollections.map((collection) => (
+                    {favoriteCollections.map((collection) => {
+                      const href = `/collections/${collection.id}`;
+
+                      return (
                       <Link
                         key={collection.id}
-                        href={`/collections/${collection.id}`}
+                        href={href}
                         onClick={onNavigate}
                         title={collection.name}
-                        className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors hover:bg-muted/70"
+                        aria-current={pathname === href ? "page" : undefined}
+                        className={getNavLinkClassName(pathname === href)}
                       >
                         <Folder className="size-4 shrink-0 text-muted-foreground" />
                         <span className="min-w-0 flex-1 truncate">{collection.name}</span>
                         <Star className="size-3.5 fill-current text-yellow-400" />
                       </Link>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -198,13 +212,17 @@ export const Sidebar = ({
                     Recent
                   </div>
                   <div className="space-y-1">
-                    {recentCollections.map((collection) => (
+                    {recentCollections.map((collection) => {
+                      const href = `/collections/${collection.id}`;
+
+                      return (
                       <Link
                         key={collection.id}
-                        href={`/collections/${collection.id}`}
+                        href={href}
                         onClick={onNavigate}
                         title={collection.name}
-                        className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
+                        aria-current={pathname === href ? "page" : undefined}
+                        className={getNavLinkClassName(pathname === href)}
                       >
                         <span
                           className="size-2.5 shrink-0 rounded-full"
@@ -219,14 +237,21 @@ export const Sidebar = ({
                           {collection.itemCount}
                         </span>
                       </Link>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 
                 <Link
                   href="/collections"
                   onClick={onNavigate}
-                  className="inline-flex items-center px-3 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+                  aria-current={pathname === "/collections" ? "page" : undefined}
+                  className={cn(
+                    "inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    pathname === "/collections"
+                      ? "bg-primary/12 text-foreground"
+                      : "text-primary hover:text-primary/80"
+                  )}
                 >
                   View all collections
                 </Link>
@@ -265,14 +290,28 @@ export const Sidebar = ({
             side="top"
             className="w-56"
           >
-            <DropdownMenuItem asChild>
-              <Link href="/profile" onClick={onNavigate}>
+            <DropdownMenuItem
+              asChild
+              className={cn(pathname === "/profile" && "bg-muted text-foreground")}
+            >
+              <Link
+                href="/profile"
+                onClick={onNavigate}
+                aria-current={pathname === "/profile" ? "page" : undefined}
+              >
                 <User className="size-4 shrink-0" />
                 <span>Profile</span>
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/settings" onClick={onNavigate}>
+            <DropdownMenuItem
+              asChild
+              className={cn(pathname === "/settings" && "bg-muted text-foreground")}
+            >
+              <Link
+                href="/settings"
+                onClick={onNavigate}
+                aria-current={pathname === "/settings" ? "page" : undefined}
+              >
                 <Settings className="size-4 shrink-0" />
                 <span>Settings</span>
               </Link>

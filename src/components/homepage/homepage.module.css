@@ -24,13 +24,8 @@
   background: var(--bg);
   color: var(--text);
   font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    "Helvetica Neue",
-    Arial,
-    sans-serif;
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
   line-height: 1.6;
   overflow-x: hidden;
 }
@@ -40,10 +35,18 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  content: "";
+  content: '';
   background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.05), transparent 30%),
-    radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.1), transparent 25%);
+    radial-gradient(
+      circle at top left,
+      rgba(255, 255, 255, 0.05),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      rgba(59, 130, 246, 0.1),
+      transparent 25%
+    );
 }
 
 .page a {
@@ -65,7 +68,9 @@
   background: rgba(10, 10, 15, 0.6);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid transparent;
-  transition: background 0.3s, border-color 0.3s;
+  transition:
+    background 0.3s,
+    border-color 0.3s;
 }
 
 .scrolled {
@@ -122,11 +127,15 @@
 
 .mobileMenuBtn {
   display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
   background: none;
   border: none;
   color: var(--text);
   cursor: pointer;
-  padding: 4px;
+  padding: 0;
 }
 
 .mobileMenu {
@@ -252,7 +261,7 @@
 
 .chaosBox,
 .dashboardBox {
-  flex: 1 1 440px;
+  flex: 1 1 400px;
   position: relative;
 }
 
@@ -490,7 +499,9 @@
   border-radius: var(--radius);
   padding: 32px 24px;
   text-align: left;
-  transition: border-color 0.3s, transform 0.3s;
+  transition:
+    border-color 0.3s,
+    transform 0.3s;
 }
 
 .featureCard:hover {
@@ -619,12 +630,12 @@
 .codeLang {
   font-size: 0.75rem;
   color: var(--text-dim);
-  font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
 }
 
 .codeBody {
   padding: 16px 0;
-  font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
   font-size: 0.82rem;
   line-height: 1.7;
 }
@@ -697,7 +708,7 @@
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 0.78rem;
-  font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
 }
 
 .pricing {
@@ -758,7 +769,9 @@
   height: 20px;
   border-radius: 50%;
   background: var(--text-muted);
-  transition: transform 0.2s, background 0.2s;
+  transition:
+    transform 0.2s,
+    background 0.2s;
 }
 
 .toggleSwitchYearly .toggleKnob {
@@ -781,7 +794,9 @@
   padding: 40px 32px;
   text-align: left;
   position: relative;
-  transition: border-color 0.3s, transform 0.3s;
+  transition:
+    border-color 0.3s,
+    transform 0.3s;
 }
 
 .pricingCard:hover {
@@ -790,7 +805,11 @@
 
 .pricingCardPro {
   border-color: var(--snippet);
-  background: linear-gradient(180deg, rgba(59, 130, 246, 0.06) 0%, var(--bg-card) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(59, 130, 246, 0.06) 0%,
+    var(--bg-card) 100%
+  );
 }
 
 .popularBadge {
@@ -948,16 +967,22 @@
   }
 
   .mobileMenuBtn {
-    display: block;
+    display: flex;
   }
 
   .hero {
-    padding: 100px 20px 60px;
+    min-height: auto;
+    justify-content: flex-start;
+    padding: 92px 20px 40px;
+  }
+
+  .heroText {
+    margin-bottom: 20px;
   }
 
   .heroVisual {
     flex-direction: column;
-    gap: 24px;
+    gap: 12px;
   }
 
   .chaosBox,
@@ -967,11 +992,17 @@
 
   .chaosContainer,
   .dashboardPreview {
-    height: 240px;
+    height: 188px;
+  }
+
+  .chaosLabel,
+  .dashboardLabel {
+    margin-bottom: 6px;
   }
 
   .transformArrow {
     transform: rotate(90deg);
+    margin: -10px 0;
   }
 
   @keyframes pulse-arrow {
@@ -994,30 +1025,116 @@
   }
 
   .aiGrid {
-    gap: 40px;
+    gap: 24px;
   }
 
   .footerGrid {
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px 16px;
   }
 
   .footerBrand {
     grid-column: 1 / -1;
   }
+
+  .features {
+    padding: 72px 0;
+  }
+
+  .featuresSubtitle {
+    margin: 0 auto 32px;
+  }
+
+  .featureCard {
+    padding: 24px 20px;
+  }
+
+  .aiSection {
+    padding: 72px 0;
+  }
+
+  .pricing {
+    padding: 72px 0;
+  }
+
+  .pricingSubtitle {
+    margin: 0 auto 24px;
+  }
+
+  .pricingToggle {
+    margin-bottom: 32px;
+  }
+
+  .ctaSection {
+    padding: 72px 0;
+  }
+
+  .footer {
+    padding: 48px 0 24px;
+  }
+
+  .footerGrid {
+    margin-bottom: 32px;
+  }
 }
 
 @media (max-width: 480px) {
+  .hero {
+    padding: 88px 16px 32px;
+  }
+
+  .heroText {
+    margin-bottom: 16px;
+  }
+
   .heroTitle {
     font-size: 1.8rem;
+    margin-bottom: 14px;
   }
 
   .heroSubtitle {
     font-size: 1rem;
+    margin: 0 auto 20px;
+  }
+
+  .heroCtas {
+    gap: 12px;
+  }
+
+  .chaosContainer,
+  .dashboardPreview {
+    height: 160px;
+  }
+
+  .sectionInner,
+  .navInner,
+  .footerInner {
+    padding: 0 16px;
   }
 
   .sectionTitle {
-    font-size: 1.6rem;
+    margin-bottom: 10px;
+  }
+
+  .sectionSubtitle {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .features {
+    padding: 56px 0;
+  }
+
+  .featureCard {
+    padding: 20px 18px;
+  }
+
+  .aiSection {
+    padding: 56px 0;
+  }
+
+  .pricing {
+    padding: 56px 0;
   }
 
   .priceAmount {
@@ -1025,10 +1142,41 @@
   }
 
   .pricingCard {
-    padding: 32px 24px;
+    padding: 28px 20px;
+  }
+
+  .ctaSection {
+    padding: 56px 0;
+  }
+
+  .footer {
+    padding: 40px 0 24px;
   }
 
   .footerGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px 12px;
+  }
+
+  .footerBrand {
+    grid-column: 1 / -1;
+  }
+
+  .footerBrand p {
+    max-width: none;
+    font-size: 0.85rem;
+  }
+
+  .footerCol {
+    gap: 8px;
+  }
+
+  .footerCol h4 {
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+  }
+
+  .footerCol a {
+    font-size: 0.8rem;
   }
 }

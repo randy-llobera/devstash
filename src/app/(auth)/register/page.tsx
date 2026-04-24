@@ -21,8 +21,8 @@ const RegisterPage = () => {
               </h1>
               <p className="max-w-lg text-base leading-7 text-muted-foreground">
                 {emailVerificationEnabled
-                  ? "Start with email and password, then verify your address before signing in."
-                  : "Start with email and password, then keep GitHub sign-in available for later sessions."}
+                  ? "Use GitHub right away or create an account with email and verify your address before signing in."
+                  : "Use GitHub right away or create an account with email and password."}
               </p>
             </div>
           </section>
@@ -32,8 +32,8 @@ const RegisterPage = () => {
               <CardTitle className="text-2xl">Register</CardTitle>
               <p className="text-sm text-muted-foreground">
                 {emailVerificationEnabled
-                  ? "Set up your account and check your email for the verification link."
-                  : "Set up your account and continue to sign in."}
+                  ? "Use GitHub or set up your account and check your email for the verification link."
+                  : "Use GitHub or set up your account with email and password."}
               </p>
             </CardHeader>
             <CardContent className="space-y-5 py-6">

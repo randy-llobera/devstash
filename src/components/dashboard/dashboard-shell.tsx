@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import type { CollectionOption, SidebarCollection } from '@/lib/db/collections';
 import type { DashboardUser } from '@/lib/db/dashboard-user';
@@ -35,9 +36,44 @@ export const DashboardShell = ({
   recentCollections,
   children,
 }: DashboardShellProps) => {
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isCreateCollectionDialogOpen, setIsCreateCollectionDialogOpen] = useState(false);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isCreateItemDialogOpen, setIsCreateItemDialogOpen] = useState(false);
+  const shouldOpenCreateCollection = searchParams.get('createCollection') === '1';
+  const shouldOpenCreateItem = searchParams.get('createItem') === '1';
+
+  const clearDialogParam = (param: 'createCollection' | 'createItem') => {
+    if (!searchParams.has(param)) {
+      return;
+    }
+
+    const nextParams = new URLSearchParams(searchParams.toString());
+    nextParams.delete(param);
+    const nextSearch = nextParams.toString();
+
+    router.replace(nextSearch ? `${pathname}?${nextSearch}` : pathname, {
+      scroll: false,
+    });
+  };
+
+  const handleCreateCollectionOpenChange = (open: boolean) => {
+    setIsCreateCollectionDialogOpen(open);
+
+    if (!open) {
+      clearDialogParam('createCollection');
+    }
+  };
+
+  const handleCreateItemOpenChange = (open: boolean) => {
+    setIsCreateItemDialogOpen(open);
+
+    if (!open) {
+      clearDialogParam('createItem');
+    }
+  };
 
   return (
     <SearchProvider>
@@ -50,7 +86,7 @@ export const DashboardShell = ({
               <TopBar
                 isPro={Boolean(user?.isPro)}
                 onCreateCollection={() => setIsCreateCollectionDialogOpen(true)}
-                onCreateItem={() => setIsCreateDialogOpen(true)}
+                onCreateItem={() => setIsCreateItemDialogOpen(true)}
                 mobileSidebar={
                   <MobileSidebarTrigger
                     user={user}
@@ -91,15 +127,15 @@ export const DashboardShell = ({
             </div>
           </main>
           <CreateCollectionDialog
-            onOpenChange={setIsCreateCollectionDialogOpen}
-            open={isCreateCollectionDialogOpen}
+            onOpenChange={handleCreateCollectionOpenChange}
+            open={isCreateCollectionDialogOpen || shouldOpenCreateCollection}
           />
           <CreateItemDialog
             collections={collections}
             itemTypes={itemTypes}
             isPro={Boolean(user?.isPro)}
-            onOpenChange={setIsCreateDialogOpen}
-            open={isCreateDialogOpen}
+            onOpenChange={handleCreateItemOpenChange}
+            open={isCreateItemDialogOpen || shouldOpenCreateItem}
           />
         </ItemDrawerProvider>
       </EditorPreferencesProvider>

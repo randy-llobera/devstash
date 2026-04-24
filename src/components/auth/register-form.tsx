@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, LockKeyhole, Mail, User } from "lucide-react";
+import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,12 @@ export const RegisterForm = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  const handleGithubSignIn = async () => {
+    setIsSubmitting(true);
+    setError("");
+    await signIn("github", { callbackUrl: "/dashboard" });
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -90,6 +97,23 @@ export const RegisterForm = () => {
           {error}
         </div>
       ) : null}
+
+      <Button
+        type="button"
+        variant="outline"
+        size="lg"
+        className="w-full justify-center"
+        onClick={handleGithubSignIn}
+        disabled={isSubmitting}
+      >
+        Sign in with GitHub
+      </Button>
+
+      <div className="flex items-center gap-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+        <div className="h-px flex-1 bg-border/70" />
+        <span>Or</span>
+        <div className="h-px flex-1 bg-border/70" />
+      </div>
 
       <form className="space-y-4" onSubmit={handleSubmit}>
         <div className="space-y-2">

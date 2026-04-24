@@ -36,7 +36,13 @@ export const MobileSidebarTrigger = ({
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button type="button" variant="ghost" size="icon" aria-label="Open sidebar">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="size-11"
+          aria-label="Open sidebar"
+        >
           <Menu className="size-4" />
         </Button>
       </SheetTrigger>

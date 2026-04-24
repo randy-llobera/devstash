@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import {
   getAllDashboardCollections,
   getAvailableCollections,
@@ -8,6 +10,7 @@ import { getSidebarItemTypes } from "@/lib/db/items";
 
 import { DashboardCollectionCard } from "@/components/dashboard/dashboard-collection-card";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { Button } from "@/components/ui/button";
 
 const CollectionsPage = async () => {
   const [user, itemTypes, sidebarCollections, collections, allCollections] =
@@ -50,6 +53,9 @@ const CollectionsPage = async () => {
             <p className="mt-2 text-sm text-muted-foreground">
               Create your first collection to start organizing items.
             </p>
+            <Button asChild className="mt-5">
+              <Link href="/collections?createCollection=1">Create collection</Link>
+            </Button>
           </div>
         )}
       </div>
