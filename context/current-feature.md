@@ -1,25 +1,16 @@
-# Current Feature: New Item Dialog Redesign
+# Current Feature
 
 ## Status
 
-In Progress
+Complete
 
 ## Goals
 
-- Replace item type tiles in the New Item dialog with a dropdown while preserving existing type metadata, icons, Pro gating, and conditional field behavior.
-- Normalize field spacing so `Type`, `Title`, and `Language` align with the cleaner spacing already used by `Description` and `Tags`.
-- Restyle `Language` and `Collections` controls to share the new dropdown visual treatment while preserving collection search, multi-select, summaries, and validation behavior.
-- Remove the `Content` heading while keeping current conditional content rendering for snippet, command, prompt, note, file, image, and link flows.
-- Standardize the shared Monaco editor on `vs-dark` across create, edit, and read-only surfaces while preserving current editor behavior.
-- Reduce editor theme preference support to `vs-dark`, normalize legacy stored theme values, remove the theme picker, and update related tests.
+<!-- Add goals here -->
 
 ## Notes
 
-- Spec: `context/features/new-item-dialog-redesign.md`
-- Design reference: `[Image #1]`
-- Expected files during implementation: `src/components/dashboard/create-item-dialog.tsx`, `src/components/dashboard/collection-picker.tsx`, `src/components/ui/code-editor.tsx`, `src/lib/editor-preferences.ts`, `src/components/settings/editor-preferences-settings.tsx`, `src/lib/editor-preferences.test.ts`, `src/actions/editor-preferences.test.ts`
-- Constraints: do not change item creation payloads, server action signatures, item-type availability rules, Collections behavior beyond styling, or replace Monaco.
-- Verification: run `npm run lint` and `npm run build`; manually verify the New Item dialog, Language and Collections styling, removed `Content` heading, Monaco dark theme in create/edit/read-only views, and collection search plus multi-select.
+<!-- Add notes here -->
 
 ## History
 
@@ -88,3 +79,4 @@ In Progress
 - Homepage whitespace follow-up completed with a denser mobile/tablet hero that preserves the chaos-to-order story, tighter desktop section spacing, a wider pricing layout, a more substantial CTA section, and mobile hero polish for button width and before/after spacing
 - Dashboard layout polish completed with a centered boxed dashboard canvas, lighter collections and pinned/recent section framing, denser recent-item previews capped at 6, compact color-coded stats, homepage-aligned folder branding in the top bar, and a mobile action row with icon-only search, upgrade, favorites, and create-menu controls
 - App page boxed layout completed with shared `AppPageShell` and `AppPageHeader` layout components, boxed main-section width aligned across all `DashboardShell` routes, the richer collection detail header preserved inside the shared shell, and upgrade header duplication removed
+- New Item Dialog Redesign completed with dropdown-based item type, language, and collection controls, aligned create-dialog field spacing, neutral dark Monaco and markdown editor styling, simplified single-theme editor preferences using `vs-dark`, and updated preference tests
