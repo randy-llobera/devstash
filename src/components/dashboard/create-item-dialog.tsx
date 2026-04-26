@@ -1,17 +1,38 @@
 'use client';
 
-import { createElement, useMemo, useState, useTransition, type FormEvent } from 'react';
+import {
+  createElement,
+  useMemo,
+  useState,
+  useTransition,
+  type FormEvent,
+} from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ChevronsUpDown } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { createItem, type CreateItemActionError } from '@/actions/items';
 import type { CollectionOption } from '@/lib/db/collections';
-import { isFileUploadItemType, type FileUploadItemType } from '@/lib/file-upload';
-import { ItemFormType, ITEM_FORM_TYPES, isContentItemType, isFileItemType, isLanguageItemType, parseItemTagsInput, isUrlItemType } from '@/lib/item-form';
+import {
+  isFileUploadItemType,
+  type FileUploadItemType,
+} from '@/lib/file-upload';
+import {
+  ItemFormType,
+  ITEM_FORM_TYPES,
+  isContentItemType,
+  isFileItemType,
+  isLanguageItemType,
+  parseItemTagsInput,
+  isUrlItemType,
+} from '@/lib/item-form';
 import { getItemTypeHref } from '@/lib/items-navigation';
 import type { SidebarItemType } from '@/lib/db/items';
-import { getCodeEditorLanguageOptions, isCodeEditorItemType } from '@/lib/code-editor';
+import {
+  getCodeEditorLanguageOptions,
+  isCodeEditorItemType,
+} from '@/lib/code-editor';
 import { isMarkdownEditorItemType } from '@/lib/markdown-editor';
 
 import { cn } from '@/lib/utils';
@@ -31,6 +52,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { MarkdownEditor } from '@/components/ui/markdown-editor';
 import { Textarea } from '@/components/ui/textarea';
@@ -112,6 +140,10 @@ const FieldErrorText = ({ errors }: { errors?: string[] }) => {
   return <p className='text-sm text-destructive'>{errors[0]}</p>;
 };
 
+const dropdownTriggerClassName =
+  'h-10 justify-between rounded-xl border-border/80 bg-[#121212] px-3 text-sm font-medium text-foreground shadow-none hover:bg-[#171717]';
+const LANGUAGE_DEFAULT_VALUE = '__default';
+
 interface TypeOption {
   disabled?: boolean;
   color?: string;
@@ -151,7 +183,11 @@ const uploadSelectedFile = (
         return;
       }
 
-      reject(new Error((response as { error?: string }).error ?? 'Unable to upload file.'));
+      reject(
+        new Error(
+          (response as { error?: string }).error ?? 'Unable to upload file.',
+        ),
+      );
     });
     request.addEventListener('error', () => {
       reject(new Error('Unable to upload file.'));
@@ -183,78 +219,167 @@ const CreateItemTypePicker = ({
   isPro,
   onTypeChange,
   typeOptions,
-}: CreateItemTypePickerProps) => (
-  <div className='space-y-3'>
-    <div className='space-y-1'>
-      <label className='text-sm font-medium' htmlFor='item-type-selector'>
+}: CreateItemTypePickerProps) => {
+  const selectedOption =
+    typeOptions.find((option) => option.value === formState.itemType) ??
+    typeOptions[0]!;
+
+  return (
+    <div className='space-y-3'>
+      <label className='block text-sm font-medium' htmlFor='item-type-selector'>
         Type
       </label>
-      <p className='text-sm text-muted-foreground'>
-        Pick the item type first. The form adjusts to match it.
-      </p>
-    </div>
-
-    <div
-      id='item-type-selector'
-      className='grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7'
-      role='radiogroup'
-      aria-label='Item type'
-    >
-      {typeOptions.map((option) => {
-        const isActive = formState.itemType === option.value;
-
-        return (
-          <button
-            key={option.value}
-            type='button'
-            role='radio'
-            aria-checked={isActive}
-            disabled={option.disabled}
-            className={cn(
-              'flex min-h-24 flex-col items-start justify-between rounded-2xl border px-4 py-3 text-left transition-colors',
-              isActive
-                ? 'border-foreground/30 bg-muted/60 text-foreground'
-                : 'border-border/70 bg-background hover:bg-muted/40',
-              option.disabled && 'cursor-not-allowed opacity-50 hover:bg-background',
-            )}
-            onClick={() => onTypeChange(option.value)}
-          >
-            <span
-              className='rounded-xl border border-border/70 bg-background/80 p-2 text-muted-foreground'
-              style={option.color ? { color: option.color } : undefined}
+      <div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              id='item-type-selector'
+              type='button'
+              variant='outline'
+              className={cn(dropdownTriggerClassName, 'w-fit min-w-44 gap-3')}
+              aria-invalid={fieldErrors.itemType ? 'true' : 'false'}
             >
-              {createElement(getItemTypeIcon(option.icon), {
-                className: 'size-4',
-              })}
-            </span>
-            <div className='flex items-center gap-2'>
-              <span className='text-sm font-medium'>{option.label}</span>
-              {option.disabled ? (
-                <span className='text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground'>
-                  Pro
+              <span className='flex min-w-0 items-center gap-3'>
+                <span
+                  className='text-primary'
+                  style={
+                    selectedOption.color
+                      ? { color: selectedOption.color }
+                      : undefined
+                  }
+                >
+                  {createElement(getItemTypeIcon(selectedOption.icon), {
+                    className: 'size-4',
+                  })}
                 </span>
-              ) : null}
-            </div>
-          </button>
-        );
-      })}
+                <span className='truncate'>{selectedOption.label}</span>
+              </span>
+              <ChevronsUpDown className='size-4 shrink-0 text-muted-foreground' />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align='start' className='w-64'>
+            <DropdownMenuRadioGroup
+              value={formState.itemType}
+              onValueChange={(value) => onTypeChange(value as CreateItemType)}
+            >
+              {typeOptions.map((option) => (
+                <DropdownMenuRadioItem
+                  key={option.value}
+                  value={option.value}
+                  disabled={option.disabled}
+                  className='gap-3'
+                >
+                  <span
+                    className='text-primary'
+                    style={option.color ? { color: option.color } : undefined}
+                  >
+                    {createElement(getItemTypeIcon(option.icon), {
+                      className: 'size-4',
+                    })}
+                  </span>
+                  <span className='flex-1'>{option.label}</span>
+                  {option.disabled ? (
+                    <span className='text-[10px] font-semibold tracking-[0.16em] text-muted-foreground uppercase'>
+                      Pro
+                    </span>
+                  ) : null}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      {!isPro ? (
+        <p className='text-sm text-muted-foreground'>
+          File and image items require Pro. See the{' '}
+          <Link
+            href={getItemTypeHref('files')}
+            className='font-medium text-primary hover:text-primary/80'
+          >
+            Files
+          </Link>{' '}
+          and{' '}
+          <Link
+            href={getItemTypeHref('images')}
+            className='font-medium text-primary hover:text-primary/80'
+          >
+            Images
+          </Link>{' '}
+          pages to upgrade.
+        </p>
+      ) : null}
+      <FieldErrorText errors={fieldErrors.itemType} />
     </div>
-    {!isPro ? (
-      <p className='text-sm text-muted-foreground'>
-        File and image items require Pro. See the{' '}
-        <Link href={getItemTypeHref('files')} className='font-medium text-primary hover:text-primary/80'>
-          Files
-        </Link>{' '}
-        and{' '}
-        <Link href={getItemTypeHref('images')} className='font-medium text-primary hover:text-primary/80'>
-          Images
-        </Link>
-        {' '}pages to upgrade.
-      </p>
-    ) : null}
-    <FieldErrorText errors={fieldErrors.itemType} />
-  </div>
-);
+  );
+};
+
+interface LanguageDropdownProps {
+  defaultLabel: string;
+  errors?: string[];
+  id: string;
+  onChange: (value: string) => void;
+  options: { label: string; value: string }[];
+  value: string;
+}
+
+const LanguageDropdown = ({
+  defaultLabel,
+  errors,
+  id,
+  onChange,
+  options,
+  value,
+}: LanguageDropdownProps) => {
+  const selectedLabel =
+    value === ''
+      ? defaultLabel
+      : (options.find((option) => option.value === value)?.label ?? value);
+
+  return (
+    <div className='space-y-3'>
+      <label className='block text-sm font-medium' htmlFor={id}>
+        Language
+      </label>
+      <div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              id={id}
+              type='button'
+              variant='outline'
+              className={cn(dropdownTriggerClassName, 'w-fit min-w-40 gap-3')}
+              aria-invalid={errors ? 'true' : 'false'}
+            >
+              <span className='truncate'>{selectedLabel}</span>
+              <ChevronsUpDown className='size-4 shrink-0 text-muted-foreground' />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align='start'
+            className='max-h-72 w-56 overflow-y-auto'
+          >
+            <DropdownMenuRadioGroup
+              value={value || LANGUAGE_DEFAULT_VALUE}
+              onValueChange={(nextValue) =>
+                onChange(nextValue === LANGUAGE_DEFAULT_VALUE ? '' : nextValue)
+              }
+            >
+              <DropdownMenuRadioItem value={LANGUAGE_DEFAULT_VALUE}>
+                {defaultLabel}
+              </DropdownMenuRadioItem>
+              {options.map((option) => (
+                <DropdownMenuRadioItem key={option.value} value={option.value}>
+                  {option.label}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      <FieldErrorText errors={errors} />
+    </div>
+  );
+};
 
 interface CreateItemMainFieldsProps {
   fieldErrors: CreateItemFormErrors;
@@ -275,8 +400,8 @@ const CreateItemMainFields = ({
   onFieldChange,
 }: CreateItemMainFieldsProps) => (
   <>
-    <div className='space-y-2 sm:col-span-2'>
-      <label className='text-sm font-medium' htmlFor='create-item-title'>
+    <div className='space-y-3 sm:col-span-2'>
+      <label className='block text-sm font-medium' htmlFor='create-item-title'>
         Title
       </label>
       <Input
@@ -350,7 +475,7 @@ const CreateItemDynamicFields = ({
   return (
     <>
       {showsFileUpload ? (
-        <div className='space-y-2 sm:col-span-2'>
+        <div className='space-y-3 sm:col-span-2'>
           <FileUpload
             itemType={formState.itemType as FileUploadItemType}
             file={selectedFile}
@@ -362,34 +487,28 @@ const CreateItemDynamicFields = ({
         </div>
       ) : null}
 
+      {usesCodeEditor && showsLanguage ? (
+        <div className='space-y-3 sm:col-span-2'>
+          <LanguageDropdown
+            id='create-item-language'
+            value={formState.language}
+            defaultLabel={
+              formState.itemType === 'command'
+                ? 'Default (Shell)'
+                : 'Plain text'
+            }
+            options={languageOptions}
+            errors={fieldErrors.language}
+            onChange={(value) => onFieldChange('language', value)}
+          />
+        </div>
+      ) : null}
+
       {showsContent ? (
-        <div className='space-y-2 sm:col-span-2'>
-          <label className='text-sm font-medium' htmlFor='create-item-content'>
+        <div className='space-y-3 sm:col-span-2'>
+          <label className='block text-sm font-medium' htmlFor='create-item-content'>
             Content
           </label>
-          {usesCodeEditor && showsLanguage ? (
-            <div className='space-y-2'>
-              <label className='text-sm font-medium' htmlFor='create-item-language'>
-                Language
-              </label>
-              <select
-                id='create-item-language'
-                value={formState.language}
-                onChange={(event) => onFieldChange('language', event.target.value)}
-                className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-              >
-                <option value=''>
-                  {formState.itemType === 'command' ? 'Default (Shell)' : 'Plain text'}
-                </option>
-                {languageOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <FieldErrorText errors={fieldErrors.language} />
-            </div>
-          ) : null}
           {usesCodeEditor ? (
             <CodeEditor
               id='create-item-content'
@@ -430,8 +549,8 @@ const CreateItemDynamicFields = ({
       ) : null}
 
       {showsLanguage && !usesCodeEditor ? (
-        <div className='space-y-2'>
-          <label className='text-sm font-medium' htmlFor='create-item-language'>
+        <div className='space-y-3'>
+          <label className='block text-sm font-medium' htmlFor='create-item-language'>
             Language
           </label>
           <Input
@@ -445,8 +564,8 @@ const CreateItemDynamicFields = ({
       ) : null}
 
       {showsUrl ? (
-        <div className='space-y-2 sm:col-span-2'>
-          <label className='text-sm font-medium' htmlFor='create-item-url'>
+        <div className='space-y-3 sm:col-span-2'>
+          <label className='block text-sm font-medium' htmlFor='create-item-url'>
             URL
           </label>
           <Input
@@ -476,7 +595,12 @@ const CreateItemFooter = ({
   saveDisabled,
 }: CreateItemFooterProps) => (
   <div className='flex flex-col-reverse gap-3 border-t border-border/70 bg-muted/30 px-6 py-4 sm:flex-row sm:justify-end'>
-    <Button type='button' variant='outline' onClick={onCancel} disabled={isSubmitting}>
+    <Button
+      type='button'
+      variant='outline'
+      onClick={onCancel}
+      disabled={isSubmitting}
+    >
       Cancel
     </Button>
     <Button type='submit' disabled={saveDisabled}>
@@ -498,13 +622,16 @@ export const CreateItemDialog = ({
   const [isRefreshPending, startTransition] = useTransition();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<CreateItemFormErrors>({});
-  const [formState, setFormState] = useState<CreateItemFormState>(INITIAL_FORM_STATE);
+  const [formState, setFormState] =
+    useState<CreateItemFormState>(INITIAL_FORM_STATE);
   const [fileError, setFileError] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
 
   const typeOptions = useMemo(() => {
-    const itemTypesBySlug = new Map(itemTypes.map((itemType) => [itemType.slug, itemType]));
+    const itemTypesBySlug = new Map(
+      itemTypes.map((itemType) => [itemType.slug, itemType]),
+    );
 
     return ITEM_FORM_TYPES.map((itemType) => {
       const itemTypeMeta = itemTypesBySlug.get(TYPE_SLUGS[itemType]);
@@ -592,9 +719,17 @@ export const CreateItemDialog = ({
 
     let uploadedFile: UploadedFilePayload | null = null;
 
-    if (requiresFileUpload && selectedFile && isFileUploadItemType(formState.itemType)) {
+    if (
+      requiresFileUpload &&
+      selectedFile &&
+      isFileUploadItemType(formState.itemType)
+    ) {
       try {
-        uploadedFile = await uploadSelectedFile(selectedFile, formState.itemType, setUploadProgress);
+        uploadedFile = await uploadSelectedFile(
+          selectedFile,
+          formState.itemType,
+          setUploadProgress,
+        );
       } catch (error) {
         const message =
           error instanceof Error ? error.message : 'Unable to upload file.';
@@ -611,8 +746,12 @@ export const CreateItemDialog = ({
       title: formState.title,
       description: formState.description,
       tags: parseItemTagsInput(formState.tags),
-      ...(isContentItemType(formState.itemType) ? { content: formState.content } : {}),
-      ...(isLanguageItemType(formState.itemType) ? { language: formState.language } : {}),
+      ...(isContentItemType(formState.itemType)
+        ? { content: formState.content }
+        : {}),
+      ...(isLanguageItemType(formState.itemType)
+        ? { language: formState.language }
+        : {}),
       ...(uploadedFile
         ? {
             fileName: uploadedFile.fileName,
@@ -666,11 +805,15 @@ export const CreateItemDialog = ({
         <DialogHeader className='border-b border-border/70 px-6 py-5'>
           <DialogTitle>Create a new item</DialogTitle>
           <DialogDescription>
-            Add a snippet, prompt, command, note, file, image, or link without leaving the page.
+            Add a snippet, prompt, command, note, file, image, or link without
+            leaving the page.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className='flex max-h-[calc(90vh-5rem)] flex-col'>
+        <form
+          onSubmit={handleSubmit}
+          className='flex max-h-[calc(90vh-5rem)] flex-col'
+        >
           <div className='space-y-6 overflow-y-auto px-6 py-5'>
             <CreateItemTypePicker
               fieldErrors={fieldErrors}
@@ -700,8 +843,14 @@ export const CreateItemDialog = ({
                   setFileError(null);
 
                   if (!formState.title.trim() && file) {
-                    const titleWithoutExtension = file.name.replace(/\.[^.]+$/, '');
-                    handleFieldChange('title', titleWithoutExtension || file.name);
+                    const titleWithoutExtension = file.name.replace(
+                      /\.[^.]+$/,
+                      '',
+                    );
+                    handleFieldChange(
+                      'title',
+                      titleWithoutExtension || file.name,
+                    );
                   }
                 }}
                 selectedFile={selectedFile}
@@ -712,7 +861,9 @@ export const CreateItemDialog = ({
                 collections={collections}
                 errors={fieldErrors.collectionIds}
                 id='create-item-collections'
-                onChange={(collectionIds) => handleFieldChange('collectionIds', collectionIds)}
+                onChange={(collectionIds) =>
+                  handleFieldChange('collectionIds', collectionIds)
+                }
                 selectedCollectionIds={formState.collectionIds}
               />
 
@@ -733,7 +884,9 @@ export const CreateItemDialog = ({
                 <Input
                   id='create-item-tags'
                   value={formState.tags}
-                  onChange={(event) => handleFieldChange('tags', event.target.value)}
+                  onChange={(event) =>
+                    handleFieldChange('tags', event.target.value)
+                  }
                   placeholder='react, prisma, auth'
                 />
                 <p className='text-sm text-muted-foreground'>

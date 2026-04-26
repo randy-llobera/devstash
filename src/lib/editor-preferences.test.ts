@@ -30,6 +30,20 @@ describe("normalizeEditorPreferences", () => {
       minimap: true,
     });
   });
+
+  it("normalizes legacy theme values to vs-dark", () => {
+    expect(
+      normalizeEditorPreferences({
+        ...DEFAULT_EDITOR_PREFERENCES,
+        fontSize: 16,
+        theme: "github-dark",
+      }),
+    ).toEqual({
+      ...DEFAULT_EDITOR_PREFERENCES,
+      fontSize: 16,
+      theme: "vs-dark",
+    });
+  });
 });
 
 describe("mergeEditorPreferences", () => {
@@ -42,7 +56,6 @@ describe("mergeEditorPreferences", () => {
           minimap: true,
         },
         {
-          theme: "monokai",
           wordWrap: false,
         },
       ),
@@ -50,7 +63,7 @@ describe("mergeEditorPreferences", () => {
       ...DEFAULT_EDITOR_PREFERENCES,
       fontSize: 16,
       minimap: true,
-      theme: "monokai",
+      theme: "vs-dark",
       wordWrap: false,
     });
   });

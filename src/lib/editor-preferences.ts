@@ -1,10 +1,10 @@
 import { z } from "zod";
 
-export const EDITOR_THEME_OPTIONS = ["vs-dark", "monokai", "github-dark"] as const;
+export const EDITOR_THEME_OPTIONS = ["vs-dark"] as const;
 export const EDITOR_FONT_SIZE_OPTIONS = [12, 13, 14, 15, 16, 18, 20] as const;
 export const EDITOR_TAB_SIZE_OPTIONS = [2, 4, 8] as const;
 
-const editorThemeSchema = z.enum(EDITOR_THEME_OPTIONS);
+const editorThemeSchema = z.literal("vs-dark");
 const editorFontSizeSchema = z.union(
   EDITOR_FONT_SIZE_OPTIONS.map((value) => z.literal(value)) as [
     z.ZodLiteral<(typeof EDITOR_FONT_SIZE_OPTIONS)[number]>,
@@ -41,14 +41,24 @@ export const DEFAULT_EDITOR_PREFERENCES: EditorPreferences = {
 };
 
 export const normalizeEditorPreferences = (value: unknown): EditorPreferences => {
-  const parsedValue = editorPreferencesSchema.safeParse(value);
+  const normalizedThemeValue =
+    value && typeof value === "object" && !Array.isArray(value)
+      ? {
+          ...value,
+          theme: DEFAULT_EDITOR_PREFERENCES.theme,
+        }
+      : value;
+
+  const parsedValue = editorPreferencesSchema.safeParse(normalizedThemeValue);
 
   if (parsedValue.success) {
     return parsedValue.data;
   }
 
   const fallbackValue =
-    value && typeof value === "object" && !Array.isArray(value) ? value : {};
+    normalizedThemeValue && typeof normalizedThemeValue === "object" && !Array.isArray(normalizedThemeValue)
+      ? normalizedThemeValue
+      : {};
 
   const mergedValue = {
     ...DEFAULT_EDITOR_PREFERENCES,

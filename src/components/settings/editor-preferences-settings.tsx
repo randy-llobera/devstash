@@ -8,7 +8,6 @@ import { updateEditorPreferences } from "@/actions/editor-preferences";
 import {
   EDITOR_FONT_SIZE_OPTIONS,
   EDITOR_TAB_SIZE_OPTIONS,
-  EDITOR_THEME_OPTIONS,
   type EditorPreferences,
 } from "@/lib/editor-preferences";
 
@@ -22,7 +21,7 @@ const CONTROL_HELPERS = {
   fontSize: "Choose the Monaco font size in pixels.",
   minimap: "Show a preview strip for long files.",
   tabSize: "Set how many spaces a tab inserts.",
-  theme: "Pick the Monaco theme for snippet and command editors.",
+  theme: "Monaco uses the default dark theme across the app.",
   wordWrap: "Wrap long lines instead of scrolling horizontally.",
 } satisfies Record<keyof EditorPreferences, string>;
 
@@ -186,28 +185,6 @@ export const EditorPreferencesSettings = ({
             ))}
           </select>
           <p className="text-sm text-muted-foreground">{CONTROL_HELPERS.tabSize}</p>
-        </div>
-
-        <div className="space-y-2 lg:col-span-2">
-          <label htmlFor="editor-theme" className="text-sm font-medium">
-            Theme
-          </label>
-          <select
-            id="editor-theme"
-            className={selectClassName}
-            value={preferences.theme}
-            onChange={(event) =>
-              updatePreference("theme", event.target.value as EditorPreferences["theme"])
-            }
-            disabled={isSaving}
-          >
-            {EDITOR_THEME_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-          <p className="text-sm text-muted-foreground">{CONTROL_HELPERS.theme}</p>
         </div>
 
         <div className="space-y-3 lg:col-span-2">
