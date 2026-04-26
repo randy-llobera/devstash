@@ -379,7 +379,7 @@ export const MarkdownEditor = ({
             id={writePanelId}
             role='tabpanel'
             aria-labelledby={writeTabId}
-            className='bg-[#1e1e1e] p-3'
+            className='bg-[#1e1e1e]'
           >
             <Textarea
               id={editorId}
@@ -387,7 +387,7 @@ export const MarkdownEditor = ({
               value={value}
               onChange={(event) => onChange?.(event.target.value)}
               placeholder={placeholder}
-              className='min-h-[calc(100%-0.25rem)] resize-none border-[#3a3a3a] bg-[#1e1e1e] px-4 py-3 font-mono text-sm leading-6 text-slate-100 placeholder:text-slate-500 focus-visible:border-slate-500 focus-visible:ring-slate-500/60'
+              className='min-h-full resize-none rounded-none border-0 bg-[#1e1e1e] px-5 py-4 font-mono text-sm leading-6 text-slate-100 shadow-none placeholder:text-slate-500 focus-visible:border-transparent focus-visible:ring-0'
               style={{ height: bodyHeight - BODY_PADDING_OFFSET }}
             />
           </div>

@@ -102,8 +102,8 @@ export const FileUpload = ({
     : 'Upload PDF, text, markdown, JSON, YAML, XML, CSV, TOML, or INI up to 10 MB.';
 
   return (
-    <div className='space-y-3'>
-      <label htmlFor={inputId} className='text-sm font-medium'>
+    <div className='space-y-2'>
+      <label htmlFor={inputId} className='block text-sm font-medium'>
         {isImage ? 'Image upload' : 'File upload'}
       </label>
 

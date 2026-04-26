@@ -36,7 +36,7 @@ describe("updateEditorPreferences", () => {
     authMock.mockResolvedValue(null);
 
     const result = await updateEditorPreferences({
-      theme: "monokai",
+      theme: "vs-dark",
     });
 
     expect(result).toEqual({
@@ -59,7 +59,7 @@ describe("updateEditorPreferences", () => {
         tabSize: 4,
         wordWrap: true,
         minimap: false,
-        theme: "vs-dark",
+        theme: "github-dark",
       },
     });
     userUpdateMock.mockResolvedValue({
@@ -68,7 +68,6 @@ describe("updateEditorPreferences", () => {
 
     const result = await updateEditorPreferences({
       minimap: true,
-      theme: "github-dark",
     });
 
     expect(userUpdateMock).toHaveBeenCalledWith({
@@ -81,7 +80,7 @@ describe("updateEditorPreferences", () => {
           tabSize: 4,
           wordWrap: true,
           minimap: true,
-          theme: "github-dark",
+          theme: "vs-dark",
         },
       },
     });
@@ -92,7 +91,7 @@ describe("updateEditorPreferences", () => {
         tabSize: 4,
         wordWrap: true,
         minimap: true,
-        theme: "github-dark",
+        theme: "vs-dark",
       },
     });
   });

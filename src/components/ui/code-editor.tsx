@@ -104,58 +104,6 @@ interface CodeEditorProps {
 const clampHeight = (height: number, minHeight: number, maxHeight: number) =>
   Math.min(Math.max(height, minHeight), maxHeight);
 
-const defineEditorThemes = (monaco: typeof MonacoNamespace) => {
-  monaco.editor.defineTheme('monokai', {
-    base: 'vs-dark',
-    inherit: true,
-    rules: [
-      { token: 'comment', foreground: '75715e' },
-      { token: 'keyword', foreground: 'f92672' },
-      { token: 'number', foreground: 'ae81ff' },
-      { token: 'string', foreground: 'e6db74' },
-      { token: 'identifier', foreground: 'f8f8f2' },
-    ],
-    colors: {
-      'editor.background': '#272822',
-      'editor.foreground': '#f8f8f2',
-      'editor.lineHighlightBackground': '#3e3d32',
-      'editor.selectionBackground': '#49483e',
-      'editorLineNumber.foreground': '#75715e',
-      'editorLineNumber.activeForeground': '#f8f8f2',
-      'editorIndentGuide.background1': '#3b3a32',
-      'editorIndentGuide.activeBackground1': '#75715e',
-      'scrollbarSlider.background': '#75715e66',
-      'scrollbarSlider.hoverBackground': '#a6a28c88',
-      'scrollbarSlider.activeBackground': '#c5c2ad99',
-    },
-  });
-
-  monaco.editor.defineTheme('github-dark', {
-    base: 'vs-dark',
-    inherit: true,
-    rules: [
-      { token: 'comment', foreground: '8b949e' },
-      { token: 'keyword', foreground: 'ff7b72' },
-      { token: 'number', foreground: '79c0ff' },
-      { token: 'string', foreground: 'a5d6ff' },
-      { token: 'identifier', foreground: 'c9d1d9' },
-    ],
-    colors: {
-      'editor.background': '#0d1117',
-      'editor.foreground': '#c9d1d9',
-      'editor.lineHighlightBackground': '#161b22',
-      'editor.selectionBackground': '#264f78',
-      'editorLineNumber.foreground': '#6e7681',
-      'editorLineNumber.activeForeground': '#c9d1d9',
-      'editorIndentGuide.background1': '#21262d',
-      'editorIndentGuide.activeBackground1': '#30363d',
-      'scrollbarSlider.background': '#30363d99',
-      'scrollbarSlider.hoverBackground': '#484f58bb',
-      'scrollbarSlider.activeBackground': '#6e7681cc',
-    },
-  });
-};
-
 export const CodeEditor = ({
   aiExplanation,
   className,
@@ -251,11 +199,11 @@ export const CodeEditor = ({
   return (
     <div
       className={cn(
-        'code-editor-shell overflow-hidden rounded-[1.6rem] border border-slate-800/90 bg-[#0b1220] shadow-[0_18px_45px_-28px_rgba(15,23,38,0.95)]',
+        'code-editor-shell overflow-hidden rounded-2xl border border-border/80 bg-[#1f1f1f] shadow-none',
         className,
       )}
     >
-      <div className='flex min-h-[53px] items-center justify-between border-b border-slate-800/90 bg-[#0e1628] px-4 py-3'>
+      <div className='flex min-h-[53px] items-center justify-between border-b border-border/80 bg-[#303030] px-4 py-3'>
         <div className='flex min-w-0 items-center gap-3'>
           <div className='flex items-center gap-1.5'>
             <span className='size-3 rounded-full bg-rose-500' />
@@ -263,13 +211,13 @@ export const CodeEditor = ({
             <span className='size-3 rounded-full bg-emerald-500' />
           </div>
           {showLanguageBadge ? (
-            <span className='truncate rounded-full border border-slate-700/80 bg-slate-900/70 px-2.5 py-1 text-[11px] font-medium tracking-[0.18em] text-slate-300 uppercase'>
+            <span className='truncate px-2.5 py-1 text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase'>
               {label}
             </span>
           ) : null}
           {showExplainTabs ? (
             <div
-              className='inline-flex items-center rounded-lg border border-slate-700/80 bg-slate-900/60 p-1'
+              className='inline-flex items-center rounded-lg border border-border/80 bg-[#222] p-1'
               role='tablist'
               aria-label='Code explanation view'
             >
@@ -278,8 +226,8 @@ export const CodeEditor = ({
                 role='tab'
                 aria-selected={aiExplanation?.view === 'code'}
                 className={cn(
-                  'rounded-md px-2.5 py-1 text-xs font-medium text-slate-300 transition-colors',
-                  aiExplanation?.view === 'code' && 'bg-slate-800 text-slate-100',
+                  'rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors',
+                  aiExplanation?.view === 'code' && 'bg-[#303030] text-foreground',
                 )}
                 onClick={() => aiExplanation?.onViewChange('code')}
               >
@@ -290,8 +238,8 @@ export const CodeEditor = ({
                 role='tab'
                 aria-selected={aiExplanation?.view === 'explain'}
                 className={cn(
-                  'rounded-md px-2.5 py-1 text-xs font-medium text-slate-300 transition-colors',
-                  aiExplanation?.view === 'explain' && 'bg-slate-800 text-slate-100',
+                  'rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors',
+                  aiExplanation?.view === 'explain' && 'bg-[#303030] text-foreground',
                 )}
                 onClick={() => aiExplanation?.onViewChange('explain')}
               >
@@ -308,7 +256,7 @@ export const CodeEditor = ({
                 type='button'
                 variant='ghost'
                 size='sm'
-                className='h-8 rounded-lg border border-slate-700/80 bg-slate-900/60 px-2.5 text-slate-300 hover:bg-slate-800 hover:text-slate-100'
+                className='h-8 rounded-lg border border-border/80 bg-[#222] px-2.5 text-muted-foreground hover:bg-[#2a2a2a] hover:text-foreground'
                 onClick={aiExplanation.onExplain}
                 disabled={!value.trim() || aiExplanation.isPending}
                 aria-label='Explain code'
@@ -339,7 +287,7 @@ export const CodeEditor = ({
             type='button'
             variant='ghost'
             size='sm'
-            className='h-8 rounded-lg border border-slate-700/80 bg-slate-900/60 px-2.5 text-slate-300 hover:bg-slate-800 hover:text-slate-100'
+            className='h-8 rounded-lg border border-border/80 bg-[#222] px-2.5 text-muted-foreground hover:bg-[#2a2a2a] hover:text-foreground'
             onClick={() => {
               void handleCopy();
             }}
@@ -370,7 +318,6 @@ export const CodeEditor = ({
         </div>
       ) : (
         <MonacoEditor
-          beforeMount={defineEditorThemes}
           height={`${editorHeight}px`}
           language={editorLanguage}
           loading={null}
@@ -410,7 +357,7 @@ export const CodeEditor = ({
             tabSize: preferences.tabSize,
             wordWrap: getCodeEditorWordWrap(preferences.wordWrap),
           }}
-          theme={preferences.theme}
+          theme='vs-dark'
           value={value}
           width='100%'
           wrapperProps={{

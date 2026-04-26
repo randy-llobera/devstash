@@ -46,6 +46,9 @@ const getTriggerLabel = (
   return `${selectedNames.length} collections selected`;
 };
 
+const dropdownTriggerClassName =
+  'h-10 w-fit min-w-52 justify-between rounded-xl border-border/80 bg-[#121212] px-3 text-sm font-medium text-foreground shadow-none hover:bg-[#171717] disabled:opacity-60';
+
 export const CollectionPicker = ({
   collections,
   errors,
@@ -73,67 +76,69 @@ export const CollectionPicker = ({
   };
 
   return (
-    <div className='space-y-2 sm:col-span-2'>
-      <label className='text-sm font-medium' htmlFor={id}>
+    <div className='space-y-3 sm:col-span-2'>
+      <label className='block text-sm font-medium' htmlFor={id}>
         {label}
       </label>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            id={id}
-            type='button'
-            variant='outline'
-            role='combobox'
-            aria-expanded={open}
-            aria-invalid={errors ? 'true' : 'false'}
-            className='w-full justify-between'
-            disabled={collections.length === 0}
-          >
-            <span className='flex min-w-0 items-center gap-2 truncate'>
-              <FolderOpen className='size-4 shrink-0 text-muted-foreground' />
-              <span className='truncate'>
-                {getTriggerLabel(selectedCollectionNames, collections.length)}
+      <div>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              id={id}
+              type='button'
+              variant='outline'
+              role='combobox'
+              aria-expanded={open}
+              aria-invalid={errors ? 'true' : 'false'}
+              className={dropdownTriggerClassName}
+              disabled={collections.length === 0}
+            >
+              <span className='flex min-w-0 items-center gap-2 truncate'>
+                <FolderOpen className='size-4 shrink-0 text-muted-foreground' />
+                <span className='truncate'>
+                  {getTriggerLabel(selectedCollectionNames, collections.length)}
+                </span>
               </span>
-            </span>
-            <ChevronsUpDown className='size-4 shrink-0 opacity-50' />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className='w-[var(--radix-popover-trigger-width)] p-0' align='start'>
-          <Command>
-            <CommandInput placeholder='Search collections...' />
-            <CommandList>
-              <CommandEmpty>No matching collections.</CommandEmpty>
-              <CommandGroup>
-                {collections.map((collection) => {
-                  const checked = selectedCollectionIds.includes(collection.id);
+              <ChevronsUpDown className='size-4 shrink-0 opacity-50' />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className='w-[var(--radix-popover-trigger-width)] p-0' align='start'>
+            <Command>
+              <CommandInput placeholder='Search collections...' />
+              <CommandList>
+                <CommandEmpty>No matching collections.</CommandEmpty>
+                <CommandGroup>
+                  {collections.map((collection) => {
+                    const checked = selectedCollectionIds.includes(collection.id);
 
-                  return (
-                    <CommandItem
-                      key={collection.id}
-                      value={collection.name}
-                      onSelect={() => toggleCollection(collection.id)}
-                    >
-                      <Checkbox
-                        checked={checked}
-                        onCheckedChange={() => toggleCollection(collection.id)}
-                        aria-label={collection.name}
-                        className='pointer-events-none'
-                      />
-                      <span className='flex-1 truncate'>{collection.name}</span>
-                      <Check
-                        className={cn(
-                          'size-4 text-primary transition-opacity',
-                          checked ? 'opacity-100' : 'opacity-0',
-                        )}
-                      />
-                    </CommandItem>
-                  );
-                })}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+                    return (
+                      <CommandItem
+                        key={collection.id}
+                        value={collection.name}
+                        onSelect={() => toggleCollection(collection.id)}
+                      >
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={() => toggleCollection(collection.id)}
+                          aria-label={collection.name}
+                          className='pointer-events-none'
+                        />
+                        <span className='flex-1 truncate'>{collection.name}</span>
+                        <Check
+                          className={cn(
+                            'size-4 text-primary transition-opacity',
+                            checked ? 'opacity-100' : 'opacity-0',
+                          )}
+                        />
+                      </CommandItem>
+                    );
+                  })}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      </div>
       <p className='text-sm text-muted-foreground'>
         Select none, one, or multiple collections.
       </p>

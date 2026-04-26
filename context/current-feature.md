@@ -1,16 +1,25 @@
-# Current Feature
+# Current Feature: New Item Dialog Redesign
 
 ## Status
 
-Complete
+In Progress
 
 ## Goals
 
-<!-- Add goals here -->
+- Replace item type tiles in the New Item dialog with a dropdown while preserving existing type metadata, icons, Pro gating, and conditional field behavior.
+- Normalize field spacing so `Type`, `Title`, and `Language` align with the cleaner spacing already used by `Description` and `Tags`.
+- Restyle `Language` and `Collections` controls to share the new dropdown visual treatment while preserving collection search, multi-select, summaries, and validation behavior.
+- Remove the `Content` heading while keeping current conditional content rendering for snippet, command, prompt, note, file, image, and link flows.
+- Standardize the shared Monaco editor on `vs-dark` across create, edit, and read-only surfaces while preserving current editor behavior.
+- Reduce editor theme preference support to `vs-dark`, normalize legacy stored theme values, remove the theme picker, and update related tests.
 
 ## Notes
 
-<!-- Add notes here -->
+- Spec: `context/features/new-item-dialog-redesign.md`
+- Design reference: `[Image #1]`
+- Expected files during implementation: `src/components/dashboard/create-item-dialog.tsx`, `src/components/dashboard/collection-picker.tsx`, `src/components/ui/code-editor.tsx`, `src/lib/editor-preferences.ts`, `src/components/settings/editor-preferences-settings.tsx`, `src/lib/editor-preferences.test.ts`, `src/actions/editor-preferences.test.ts`
+- Constraints: do not change item creation payloads, server action signatures, item-type availability rules, Collections behavior beyond styling, or replace Monaco.
+- Verification: run `npm run lint` and `npm run build`; manually verify the New Item dialog, Language and Collections styling, removed `Content` heading, Monaco dark theme in create/edit/read-only views, and collection search plus multi-select.
 
 ## History
 
