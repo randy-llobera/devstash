@@ -38,112 +38,152 @@ export const DashboardItemCard = ({
       <CardContent
         className={
           isItemsVariant
-            ? "flex h-full items-start gap-4 px-5 py-5"
+            ? "flex h-full items-start gap-3 px-5 py-4"
             : "flex h-full items-start gap-3 px-4 py-4"
         }
       >
-        <button
-          type="button"
-          className="flex min-w-0 flex-1 items-start gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
-          onClick={() => openItem(item)}
-        >
-          <div
-            className={
-              isItemsVariant
-                ? "mt-0.5 rounded-2xl bg-muted/45 p-3 text-muted-foreground ring-1 ring-white/5"
-                : "rounded-xl border border-border/60 bg-muted/50 p-2 text-muted-foreground"
-            }
+        {isItemsVariant ? (
+          <button
+            type="button"
+            className="flex min-w-0 flex-1 flex-col text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+            onClick={() => openItem(item)}
           >
-            {createElement(getItemTypeIcon(item.itemType.icon), {
-              className: isItemsVariant ? "size-5" : "size-4",
-              style: { color: item.itemType.color },
-            })}
-          </div>
-
-          <div className="flex min-w-0 flex-1 flex-col">
-            <div className={isItemsVariant ? "flex items-start justify-between gap-4" : "flex items-center gap-2"}>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className={isItemsVariant ? "truncate text-[1.05rem] font-semibold tracking-[-0.01em]" : "truncate text-sm font-semibold"}>
-                    {item.title}
-                  </p>
-                  {showPinnedIndicator && item.isPinned ? (
-                    <Pin className="size-3.5 shrink-0 text-primary" />
-                  ) : null}
-                </div>
-
-                <p className={isItemsVariant ? "mt-1.5 line-clamp-2 text-sm text-muted-foreground" : "mt-1 line-clamp-2 text-sm text-muted-foreground"}>
-                  {item.description}
-                </p>
+            <div className="flex min-w-0 flex-1 items-start gap-4">
+              <div className="mt-0.5 rounded-2xl bg-muted/45 p-3 text-muted-foreground ring-1 ring-white/5">
+                {createElement(getItemTypeIcon(item.itemType.icon), {
+                  className: "size-5",
+                  style: { color: item.itemType.color },
+                })}
               </div>
 
-              {isItemsVariant ? (
-                <span className="shrink-0 pt-0.5 text-xs font-medium text-muted-foreground">
-                  {formatUpdatedAt(item.updatedAt)}
-                </span>
-              ) : null}
+              <div className="min-w-0 flex-1">
+                <div className="flex min-w-0 items-start">
+                  <div className="min-w-0">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <p className="min-w-0 flex-1 line-clamp-2 text-[1.05rem] font-semibold">
+                        {item.title}
+                      </p>
+                      {showPinnedIndicator && item.isPinned ? (
+                        <Pin className="size-3.5 shrink-0 text-primary" />
+                      ) : null}
+                    </div>
+
+                    <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">
+                      {item.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {isItemsVariant ? (
-              <div className="mt-4 flex items-center gap-2">
-                <span
-                  className="size-2 rounded-full"
-                  style={{ backgroundColor: item.itemType.color }}
-                />
-                <span className="text-xs font-medium tracking-[0.12em] text-muted-foreground uppercase">
-                  {item.itemType.name}
-                </span>
-                {item.collection ? (
-                  <span className="truncate text-xs text-muted-foreground/80">
-                    in {item.collection.name}
-                  </span>
-                ) : null}
-              </div>
-            ) : (
-              <>
-                <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                  {item.collection ? (
-                    <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[11px]">
-                      {item.collection.name}
-                    </Badge>
-                  ) : null}
-                  <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[11px]">
-                    {item.itemType.name}
-                  </Badge>
-                  <Badge
-                    variant="outline"
-                    className="rounded-full px-2 py-0.5 text-[11px] text-muted-foreground"
-                  >
-                    Updated {formatUpdatedAt(item.updatedAt)}
-                  </Badge>
-                </div>
-
+            <div className="mt-4">
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
                 {item.tags.length > 0 ? (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {item.tags.slice(0, 3).map((tag) => (
+                  item.tags.slice(0, 3).map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant="secondary"
+                      className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted"
+                    >
+                      {tag}
+                    </Badge>
+                  ))
+                ) : (
+                  <>
+                    <Badge
+                      variant="secondary"
+                      className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted"
+                    >
+                      {item.itemType.name.toLowerCase()}
+                    </Badge>
+                    {item.collection ? (
                       <Badge
-                        key={tag}
-                        variant="outline"
-                        className="rounded-full px-2 py-0.5 text-[11px] text-muted-foreground"
+                        variant="secondary"
+                        className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted"
                       >
-                        #{tag}
+                        {item.collection.name}
                       </Badge>
-                    ))}
-                  </div>
-                ) : null}
-              </>
-            )}
-          </div>
-        </button>
+                    ) : null}
+                  </>
+                )}
+              </div>
+            </div>
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="flex min-w-0 flex-1 items-start gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+            onClick={() => openItem(item)}
+          >
+            <div className="rounded-xl border border-border/60 bg-muted/50 p-2 text-muted-foreground">
+              {createElement(getItemTypeIcon(item.itemType.icon), {
+                className: "size-4",
+                style: { color: item.itemType.color },
+              })}
+            </div>
 
-        <ItemFavoriteButton
-          itemId={item.id}
-          itemTitle={item.title}
-          isFavorite={item.isFavorite}
-          className="mt-0.5 shrink-0 rounded-full text-muted-foreground"
-          iconClassName="size-3.5"
-          stopPropagation={false}
-        />
+            <div className="flex min-w-0 flex-1 flex-col">
+              <div className="flex items-center gap-2">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="truncate text-sm font-semibold">
+                      {item.title}
+                    </p>
+                    {showPinnedIndicator && item.isPinned ? (
+                      <Pin className="size-3.5 shrink-0 text-primary" />
+                    ) : null}
+                  </div>
+
+                  <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                    {item.description}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                {item.collection ? (
+                  <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[11px]">
+                    {item.collection.name}
+                  </Badge>
+                ) : null}
+                <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[11px]">
+                  {item.itemType.name}
+                </Badge>
+                <Badge
+                  variant="outline"
+                  className="rounded-full px-2 py-0.5 text-[11px] text-muted-foreground"
+                >
+                  Updated {formatUpdatedAt(item.updatedAt)}
+                </Badge>
+              </div>
+
+              {item.tags.length > 0 ? (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {item.tags.slice(0, 3).map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant="outline"
+                      className="rounded-full px-2 py-0.5 text-[11px] text-muted-foreground"
+                    >
+                      #{tag}
+                    </Badge>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </button>
+        )}
+
+        {isItemsVariant ? null : (
+          <ItemFavoriteButton
+            itemId={item.id}
+            itemTitle={item.title}
+            isFavorite={item.isFavorite}
+            className="mt-0.5 shrink-0 rounded-full text-muted-foreground"
+            iconClassName="size-3.5"
+            stopPropagation={false}
+          />
+        )}
       </CardContent>
     </Card>
   );

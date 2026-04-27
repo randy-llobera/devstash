@@ -18,42 +18,40 @@ export const DashboardRecentItemRow = ({ item }: DashboardRecentItemRowProps) =>
   const { openItem } = useItemDrawer();
 
   return (
-    <div className="grid w-full px-4 py-3.5 text-left transition-colors hover:bg-muted/25 md:grid-cols-[minmax(0,1.5fr)_minmax(0,0.8fr)_auto] md:items-center">
-      <div className="flex min-w-0 items-start gap-3">
-        <button
-          type="button"
-          className="flex min-w-0 flex-1 items-start gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/60"
-          onClick={() => openItem(item)}
+    <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-3 px-4 py-3.5 text-left transition-colors hover:bg-muted/25 md:grid-cols-[minmax(0,1.35fr)_2.25rem_minmax(12rem,0.8fr)_6rem] md:items-center md:gap-4">
+      <button
+        type="button"
+        className="flex min-w-0 items-start gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/60"
+        onClick={() => openItem(item)}
+      >
+        <div
+          className="rounded-xl border border-border/60 bg-muted/50 p-2 text-muted-foreground"
+          style={{ borderColor: item.itemType.color }}
         >
-          <div
-            className="rounded-xl border border-border/60 bg-muted/50 p-2 text-muted-foreground"
-            style={{ borderColor: item.itemType.color }}
-          >
-            {createElement(getItemTypeIcon(item.itemType.icon), {
-              className: "size-4",
-              style: { color: item.itemType.color },
-            })}
-          </div>
+          {createElement(getItemTypeIcon(item.itemType.icon), {
+            className: "size-4",
+            style: { color: item.itemType.color },
+          })}
+        </div>
 
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">{item.title}</p>
-            <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-              {item.description}
-            </p>
-          </div>
-        </button>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold">{item.title}</p>
+          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+            {item.description}
+          </p>
+        </div>
+      </button>
 
-        <ItemFavoriteButton
-          itemId={item.id}
-          itemTitle={item.title}
-          isFavorite={item.isFavorite}
-          className="mt-0.5 shrink-0 rounded-full text-muted-foreground"
-          iconClassName="size-3.5"
-          stopPropagation={false}
-        />
-      </div>
+      <ItemFavoriteButton
+        itemId={item.id}
+        itemTitle={item.title}
+        isFavorite={item.isFavorite}
+        className="mt-0.5 shrink-0 justify-self-end rounded-full text-muted-foreground md:mt-0 md:justify-self-start"
+        iconClassName="size-3.5"
+        stopPropagation={false}
+      />
 
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground md:mt-0">
+      <div className="col-span-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground md:col-span-1">
         {item.collection ? (
           <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[11px]">
             {item.collection.name}
@@ -64,7 +62,7 @@ export const DashboardRecentItemRow = ({ item }: DashboardRecentItemRowProps) =>
         </Badge>
       </div>
 
-      <div className="text-sm text-muted-foreground">
+      <div className="col-span-2 text-sm text-muted-foreground md:col-span-1 md:text-right">
         {formatUpdatedAt(item.updatedAt)}
       </div>
     </div>

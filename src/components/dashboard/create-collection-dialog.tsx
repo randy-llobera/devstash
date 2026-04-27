@@ -173,7 +173,7 @@ export const CreateCollectionDialog = ({
             ) : null}
           </div>
 
-          <DialogFooter className='px-6 py-4'>
+          <DialogFooter className='mx-0 mb-0 px-6 py-5'>
             <Button
               type='button'
               variant='outline'
