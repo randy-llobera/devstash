@@ -2,7 +2,7 @@
 
 ## Status
 
-Complete
+Not Started
 
 ## Goals
 
@@ -80,3 +80,4 @@ Complete
 - Dashboard layout polish completed with a centered boxed dashboard canvas, lighter collections and pinned/recent section framing, denser recent-item previews capped at 6, compact color-coded stats, homepage-aligned folder branding in the top bar, and a mobile action row with icon-only search, upgrade, favorites, and create-menu controls
 - App page boxed layout completed with shared `AppPageShell` and `AppPageHeader` layout components, boxed main-section width aligned across all `DashboardShell` routes, the richer collection detail header preserved inside the shared shell, and upgrade header duplication removed
 - New Item Dialog Redesign completed with dropdown-based item type, language, and collection controls, aligned create-dialog field spacing, neutral dark Monaco and markdown editor styling, simplified single-theme editor preferences using `vs-dark`, and updated preference tests
+- Item Drawer UI Polish completed with drawer preview content-first ordering, compact metadata rows, tag and collection pill sections, create/edit collection fields moved below tags, and shared selected-collection pill styling in the collection picker
