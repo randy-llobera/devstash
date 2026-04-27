@@ -58,12 +58,14 @@ export const CollectionPicker = ({
   selectedCollectionIds,
 }: CollectionPickerProps) => {
   const [open, setOpen] = useState(false);
-  const selectedCollectionNames = useMemo(
+  const selectedCollections = useMemo(
     () =>
       collections
-        .filter((collection) => selectedCollectionIds.includes(collection.id))
-        .map((collection) => collection.name),
+        .filter((collection) => selectedCollectionIds.includes(collection.id)),
     [collections, selectedCollectionIds],
+  );
+  const selectedCollectionNames = selectedCollections.map(
+    (collection) => collection.name,
   );
 
   const toggleCollection = (collectionId: string) => {
@@ -142,8 +144,18 @@ export const CollectionPicker = ({
       <p className='text-sm text-muted-foreground'>
         Select none, one, or multiple collections.
       </p>
-      {selectedCollectionNames.length > 0 ? (
-        <p className='text-sm text-foreground/80'>{selectedCollectionNames.join(', ')}</p>
+      {selectedCollections.length > 0 ? (
+        <div className='flex flex-wrap gap-1.5'>
+          {selectedCollections.map((collection) => (
+            <span
+              key={collection.id}
+              className='inline-flex max-w-full rounded-full border border-border/70 bg-background/35 px-2 py-0.5 text-[11px] font-medium text-foreground'
+              title={collection.name}
+            >
+              <span className='truncate'>{collection.name}</span>
+            </span>
+          ))}
+        </div>
       ) : null}
       {errors?.length ? <p className='text-sm text-destructive'>{errors[0]}</p> : null}
     </div>

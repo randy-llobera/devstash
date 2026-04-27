@@ -857,16 +857,6 @@ export const CreateItemDialog = ({
                 uploadProgress={uploadProgress}
               />
 
-              <CollectionPicker
-                collections={collections}
-                errors={fieldErrors.collectionIds}
-                id='create-item-collections'
-                onChange={(collectionIds) =>
-                  handleFieldChange('collectionIds', collectionIds)
-                }
-                selectedCollectionIds={formState.collectionIds}
-              />
-
               <div className='space-y-2 sm:col-span-2'>
                 <AiTagSuggestions
                   key={`${open}:${formState.itemType}`}
@@ -894,6 +884,16 @@ export const CreateItemDialog = ({
                 </p>
                 <FieldErrorText errors={fieldErrors.tags} />
               </div>
+
+              <CollectionPicker
+                collections={collections}
+                errors={fieldErrors.collectionIds}
+                id='create-item-collections'
+                onChange={(collectionIds) =>
+                  handleFieldChange('collectionIds', collectionIds)
+                }
+                selectedCollectionIds={formState.collectionIds}
+              />
 
               {submitError ? (
                 <div className='sm:col-span-2'>

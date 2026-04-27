@@ -8,7 +8,7 @@ import {
   type CSSProperties,
   type FormEvent,
 } from 'react';
-import { Copy, Crown, Download, FileText, Link2, Loader2, Pencil, Pin, Sparkles, Star, Trash2 } from 'lucide-react';
+import { ChevronsUpDown, Copy, Crown, Download, FileText, Link2, Loader2, Pencil, Pin, Sparkles, Star, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -35,6 +35,13 @@ import { formatDate, formatUpdatedAt } from '@/components/utils/date';
 import { getItemTypeIcon } from '@/components/utils/item-type';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { MarkdownEditor } from '@/components/ui/markdown-editor';
 import {
@@ -106,6 +113,9 @@ const isImageItem = (item: ItemDrawerDetail) => item.itemType.name.toLowerCase()
 const supportsInlineImagePreview = (item: ItemDrawerDetail) =>
   isImageItem(item) && !isSvgFileName(item.fileName);
 const isPromptItem = (itemTypeName: string) => itemTypeName.trim().toLowerCase() === 'prompt';
+const dropdownTriggerClassName =
+  'h-10 justify-between rounded-xl border-border/80 bg-[#121212] px-3 text-sm font-medium text-foreground shadow-none hover:bg-[#171717]';
+const LANGUAGE_DEFAULT_VALUE = '__default';
 
 const DrawerActionButton = ({
   active = false,
@@ -185,64 +195,80 @@ const ItemDrawerError = ({ message }: { message: string }) => (
   </div>
 );
 
-interface ItemMetadataCardProps {
+interface ItemMetadataLineProps {
   label: string;
   secondaryValue?: string | null;
   value: string;
 }
 
-const ItemMetadataCard = ({
+const ItemMetadataLine = ({
   label,
   secondaryValue,
   value,
-}: ItemMetadataCardProps) => (
-  <div className='rounded-2xl border border-border/60 bg-card/40 p-4'>
-    <p className='text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase'>
-      {label}
-    </p>
-    <p className='mt-2 text-sm text-foreground'>{value}</p>
-    {secondaryValue ? (
-      <p className='mt-1 text-xs text-muted-foreground'>{secondaryValue}</p>
-    ) : null}
+}: ItemMetadataLineProps) => (
+  <div className='flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-1.5 text-xs'>
+    <span className='font-medium text-muted-foreground'>{label}</span>
+    <span className='text-right text-foreground/80'>
+      {value}
+      {secondaryValue ? (
+        <span className='ml-2 text-muted-foreground'>{secondaryValue}</span>
+      ) : null}
+    </span>
   </div>
 );
 
 const ItemDrawerMetadata = ({ item }: { item: ItemDrawerDetail }) => (
-  <div className='grid gap-3 sm:grid-cols-2'>
-    <ItemMetadataCard
+  <div className='divide-y divide-border/50 border-y border-border/50'>
+    <ItemMetadataLine
       label='Updated'
       value={formatUpdatedAt(item.updatedAt)}
       secondaryValue={formatDate(item.updatedAt)}
     />
-    <ItemMetadataCard
+    <ItemMetadataLine
       label='Created'
       value={formatDate(item.createdAt)}
-      secondaryValue={item.contentType}
     />
   </div>
 );
 
-const ItemDrawerCollections = ({ item }: { item: ItemDrawerDetail }) => (
-  <div className='flex flex-wrap items-center gap-2'>
-    <Badge variant='outline' className='rounded-full px-3 py-1'>
-      <span
-        className='mr-2 inline-block size-2 rounded-full'
-        style={{ backgroundColor: item.itemType.color }}
-      />
-      {item.itemType.name}
-    </Badge>
+const ItemDrawerPreviewMetadata = ({ item }: { item: ItemDrawerDetail }) => (
+  <div className='divide-y divide-border/50 border-y border-border/50'>
+    <ItemMetadataLine label='Type' value={item.itemType.name} />
     {item.language ? (
-      <Badge variant='outline' className='rounded-full px-3 py-1'>
-        {item.language}
-      </Badge>
+      <ItemMetadataLine label='Language' value={item.language} />
     ) : null}
-    {item.collections.map((collection) => (
-      <Badge key={collection.id} variant='outline' className='rounded-full px-3 py-1'>
-        {collection.name}
-      </Badge>
-    ))}
+    <ItemMetadataLine
+      label='Updated'
+      value={formatUpdatedAt(item.updatedAt)}
+      secondaryValue={formatDate(item.updatedAt)}
+    />
+    <ItemMetadataLine
+      label='Created'
+      value={formatDate(item.createdAt)}
+    />
   </div>
 );
+
+const ItemDrawerCollections = ({ item }: { item: ItemDrawerDetail }) => {
+  if (item.collections.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className='space-y-2'>
+      <p className='text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase'>
+        Collections
+      </p>
+      <div className='flex flex-wrap gap-2'>
+        {item.collections.map((collection) => (
+          <Badge key={collection.id} variant='outline' className='rounded-full px-3 py-1'>
+            {collection.name}
+          </Badge>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const ItemDrawerTags = ({ tags }: { tags: string[] }) => {
   if (tags.length === 0) {
@@ -613,41 +639,91 @@ const ItemDrawerBody = ({
   item: ItemDrawerDetail;
   onItemSaved: (item: ItemDrawerDetail) => void;
   onPromptOptimizationPendingChange: (pending: boolean) => void;
-}) => {
-  const itemTypeIcon = createElement(getItemTypeIcon(item.itemType.icon), {
-    className: 'size-5',
-    style: { color: item.itemType.color },
-  });
+}) => (
+  <div className='space-y-6'>
+    <div className='space-y-3'>
+      <p className='text-sm font-medium'>Content</p>
+      <ItemDrawerContent
+        key={`${item.id}:${item.updatedAt}`}
+        isPro={isPro}
+        item={item}
+        onItemUpdated={onItemSaved}
+        onPromptOptimizationPendingChange={onPromptOptimizationPendingChange}
+      />
+      <ItemDrawerUrl url={item.url} />
+      <ItemDrawerFile item={item} />
+    </div>
+
+    <ItemDrawerTags tags={item.tags} />
+    <ItemDrawerCollections item={item} />
+    <ItemDrawerPreviewMetadata item={item} />
+  </div>
+);
+
+interface LanguageDropdownProps {
+  defaultLabel: string;
+  errors?: string[];
+  id: string;
+  onChange: (value: string) => void;
+  options: { label: string; value: string }[];
+  value: string;
+}
+
+const LanguageDropdown = ({
+  defaultLabel,
+  errors,
+  id,
+  onChange,
+  options,
+  value,
+}: LanguageDropdownProps) => {
+  const selectedLabel =
+    value === ''
+      ? defaultLabel
+      : (options.find((option) => option.value === value)?.label ?? value);
 
   return (
-    <div className='space-y-6'>
-      <ItemDrawerCollections item={item} />
-      <ItemDrawerMetadata item={item} />
-      <ItemDrawerTags tags={item.tags} />
-
-      <div className='space-y-3'>
-        <div className='flex items-center gap-3'>
-          <div className='rounded-2xl border border-border/60 bg-muted/35 p-3'>
-            {itemTypeIcon}
-          </div>
-          <div>
-            <p className='text-sm font-medium'>Details</p>
-            <p className='text-sm text-muted-foreground'>
-              Full item content and metadata.
-            </p>
-          </div>
-        </div>
-
-        <ItemDrawerContent
-          key={`${item.id}:${item.updatedAt}`}
-          isPro={isPro}
-          item={item}
-          onItemUpdated={onItemSaved}
-          onPromptOptimizationPendingChange={onPromptOptimizationPendingChange}
-        />
-        <ItemDrawerUrl url={item.url} />
-        <ItemDrawerFile item={item} />
+    <div className='space-y-3'>
+      <label className='block text-sm font-medium' htmlFor={id}>
+        Language
+      </label>
+      <div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              id={id}
+              type='button'
+              variant='outline'
+              className={cn(dropdownTriggerClassName, 'w-fit min-w-40 gap-3')}
+              aria-invalid={errors ? 'true' : 'false'}
+            >
+              <span className='truncate'>{selectedLabel}</span>
+              <ChevronsUpDown className='size-4 shrink-0 text-muted-foreground' />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align='start'
+            className='max-h-72 w-56 overflow-y-auto'
+          >
+            <DropdownMenuRadioGroup
+              value={value || LANGUAGE_DEFAULT_VALUE}
+              onValueChange={(nextValue) =>
+                onChange(nextValue === LANGUAGE_DEFAULT_VALUE ? '' : nextValue)
+              }
+            >
+              <DropdownMenuRadioItem value={LANGUAGE_DEFAULT_VALUE}>
+                {defaultLabel}
+              </DropdownMenuRadioItem>
+              {options.map((option) => (
+                <DropdownMenuRadioItem key={option.value} value={option.value}>
+                  {option.label}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
+      <FieldErrorText errors={errors} />
     </div>
   );
 };
@@ -685,16 +761,17 @@ const ItemDrawerEditBody = ({
         </div>
       ) : null}
 
-      <div className='space-y-2'>
-        <label htmlFor='item-title' className='text-sm font-medium'>
+      <div className='space-y-3'>
+        <label htmlFor='item-title' className='block text-sm font-medium'>
           Title
         </label>
         <Input
           id='item-title'
           value={formState.title}
           onChange={(event) => onFieldChange('title', event.target.value)}
-          placeholder='Enter a title'
+          placeholder='Give this item a clear name'
           autoFocus
+          aria-invalid={fieldErrors.title ? 'true' : 'false'}
         />
         <FieldErrorText errors={fieldErrors.title} />
       </div>
@@ -717,88 +794,32 @@ const ItemDrawerEditBody = ({
           id='item-description'
           value={formState.description}
           onChange={(event) => onFieldChange('description', event.target.value)}
-          className='min-h-24 resize-y py-3'
-          placeholder='Add a description'
+          className='min-h-24'
+          placeholder='Add optional context or a short summary'
         />
         <FieldErrorText errors={fieldErrors.description} />
       </div>
 
-      <div className='grid gap-3 sm:grid-cols-2'>
-        <ItemMetadataCard label='Item type' value={item.itemType.name} />
-        <ItemMetadataCard
-          label='Updated'
-          value={formatUpdatedAt(item.updatedAt)}
-          secondaryValue={formatDate(item.updatedAt)}
+      {showCodeLanguageDropdown ? (
+        <LanguageDropdown
+          id='item-language'
+          value={formState.language}
+          defaultLabel={
+            item.itemType.name.toLowerCase() === 'command'
+              ? 'Default (Shell)'
+              : 'Plain text'
+          }
+          options={languageOptions}
+          errors={fieldErrors.language}
+          onChange={(value) => onFieldChange('language', value)}
         />
-        <ItemMetadataCard
-          label='Created'
-          value={formatDate(item.createdAt)}
-          secondaryValue={item.contentType}
-        />
-      </div>
-
-      <CollectionPicker
-        collections={collections}
-        errors={fieldErrors.collectionIds}
-        id='item-collections'
-        onChange={(collectionIds) => onFieldChange('collectionIds', collectionIds)}
-        selectedCollectionIds={formState.collectionIds}
-      />
-
-      <div className='space-y-2'>
-        <AiTagSuggestions
-          key={item.id}
-          content={formState.content}
-          description={formState.description}
-          inputId='item-tags'
-          isPro={isPro}
-          itemType={item.itemType.name}
-          language={formState.language}
-          tagsValue={formState.tags}
-          title={formState.title}
-          url={formState.url}
-          onTagsChange={(value) => onFieldChange('tags', value)}
-        />
-        <Input
-          id='item-tags'
-          value={formState.tags}
-          onChange={(event) => onFieldChange('tags', event.target.value)}
-          placeholder='react, prisma, snippet'
-        />
-        <p className='text-xs text-muted-foreground'>
-          Separate tags with commas.
-        </p>
-        <FieldErrorText errors={fieldErrors.tags} />
-      </div>
+      ) : null}
 
       {showContentField ? (
-        <div className='space-y-2'>
-          <label htmlFor='item-content' className='text-sm font-medium'>
+        <div className='space-y-3'>
+          <label htmlFor='item-content' className='block text-sm font-medium'>
             Content
           </label>
-          {showCodeLanguageDropdown ? (
-            <div className='space-y-2'>
-              <label htmlFor='item-language' className='text-sm font-medium'>
-                Language
-              </label>
-              <select
-                id='item-language'
-                value={formState.language}
-                onChange={(event) => onFieldChange('language', event.target.value)}
-                className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-              >
-                <option value=''>
-                  {item.itemType.name.toLowerCase() === 'command' ? 'Default (Shell)' : 'Plain text'}
-                </option>
-                {languageOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <FieldErrorText errors={fieldErrors.language} />
-            </div>
-          ) : null}
           {usesCodeEditor(item.itemType.name) ? (
             <CodeEditor
               id='item-content'
@@ -824,8 +845,14 @@ const ItemDrawerEditBody = ({
               id='item-content'
               value={formState.content}
               onChange={(event) => onFieldChange('content', event.target.value)}
-              className='min-h-40 resize-y py-3 font-mono leading-6'
-              placeholder='Add item content'
+              className='min-h-48 font-mono text-sm'
+              placeholder={
+                item.itemType.name.toLowerCase() === 'prompt'
+                  ? 'Write the prompt text'
+                  : item.itemType.name.toLowerCase() === 'note'
+                    ? 'Write your note'
+                    : 'Paste the content here'
+              }
             />
           )}
           <FieldErrorText errors={fieldErrors.content} />
@@ -833,23 +860,23 @@ const ItemDrawerEditBody = ({
       ) : null}
 
       {showLanguageField && !showCodeLanguageDropdown ? (
-        <div className='space-y-2'>
-          <label htmlFor='item-language' className='text-sm font-medium'>
+        <div className='space-y-3'>
+          <label htmlFor='item-language' className='block text-sm font-medium'>
             Language
           </label>
           <Input
             id='item-language'
             value={formState.language}
             onChange={(event) => onFieldChange('language', event.target.value)}
-            placeholder='Type a language'
+            placeholder='TypeScript, Bash, SQL...'
           />
           <FieldErrorText errors={fieldErrors.language} />
         </div>
       ) : null}
 
       {showUrlField ? (
-        <div className='space-y-2'>
-          <label htmlFor='item-url' className='text-sm font-medium'>
+        <div className='space-y-3'>
+          <label htmlFor='item-url' className='block text-sm font-medium'>
             URL
           </label>
           <Input
@@ -858,10 +885,47 @@ const ItemDrawerEditBody = ({
             value={formState.url}
             onChange={(event) => onFieldChange('url', event.target.value)}
             placeholder='https://example.com'
+            aria-invalid={fieldErrors.url ? 'true' : 'false'}
           />
           <FieldErrorText errors={fieldErrors.url} />
         </div>
       ) : null}
+
+      <div className='space-y-2'>
+        <AiTagSuggestions
+          key={item.id}
+          content={formState.content}
+          description={formState.description}
+          inputId='item-tags'
+          isPro={isPro}
+          itemType={item.itemType.name}
+          language={formState.language}
+          tagsValue={formState.tags}
+          title={formState.title}
+          url={formState.url}
+          onTagsChange={(value) => onFieldChange('tags', value)}
+        />
+        <Input
+          id='item-tags'
+          value={formState.tags}
+          onChange={(event) => onFieldChange('tags', event.target.value)}
+          placeholder='react, prisma, auth'
+        />
+        <p className='text-sm text-muted-foreground'>
+          Separate tags with commas.
+        </p>
+        <FieldErrorText errors={fieldErrors.tags} />
+      </div>
+
+      <CollectionPicker
+        collections={collections}
+        errors={fieldErrors.collectionIds}
+        id='item-collections'
+        onChange={(collectionIds) => onFieldChange('collectionIds', collectionIds)}
+        selectedCollectionIds={formState.collectionIds}
+      />
+
+      <ItemDrawerMetadata item={item} />
     </div>
   );
 };
