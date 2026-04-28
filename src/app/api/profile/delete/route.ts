@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { auth } from "@/auth";
+import { getPasswordResetIdentifier } from "@/lib/auth-token-identifiers";
 import { prisma } from "@/lib/prisma";
 
 interface DeleteAccountRequestBody {
@@ -8,7 +9,6 @@ interface DeleteAccountRequestBody {
 }
 
 const BAD_REQUEST_STATUS = 400;
-const PASSWORD_RESET_IDENTIFIER_PREFIX = "password-reset:";
 
 export const POST = async (request: Request) => {
   const session = await auth();
@@ -47,7 +47,7 @@ export const POST = async (request: Request) => {
           identifier: session.user.email,
         },
         {
-          identifier: `${PASSWORD_RESET_IDENTIFIER_PREFIX}${session.user.email}`,
+          identifier: getPasswordResetIdentifier(session.user.email),
         },
       ],
     },

@@ -3,6 +3,7 @@ import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 import { PrismaClient } from "../src/generated/prisma/client";
+import { getAuthTokenIdentifiersForEmail } from "../src/lib/auth-token-identifiers";
 
 const DEMO_USER_EMAIL = "demo@devstash.io";
 const shouldExecute = process.argv.includes("--execute");
@@ -57,11 +58,12 @@ const main = async () => {
 
   const userIdsToDelete = usersToDelete.map((user) => user.id);
   const userEmailsToDelete = usersToDelete.map((user) => user.email);
+  const tokenIdentifiersToDelete = userEmailsToDelete.flatMap(getAuthTokenIdentifiersForEmail);
 
   const verificationTokenCount = await prisma.verificationToken.count({
     where: {
       identifier: {
-        in: userEmailsToDelete,
+        in: tokenIdentifiersToDelete,
       },
     },
   });
@@ -94,7 +96,7 @@ const main = async () => {
   const deletedVerificationTokens = await prisma.verificationToken.deleteMany({
     where: {
       identifier: {
-        in: userEmailsToDelete,
+        in: tokenIdentifiersToDelete,
       },
     },
   });

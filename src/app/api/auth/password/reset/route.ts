@@ -1,8 +1,6 @@
-import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 
-import { getPasswordResetEmail, hashVerificationToken } from "@/lib/email-verification";
-import { prisma } from "@/lib/prisma";
+import { resetPasswordWithToken } from "@/lib/auth-token-flows";
 import {
   checkAuthRateLimit,
   createRateLimitErrorResponse,
@@ -71,71 +69,14 @@ export const POST = async (request: Request) => {
     return createRateLimitErrorResponse(rateLimitResult);
   }
 
-  const hashedToken = hashVerificationToken(token);
-  const resetToken = await prisma.verificationToken.findUnique({
-    where: { token: hashedToken },
-  });
+  const result = await resetPasswordWithToken({ password, token });
 
-  if (!resetToken) {
+  if (result.status === "invalid") {
     return NextResponse.json(
       { error: "That reset link is invalid or has expired." },
       { status: BAD_REQUEST_STATUS },
     );
   }
 
-  if (resetToken.expires < new Date()) {
-    await prisma.verificationToken.delete({
-      where: { token: resetToken.token },
-    });
-
-    return NextResponse.json(
-      { error: "That reset link is invalid or has expired." },
-      { status: BAD_REQUEST_STATUS },
-    );
-  }
-
-  const email = getPasswordResetEmail(resetToken.identifier);
-
-  if (!email) {
-    await prisma.verificationToken.delete({
-      where: { token: resetToken.token },
-    });
-
-    return NextResponse.json(
-      { error: "That reset link is invalid or has expired." },
-      { status: BAD_REQUEST_STATUS },
-    );
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { email },
-    select: {
-      id: true,
-      password: true,
-    },
-  });
-
-  if (!user?.password) {
-    await prisma.verificationToken.deleteMany({
-      where: { identifier: resetToken.identifier },
-    });
-
-    return NextResponse.json(
-      { error: "That reset link is invalid or has expired." },
-      { status: BAD_REQUEST_STATUS },
-    );
-  }
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { password: hashedPassword },
-  });
-
-  await prisma.verificationToken.deleteMany({
-    where: { identifier: resetToken.identifier },
-  });
-
-  return NextResponse.json({ success: true, email });
+  return NextResponse.json({ success: true, email: result.email });
 };

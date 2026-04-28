@@ -2,12 +2,18 @@ import { createHash, randomBytes } from "node:crypto";
 
 import { Resend } from "resend";
 
+export {
+  getAuthTokenIdentifiersForEmail,
+  getPasswordResetEmail,
+  getPasswordResetIdentifier,
+  isEmailVerificationIdentifier,
+} from "@/lib/auth-token-identifiers";
+import { getPasswordResetIdentifier } from "@/lib/auth-token-identifiers";
 import { isEmailVerificationEnabled } from "@/lib/email-verification-settings";
 import { prisma } from "@/lib/prisma";
 
 const VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 const PASSWORD_RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
-const PASSWORD_RESET_IDENTIFIER_PREFIX = "password-reset:";
 const AUTH_APP_URL_ENV_KEYS = ["AUTH_URL", "NEXTAUTH_URL"] as const;
 
 const getEmailVerificationSubject = () => "Verify your DevStash email";
@@ -177,14 +183,6 @@ export const issueEmailVerification = async ({
     subject: getEmailVerificationSubject(),
   });
 };
-
-const getPasswordResetIdentifier = (email: string) =>
-  `${PASSWORD_RESET_IDENTIFIER_PREFIX}${email}`;
-
-export const getPasswordResetEmail = (identifier: string) =>
-  identifier.startsWith(PASSWORD_RESET_IDENTIFIER_PREFIX)
-    ? identifier.slice(PASSWORD_RESET_IDENTIFIER_PREFIX.length)
-    : null;
 
 export const issuePasswordReset = async ({
   email,

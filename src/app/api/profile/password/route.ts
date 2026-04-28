@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 
 import { auth } from "@/auth";
+import { getPasswordResetIdentifier } from "@/lib/auth-token-identifiers";
 import { prisma } from "@/lib/prisma";
 
 interface ChangePasswordRequestBody {
@@ -12,7 +13,6 @@ interface ChangePasswordRequestBody {
 
 const BAD_REQUEST_STATUS = 400;
 const MIN_PASSWORD_LENGTH = 8;
-const PASSWORD_RESET_IDENTIFIER_PREFIX = "password-reset:";
 
 export const POST = async (request: Request) => {
   const session = await auth();
@@ -106,7 +106,7 @@ export const POST = async (request: Request) => {
 
   await prisma.verificationToken.deleteMany({
     where: {
-      identifier: `${PASSWORD_RESET_IDENTIFIER_PREFIX}${session.user.email}`,
+      identifier: getPasswordResetIdentifier(session.user.email),
     },
   });
 
