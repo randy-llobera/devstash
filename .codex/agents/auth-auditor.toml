@@ -1,6 +1,6 @@
 name = "auth_auditor"
 description = "Audit authentication-related code outside NextAuth's built-in protections and write a high-signal security review to docs/audit-results/AUTH_SECURITY_REVIEW.md."
-model = "gpt-5.4"
+model = "gpt-5.5"
 model_reasoning_effort = "medium"
 sandbox_mode = "workspace-write"
 developer_instructions = """

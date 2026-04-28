@@ -1,6 +1,6 @@
-name = "ui_reviwer"
+name = "ui_reviewer"
 description = "Review UI for visual issues, responsiveness, accessibility, and marketing clarity using Playwright, then return a concise numbered fix list."
-model = "gpt-5.4"
+model = "gpt-5.5"
 model_reasoning_effort = "medium"
 sandbox_mode = "read-only"
 developer_instructions = """

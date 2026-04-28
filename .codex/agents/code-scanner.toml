@@ -1,6 +1,6 @@
 name = "code_scanner"
 description = "Read-only code quality scanner for a Next.js codebase. Use it to scan the whole repository or a specific folder for security, performance, code quality, and accessibility issues, then return findings grouped by severity."
-model = "gpt-5.4"
+model = "gpt-5.5"
 model_reasoning_effort = "medium"
 sandbox_mode = "read-only"
 developer_instructions = """
