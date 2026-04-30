@@ -1,8 +1,10 @@
+import { FILE_ITEM_TYPES } from "@/lib/item-form";
+
 export const PRO_PLAN_NAME = "Pro";
 export const BILLING_INTERVALS = ["monthly", "yearly"] as const;
 export const FREE_TIER_ITEM_LIMIT = 50;
 export const FREE_TIER_COLLECTION_LIMIT = 3;
-export const PRO_ITEM_TYPES = ["file", "image"] as const;
+export const PRO_ITEM_TYPES = FILE_ITEM_TYPES;
 
 export type BillingInterval = (typeof BILLING_INTERVALS)[number];
 export type ProItemType = (typeof PRO_ITEM_TYPES)[number];

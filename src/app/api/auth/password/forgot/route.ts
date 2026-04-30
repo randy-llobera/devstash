@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { issuePasswordReset } from "@/lib/email-verification";
+import { issuePasswordReset } from "@/lib/auth/email-verification";
 import { prisma } from "@/lib/prisma";
 import {
   checkAuthRateLimit,

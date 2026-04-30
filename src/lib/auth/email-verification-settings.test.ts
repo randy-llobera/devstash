@@ -1,4 +1,4 @@
-import { isEmailVerificationEnabled } from "@/lib/email-verification-settings";
+import { isEmailVerificationEnabled } from "@/lib/auth/email-verification-settings";
 
 describe("isEmailVerificationEnabled", () => {
   it("defaults to true when the env var is missing", () => {

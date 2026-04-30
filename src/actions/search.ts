@@ -1,6 +1,6 @@
 "use server";
 
-import { getSessionUserId } from "@/lib/action-auth";
+import { getSessionUserId } from "@/lib/actions/auth";
 import type { GlobalSearchCollection } from "@/lib/db/collections";
 import { getGlobalSearchCollections } from "@/lib/db/collections";
 import type { GlobalSearchItem } from "@/lib/db/items";

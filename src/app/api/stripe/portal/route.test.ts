@@ -14,7 +14,7 @@ vi.mock("@/lib/db/billing", () => ({
   getBillingState: getBillingStateMock,
 }));
 
-vi.mock("@/lib/stripe", () => ({
+vi.mock("@/lib/billing/stripe", () => ({
   getStripe: getStripeMock,
 }));
 

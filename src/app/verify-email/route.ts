@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { verifyEmailToken } from "@/lib/auth-token-flows";
+import { verifyEmailToken } from "@/lib/auth/token-flows";
 
 const getRedirectUrl = (request: Request, search: string) => {
   const url = new URL("/sign-in", request.url);

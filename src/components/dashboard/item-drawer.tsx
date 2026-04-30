@@ -16,11 +16,11 @@ import { explainCode, optimizePrompt } from '@/actions/ai';
 import { deleteItem, updateItem, type UpdateItemActionError } from '@/actions/items';
 import type { CollectionOption } from '@/lib/db/collections';
 import type { DashboardItem, ItemDrawerDetail } from '@/lib/db/items';
-import { getCodeEditorLanguageOptions, isCodeEditorItemType } from '@/lib/code-editor';
-import { formatFileSize } from '@/lib/file-size';
-import { isSvgFileName } from '@/lib/file-upload';
+import { getCodeEditorLanguageOptions, isCodeEditorItemType } from '@/lib/editors/code';
+import { formatFileSize } from '@/lib/files/size';
+import { isSvgFileName } from '@/lib/files/upload';
 import { isContentItemType, isFileItemType, isLanguageItemType, isUrlItemType, parseItemTagsInput } from '@/lib/item-form';
-import { isMarkdownEditorItemType } from '@/lib/markdown-editor';
+import { isMarkdownEditorItemType } from '@/lib/editors/markdown';
 
 import { cn } from '@/lib/utils';
 

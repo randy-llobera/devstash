@@ -10,7 +10,7 @@ import {
   FREE_TIER_COLLECTION_LIMIT,
   FREE_TIER_ITEM_LIMIT,
   PRO_PLAN_NAME,
-} from "@/lib/billing-config";
+} from "@/lib/billing/config";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

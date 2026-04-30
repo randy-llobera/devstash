@@ -12,7 +12,7 @@ Scope:
 - `src/app/verify-email/route.ts`
 - `src/app/api/profile/password/route.ts`
 - `src/app/api/profile/delete/route.ts`
-- `src/lib/email-verification.ts`
+- `src/lib/auth/email-verification.ts`
 - auth-related client entry points for sign-in and reset UX
 
 Out of scope:
@@ -58,7 +58,7 @@ Recommendation:
 Files:
 - `src/app/verify-email/route.ts:20-52`
 - `src/app/api/auth/password/reset/route.ts:54-118`
-- `src/lib/email-verification.ts:117-205`
+- `src/lib/auth/email-verification.ts:117-205`
 
 What I found:
 - Email verification and password reset both store hashed tokens in the shared `VerificationToken` table.
@@ -83,7 +83,7 @@ Files:
 - `src/app/api/auth/register/route.ts:99-103`
 - `src/app/api/auth/password/forgot/route.ts:46-50`
 - `src/app/api/auth/verification/resend/route.ts:52-56`
-- `src/lib/email-verification.ts:58-80`
+- `src/lib/auth/email-verification.ts:58-80`
 
 What I found:
 - Registration, forgot-password, and resend-verification all pass `new URL(request.url).origin` into the email helpers.
@@ -130,7 +130,7 @@ Recommendation:
 
 Files:
 - `src/app/api/auth/register/route.ts:86-112`
-- `src/lib/email-verification.ts:151-157`
+- `src/lib/auth/email-verification.ts:151-157`
 
 What I found:
 - User creation happens before the verification email is sent.

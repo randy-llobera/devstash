@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { resetPasswordWithToken } from "@/lib/auth-token-flows";
+import { resetPasswordWithToken } from "@/lib/auth/token-flows";
 import {
   checkAuthRateLimit,
   createRateLimitErrorResponse,

@@ -3,7 +3,7 @@
 import { ImageIcon } from "lucide-react";
 
 import type { DashboardItem } from "@/lib/db/items";
-import { isSvgFileName } from "@/lib/file-upload";
+import { isSvgFileName } from "@/lib/files/upload";
 
 import { ItemFavoriteButton } from "@/components/dashboard/item-favorite-button";
 import { useItemDrawer } from "@/components/dashboard/item-drawer-provider";

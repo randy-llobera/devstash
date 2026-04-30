@@ -9,7 +9,7 @@ import {
   EDITOR_FONT_SIZE_OPTIONS,
   EDITOR_TAB_SIZE_OPTIONS,
   type EditorPreferences,
-} from "@/lib/editor-preferences";
+} from "@/lib/editors/preferences";
 
 import { useEditorPreferences } from "@/contexts/editor-preferences-context";
 

@@ -1,4 +1,6 @@
-const CODE_EDITOR_ITEM_TYPES = new Set(['snippet', 'command']);
+import { LANGUAGE_ITEM_TYPES } from "@/lib/item-form";
+
+const CODE_EDITOR_ITEM_TYPES = new Set<string>(LANGUAGE_ITEM_TYPES);
 
 const LANGUAGE_CHOICES = [
   { value: 'bash', label: 'Bash', editorLanguage: 'shell', aliases: ['bash'] },

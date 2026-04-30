@@ -18,7 +18,7 @@ vi.mock("@/auth", () => ({
   auth: authMock,
 }));
 
-vi.mock("@/lib/billing", () => ({
+vi.mock("@/lib/billing/guards", () => ({
   getStripePriceId: getStripePriceIdMock,
   isBillingInterval: (value: string) => value === "monthly" || value === "yearly",
 }));
@@ -28,7 +28,7 @@ vi.mock("@/lib/db/billing", () => ({
   updateStripeCustomerIdForUser: updateStripeCustomerIdForUserMock,
 }));
 
-vi.mock("@/lib/stripe", () => ({
+vi.mock("@/lib/billing/stripe", () => ({
   getStripe: getStripeMock,
 }));
 

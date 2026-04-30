@@ -42,8 +42,8 @@ vi.mock("resend", () => ({
   Resend: vi.fn(),
 }));
 
-import { resetPasswordWithToken, verifyEmailToken } from "@/lib/auth-token-flows";
-import { hashVerificationToken } from "@/lib/email-verification";
+import { resetPasswordWithToken, verifyEmailToken } from "@/lib/auth/token-flows";
+import { hashVerificationToken } from "@/lib/auth/email-verification";
 
 describe("auth token flows", () => {
   beforeEach(() => {

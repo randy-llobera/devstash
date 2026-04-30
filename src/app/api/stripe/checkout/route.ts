@@ -4,9 +4,9 @@ import { auth } from "@/auth";
 import {
   getStripePriceId,
   isBillingInterval,
-} from "@/lib/billing";
+} from "@/lib/billing/guards";
 import { getBillingState, updateStripeCustomerIdForUser } from "@/lib/db/billing";
-import { getStripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/billing/stripe";
 
 export const runtime = "nodejs";
 

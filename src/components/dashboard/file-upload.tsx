@@ -14,8 +14,8 @@ import {
   getFileUploadAccept,
   type FileUploadItemType,
   validateUploadFile,
-} from '@/lib/file-upload';
-import { formatFileSize } from '@/lib/file-size';
+} from '@/lib/files/upload';
+import { formatFileSize } from '@/lib/files/size';
 import { cn } from '@/lib/utils';
 
 import { Button } from '@/components/ui/button';

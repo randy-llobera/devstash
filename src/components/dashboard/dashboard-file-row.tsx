@@ -16,8 +16,8 @@ import {
 } from "lucide-react";
 
 import type { DashboardItem } from "@/lib/db/items";
-import { formatFileSize } from "@/lib/file-size";
-import { getFileExtension } from "@/lib/file-upload";
+import { formatFileSize } from "@/lib/files/size";
+import { getFileExtension } from "@/lib/files/upload";
 
 import { ItemFavoriteButton } from "@/components/dashboard/item-favorite-button";
 import { useItemDrawer } from "@/components/dashboard/item-drawer-provider";

@@ -20,12 +20,12 @@ vi.mock("@/lib/db/items", () => ({
   getItemDrawerDetail: getItemDrawerDetailMock,
 }));
 
-vi.mock("@/lib/file-upload", () => ({
+vi.mock("@/lib/files/upload", () => ({
   getObjectKeyFromFileUrl: getObjectKeyFromFileUrlMock,
   isSvgFileName: (fileName: string | null | undefined) => fileName?.endsWith(".svg") ?? false,
 }));
 
-vi.mock("@/lib/r2", () => ({
+vi.mock("@/lib/files/r2", () => ({
   getR2Object: getR2ObjectMock,
 }));
 

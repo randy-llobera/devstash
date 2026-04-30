@@ -4,7 +4,7 @@ import {
   DEFAULT_EDITOR_PREFERENCES,
   mergeEditorPreferences,
   normalizeEditorPreferences,
-} from "@/lib/editor-preferences";
+} from "@/lib/editors/preferences";
 
 describe("normalizeEditorPreferences", () => {
   it("returns defaults for null and invalid values", () => {

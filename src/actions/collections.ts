@@ -5,9 +5,9 @@ import { z } from "zod";
 import {
   getFieldValidationError,
   normalizeOptionalText,
-} from "@/lib/action-validation";
-import { getSessionUserId } from "@/lib/action-auth";
-import { canCreateCollectionForPlan } from "@/lib/billing";
+} from "@/lib/actions/validation";
+import { getSessionUserId } from "@/lib/actions/auth";
+import { canCreateCollectionForPlan } from "@/lib/billing/guards";
 import { getBillingState } from "@/lib/db/billing";
 import {
   createCollection as createCollectionRecord,

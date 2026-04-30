@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { auth } from "@/auth";
-import { getPasswordResetIdentifier } from "@/lib/auth-token-identifiers";
+import { getPasswordResetIdentifier } from "@/lib/auth/token-identifiers";
 import { prisma } from "@/lib/prisma";
 
 interface DeleteAccountRequestBody {

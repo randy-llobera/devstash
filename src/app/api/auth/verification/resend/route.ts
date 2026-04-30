@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { issueEmailVerification } from "@/lib/email-verification";
-import { isEmailVerificationEnabled } from "@/lib/email-verification-settings";
+import { issueEmailVerification } from "@/lib/auth/email-verification";
+import { isEmailVerificationEnabled } from "@/lib/auth/email-verification-settings";
 import { prisma } from "@/lib/prisma";
 import {
   checkAuthRateLimit,

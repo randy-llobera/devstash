@@ -10,7 +10,7 @@ import {
   PRO_PLAN_NAME,
   PRO_PRICE_AMOUNT_CENTS,
   PRO_PRICE_LABELS,
-} from "@/lib/billing-config";
+} from "@/lib/billing/config";
 
 export {
   FREE_TIER_COLLECTION_LIMIT,

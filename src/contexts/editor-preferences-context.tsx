@@ -11,7 +11,7 @@ import {
 import {
   DEFAULT_EDITOR_PREFERENCES,
   type EditorPreferences,
-} from "@/lib/editor-preferences";
+} from "@/lib/editors/preferences";
 
 interface EditorPreferencesContextValue {
   preferences: EditorPreferences;

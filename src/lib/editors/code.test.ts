@@ -5,7 +5,7 @@ import {
   getCodeEditorLanguageOptions,
   getCodeEditorWordWrap,
   isCodeEditorItemType,
-} from '@/lib/code-editor';
+} from '@/lib/editors/code';
 
 describe('isCodeEditorItemType', () => {
   it('returns true for snippet and command item types', () => {

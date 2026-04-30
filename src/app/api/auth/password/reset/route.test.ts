@@ -14,7 +14,7 @@ const {
   resetPasswordWithTokenMock: vi.fn(),
 }));
 
-vi.mock("@/lib/auth-token-flows", () => ({
+vi.mock("@/lib/auth/token-flows", () => ({
   resetPasswordWithToken: resetPasswordWithTokenMock,
 }));
 

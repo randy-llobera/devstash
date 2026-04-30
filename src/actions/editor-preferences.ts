@@ -2,13 +2,13 @@
 
 import { z } from "zod";
 
-import { getSessionUserId } from "@/lib/action-auth";
+import { getSessionUserId } from "@/lib/actions/auth";
 import {
   editorPreferencesPatchSchema,
   mergeEditorPreferences,
   type EditorPreferences,
   type EditorPreferencesPatch,
-} from "@/lib/editor-preferences";
+} from "@/lib/editors/preferences";
 import { prisma } from "@/lib/prisma";
 
 interface UpdateEditorPreferencesActionResult {

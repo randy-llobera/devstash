@@ -20,7 +20,7 @@ import {
   getPasswordResetEmail,
   getPasswordResetIdentifier,
   isEmailVerificationIdentifier,
-} from "@/lib/email-verification";
+} from "@/lib/auth/email-verification";
 
 describe("email verification utilities", () => {
   beforeEach(() => {

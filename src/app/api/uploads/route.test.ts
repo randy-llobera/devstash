@@ -28,7 +28,7 @@ vi.mock("@/auth", () => ({
   auth: authMock,
 }));
 
-vi.mock("@/lib/billing", () => ({
+vi.mock("@/lib/billing/guards", () => ({
   canUploadFilesForPlan: canUploadFilesForPlanMock,
 }));
 
@@ -36,7 +36,7 @@ vi.mock("@/lib/db/billing", () => ({
   getBillingState: getBillingStateMock,
 }));
 
-vi.mock("@/lib/file-upload", () => ({
+vi.mock("@/lib/files/upload", () => ({
   buildUploadedFileUrl: buildUploadedFileUrlMock,
   getObjectKeyFromFileUrl: getObjectKeyFromFileUrlMock,
   isFileUploadItemType: isFileUploadItemTypeMock,
@@ -44,7 +44,7 @@ vi.mock("@/lib/file-upload", () => ({
   validateUploadFile: validateUploadFileMock,
 }));
 
-vi.mock("@/lib/r2", () => ({
+vi.mock("@/lib/files/r2", () => ({
   deleteR2Object: deleteR2ObjectMock,
   uploadR2Object: uploadR2ObjectMock,
 }));

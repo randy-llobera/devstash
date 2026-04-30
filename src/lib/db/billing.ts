@@ -1,6 +1,6 @@
 import type Stripe from "stripe";
 
-import { isActiveStripeSubscriptionStatus, type BillingState } from "@/lib/billing";
+import { isActiveStripeSubscriptionStatus, type BillingState } from "@/lib/billing/guards";
 import { prisma } from "@/lib/prisma";
 
 export const getBillingState = async (userId: string): Promise<BillingState | null> => {

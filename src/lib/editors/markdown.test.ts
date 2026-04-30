@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isMarkdownEditorItemType } from '@/lib/markdown-editor';
+import { isMarkdownEditorItemType } from '@/lib/editors/markdown';
 
 describe('isMarkdownEditorItemType', () => {
   it('returns true for note and prompt item types', () => {

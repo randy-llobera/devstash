@@ -37,7 +37,7 @@ Based on the current repo patterns:
 Relevant local patterns:
 
 - Server Actions: `src/actions/items.ts`, `src/actions/collections.ts`, `src/actions/search.ts`
-- Billing and Pro gating: `src/lib/billing.ts`, `src/lib/usage-limits.ts`, `src/lib/db/billing.ts`
+- Billing and Pro gating: `src/lib/billing/guards.ts`, `src/lib/usage-limits.ts`, `src/lib/db/billing.ts`
 - Existing pending/loading UX: `src/components/dashboard/create-item-dialog.tsx`, `src/components/settings/upgrade-page.tsx`
 - Existing rate-limit approach: `src/lib/rate-limit.ts`
 

@@ -1,7 +1,12 @@
-import type { DashboardItem } from "@/lib/db/items";
-
 import { prisma } from "@/lib/prisma";
 import { getDashboardUser } from "@/lib/db/dashboard-user";
+import {
+  dashboardItemCoreSelect,
+  itemTypeSummarySelect,
+  mapDashboardItemBase,
+  type DashboardItem,
+  type DashboardItemType,
+} from "@/lib/db/items";
 import {
   COLLECTIONS_PER_PAGE,
   DASHBOARD_COLLECTIONS_LIMIT,
@@ -112,12 +117,7 @@ const collectionSelect = {
         select: {
           updatedAt: true,
           itemType: {
-            select: {
-              id: true,
-              name: true,
-              icon: true,
-              color: true,
-            },
+            select: itemTypeSummarySelect,
           },
         },
       },
@@ -142,6 +142,42 @@ export const mapGlobalSearchCollection = (collection: CollectionSummary): Global
     .filter(Boolean)
     .join(" "),
 });
+
+const sortCollectionItemTypes = (itemTypes: DashboardCollectionItemType[]) =>
+  [...itemTypes].sort((left, right) => {
+    if (right.itemCount !== left.itemCount) {
+      return right.itemCount - left.itemCount;
+    }
+
+    return left.name.localeCompare(right.name);
+  });
+
+const mapCollectionItemTypeCounts = (
+  itemTypeCounts: { itemTypeId: string; _count: { _all: number } }[],
+  itemTypes: DashboardItemType[],
+) => {
+  const itemTypeLookup = new Map(itemTypes.map((itemType) => [itemType.id, itemType]));
+
+  return sortCollectionItemTypes(
+    itemTypeCounts
+      .map((itemTypeCount) => {
+        const itemType = itemTypeLookup.get(itemTypeCount.itemTypeId);
+
+        if (!itemType) {
+          return null;
+        }
+
+        return {
+          id: itemType.id,
+          name: itemType.name,
+          icon: itemType.icon,
+          color: itemType.color,
+          itemCount: itemTypeCount._count._all,
+        };
+      })
+      .filter((itemType): itemType is DashboardCollectionItemType => itemType !== null),
+  );
+};
 
 export const buildCollectionSummary = (collection: {
   id: string;
@@ -185,13 +221,7 @@ export const buildCollectionSummary = (collection: {
     });
   }
 
-  const itemTypes = Array.from(itemTypeCounts.values()).sort((left, right) => {
-    if (right.itemCount !== left.itemCount) {
-      return right.itemCount - left.itemCount;
-    }
-
-    return left.name.localeCompare(right.name);
-  });
+  const itemTypes = sortCollectionItemTypes(Array.from(itemTypeCounts.values()));
 
   return {
     id: collection.id,
@@ -230,18 +260,7 @@ export const mapCollectionDetailItem = (
     };
   }
 ): DashboardItem => ({
-  id: item.id,
-  title: item.title,
-  description: item.description ?? "No description yet.",
-  fileName: item.fileName,
-  fileSize: item.fileSize,
-  isFavorite: item.isFavorite,
-  isPinned: item.isPinned,
-  createdAt: item.createdAt.toISOString(),
-  updatedAt: item.updatedAt.toISOString(),
-  tags: item.tags.map((tag) => tag.name),
-  itemType: item.itemType,
-  collection,
+  ...mapDashboardItemBase(item, collection),
 });
 
 const getCollectionSummariesByUserId = async (
@@ -402,30 +421,7 @@ export const getCollectionDetailById = async (
   });
   const pagedCollectionItems = await prisma.item.findMany({
     where: itemWhere,
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      fileName: true,
-      fileSize: true,
-      isFavorite: true,
-      isPinned: true,
-      createdAt: true,
-      updatedAt: true,
-      tags: {
-        select: {
-          name: true,
-        },
-      },
-      itemType: {
-        select: {
-          id: true,
-          name: true,
-          icon: true,
-          color: true,
-        },
-      },
-    },
+    select: dashboardItemCoreSelect,
     skip: pagination.offset,
     take: pagination.perPage,
     orderBy: [
@@ -444,39 +440,10 @@ export const getCollectionDetailById = async (
           in: itemTypeCounts.map((itemTypeCount) => itemTypeCount.itemTypeId),
         },
       },
-      select: {
-        id: true,
-        name: true,
-        icon: true,
-        color: true,
-      },
+      select: itemTypeSummarySelect,
     })
     : [];
-  const itemTypeLookup = new Map(itemTypes.map((itemType) => [itemType.id, itemType]));
-  const summaryItemTypes = itemTypeCounts
-    .map((itemTypeCount) => {
-      const itemType = itemTypeLookup.get(itemTypeCount.itemTypeId);
-
-      if (!itemType) {
-        return null;
-      }
-
-      return {
-        id: itemType.id,
-        name: itemType.name,
-        icon: itemType.icon,
-        color: itemType.color,
-        itemCount: itemTypeCount._count._all,
-      };
-    })
-    .filter((itemType): itemType is DashboardCollectionItemType => itemType !== null)
-    .sort((left, right) => {
-      if (right.itemCount !== left.itemCount) {
-        return right.itemCount - left.itemCount;
-      }
-
-      return left.name.localeCompare(right.name);
-    });
+  const summaryItemTypes = mapCollectionItemTypeCounts(itemTypeCounts, itemTypes);
   const updatedAt = latestItem && latestItem.updatedAt > collection.updatedAt
     ? latestItem.updatedAt.toISOString()
     : collection.updatedAt.toISOString();

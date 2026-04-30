@@ -17,7 +17,7 @@ vi.mock("@/lib/db/billing", () => ({
   syncUserBillingFromSubscription: syncUserBillingFromSubscriptionMock,
 }));
 
-vi.mock("@/lib/stripe", () => ({
+vi.mock("@/lib/billing/stripe", () => ({
   getStripe: getStripeMock,
   getStripeWebhookSecret: getStripeWebhookSecretMock,
 }));

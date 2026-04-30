@@ -5,7 +5,7 @@ import {
   getFieldValidationError,
   normalizeOptionalText,
   VALIDATION_ERROR_MESSAGE,
-} from "@/lib/action-validation";
+} from "@/lib/actions/validation";
 
 describe("normalizeOptionalText", () => {
   it("returns null for missing values", () => {

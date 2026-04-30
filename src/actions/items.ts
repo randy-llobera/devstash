@@ -2,16 +2,16 @@
 
 import { z } from "zod";
 
-import { getSessionUserId } from "@/lib/action-auth";
+import { getSessionUserId } from "@/lib/actions/auth";
 import {
   getFieldValidationError,
   normalizeOptionalText,
   VALIDATION_ERROR_MESSAGE,
-} from "@/lib/action-validation";
-import { canCreateItemForPlan } from "@/lib/billing";
+} from "@/lib/actions/validation";
+import { canCreateItemForPlan } from "@/lib/billing/guards";
 import { getBillingState } from "@/lib/db/billing";
-import { deleteR2Object } from "@/lib/r2";
-import { getObjectKeyFromFileUrl } from "@/lib/file-upload";
+import { deleteR2Object } from "@/lib/files/r2";
+import { getObjectKeyFromFileUrl } from "@/lib/files/upload";
 import { ITEM_FORM_TYPES } from "@/lib/item-form";
 import {
   createItem as createItemRecord,

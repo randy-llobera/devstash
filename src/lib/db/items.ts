@@ -14,12 +14,12 @@ interface CollectionLookupClient {
   };
 }
 
-type DashboardItemCollection = {
+export type DashboardItemCollection = {
   id: string;
   name: string;
 };
 
-type DashboardItemType = {
+export type DashboardItemType = {
   id: string;
   name: string;
   icon: string;
@@ -227,7 +227,7 @@ const getOwnedCollectionIds = async (
   );
 };
 
-const mapDashboardItem = (item: {
+type DashboardItemBaseInput = {
   id: string;
   title: string;
   description: string | null;
@@ -239,6 +239,27 @@ const mapDashboardItem = (item: {
   updatedAt: Date;
   tags: { name: string }[];
   itemType: DashboardItemType;
+};
+
+export const mapDashboardItemBase = (
+  item: DashboardItemBaseInput,
+  collection: DashboardItemCollection | null,
+): DashboardItem => ({
+  id: item.id,
+  title: item.title,
+  description: item.description ?? "No description yet.",
+  fileName: item.fileName ?? null,
+  fileSize: item.fileSize ?? null,
+  isFavorite: item.isFavorite,
+  isPinned: item.isPinned,
+  createdAt: item.createdAt.toISOString(),
+  updatedAt: item.updatedAt.toISOString(),
+  tags: item.tags.map((tag) => tag.name),
+  itemType: item.itemType,
+  collection,
+});
+
+const mapDashboardItem = (item: DashboardItemBaseInput & {
   collections: {
     addedAt: Date;
     collection: DashboardItemCollection;
@@ -248,20 +269,7 @@ const mapDashboardItem = (item: {
     (left, right) => left.addedAt.getTime() - right.addedAt.getTime()
   );
 
-  return {
-    id: item.id,
-    title: item.title,
-    description: item.description ?? "No description yet.",
-    fileName: item.fileName ?? null,
-    fileSize: item.fileSize ?? null,
-    isFavorite: item.isFavorite,
-    isPinned: item.isPinned,
-    createdAt: item.createdAt.toISOString(),
-    updatedAt: item.updatedAt.toISOString(),
-    tags: item.tags.map((tag) => tag.name),
-    itemType: item.itemType,
-    collection: primaryCollection?.collection ?? null,
-  };
+  return mapDashboardItemBase(item, primaryCollection?.collection ?? null);
 };
 
 const getSearchTextPart = (value: string | null | undefined, limit = 500) =>
@@ -407,7 +415,14 @@ const itemDrawerDetailSelect = {
   },
 };
 
-const dashboardItemSelect = {
+export const itemTypeSummarySelect = {
+  id: true,
+  name: true,
+  icon: true,
+  color: true,
+} as const;
+
+export const dashboardItemCoreSelect = {
   id: true,
   title: true,
   description: true,
@@ -423,13 +438,12 @@ const dashboardItemSelect = {
     },
   },
   itemType: {
-    select: {
-      id: true,
-      name: true,
-      icon: true,
-      color: true,
-    },
+    select: itemTypeSummarySelect,
   },
+} as const;
+
+const dashboardItemSelect = {
+  ...dashboardItemCoreSelect,
   collections: {
     select: {
       addedAt: true,
@@ -441,7 +455,7 @@ const dashboardItemSelect = {
       },
     },
   },
-};
+} as const;
 
 const globalSearchItemSelect = {
   id: true,
@@ -461,12 +475,7 @@ const globalSearchItemSelect = {
     },
   },
   itemType: {
-    select: {
-      id: true,
-      name: true,
-      icon: true,
-      color: true,
-    },
+    select: itemTypeSummarySelect,
   },
   collections: {
     select: {
@@ -838,12 +847,7 @@ export const getItemsByTypeSlug = async (
     where: {
       isSystem: true,
     },
-    select: {
-      id: true,
-      name: true,
-      icon: true,
-      color: true,
-    },
+    select: itemTypeSummarySelect,
   });
 
   const matchedItemType = itemTypes.find((itemType) => getItemTypeSlug(itemType.name) === slug);
@@ -869,41 +873,7 @@ export const getItemsByTypeSlug = async (
       userId: user.id,
       itemTypeId: matchedItemType.id,
     },
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      fileName: true,
-      fileSize: true,
-      isFavorite: true,
-      isPinned: true,
-      createdAt: true,
-      updatedAt: true,
-      tags: {
-        select: {
-          name: true,
-        },
-      },
-      itemType: {
-        select: {
-          id: true,
-          name: true,
-          icon: true,
-          color: true,
-        },
-      },
-      collections: {
-        select: {
-          addedAt: true,
-          collection: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      },
-    },
+    select: dashboardItemSelect,
     skip: pagination.offset,
     take: pagination.perPage,
     orderBy: [

@@ -17,7 +17,7 @@ import type { CollectionOption } from '@/lib/db/collections';
 import {
   isFileUploadItemType,
   type FileUploadItemType,
-} from '@/lib/file-upload';
+} from '@/lib/files/upload';
 import {
   ItemFormType,
   ITEM_FORM_TYPES,
@@ -32,8 +32,8 @@ import type { SidebarItemType } from '@/lib/db/items';
 import {
   getCodeEditorLanguageOptions,
   isCodeEditorItemType,
-} from '@/lib/code-editor';
-import { isMarkdownEditorItemType } from '@/lib/markdown-editor';
+} from '@/lib/editors/code';
+import { isMarkdownEditorItemType } from '@/lib/editors/markdown';
 
 import { cn } from '@/lib/utils';
 

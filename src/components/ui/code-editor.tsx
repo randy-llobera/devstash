@@ -10,7 +10,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { toast } from 'sonner';
 
-import { getCodeEditorLanguage, getCodeEditorWordWrap } from '@/lib/code-editor';
+import { getCodeEditorLanguage, getCodeEditorWordWrap } from '@/lib/editors/code';
 import { cn } from '@/lib/utils';
 
 import { Button } from '@/components/ui/button';

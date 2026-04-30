@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import Credentials from "next-auth/providers/credentials";
 
 import authConfig from "@/auth.config";
-import { isEmailVerificationEnabled } from "@/lib/email-verification-settings";
+import { isEmailVerificationEnabled } from "@/lib/auth/email-verification-settings";
 import { prisma } from "@/lib/prisma";
 import {
   checkAuthRateLimit,

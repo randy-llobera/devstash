@@ -70,9 +70,9 @@ Redesign the New Item dialog to align with design image `[Image #1]` while keepi
 - `src/components/dashboard/create-item-dialog.tsx`
 - `src/components/dashboard/collection-picker.tsx`
 - `src/components/ui/code-editor.tsx`
-- `src/lib/editor-preferences.ts`
+- `src/lib/editors/preferences.ts`
 - `src/components/settings/editor-preferences-settings.tsx`
-- `src/lib/editor-preferences.test.ts`
+- `src/lib/editors/preferences.test.ts`
 - `src/actions/editor-preferences.test.ts`
 
 ## Constraints

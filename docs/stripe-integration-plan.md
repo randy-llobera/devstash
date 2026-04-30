@@ -202,10 +202,10 @@ Why:
 
 Create:
 
-- `src/lib/stripe.ts`
-- `src/lib/billing.ts`
+- `src/lib/billing/stripe.ts`
+- `src/lib/billing/guards.ts`
 
-`src/lib/stripe.ts` should own Stripe client creation and env validation.
+`src/lib/billing/stripe.ts` should own Stripe client creation and env validation.
 
 Example:
 
@@ -231,7 +231,7 @@ export const getStripe = () => {
 };
 ```
 
-`src/lib/billing.ts` should own:
+`src/lib/billing/guards.ts` should own:
 
 - price lookup
 - current user billing lookup
@@ -240,14 +240,14 @@ export const getStripe = () => {
 
 ## Files To Create
 
-### `src/lib/stripe.ts`
+### `src/lib/billing/stripe.ts`
 
 Purpose:
 
 - Create the Stripe client once
 - Validate required Stripe env vars
 
-### `src/lib/billing.ts`
+### `src/lib/billing/guards.ts`
 
 Purpose:
 
@@ -547,7 +547,7 @@ Client behavior after purchase:
 ## Implementation Order
 
 1. Add `stripe` dependency and env placeholders
-2. Create `src/lib/stripe.ts` and `src/lib/billing.ts`
+2. Create `src/lib/billing/stripe.ts` and `src/lib/billing/guards.ts`
 3. Add Stripe checkout route
 4. Add Stripe billing portal route
 5. Add Stripe webhook route

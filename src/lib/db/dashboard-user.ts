@@ -4,7 +4,7 @@ import { auth } from "@/auth";
 import {
   normalizeEditorPreferences,
   type EditorPreferences,
-} from "@/lib/editor-preferences";
+} from "@/lib/editors/preferences";
 import { prisma } from "@/lib/prisma";
 
 export interface DashboardUser {

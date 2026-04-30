@@ -28,7 +28,7 @@ vi.mock("@/auth", () => ({
   auth: authMock,
 }));
 
-vi.mock("@/lib/billing", () => ({
+vi.mock("@/lib/billing/guards", () => ({
   canCreateItemForPlan: canCreateItemForPlanMock,
 }));
 
@@ -45,7 +45,7 @@ vi.mock("@/lib/db/items", () => ({
   updateItem: updateItemRecordMock,
 }));
 
-vi.mock("@/lib/file-upload", () => ({
+vi.mock("@/lib/files/upload", () => ({
   getObjectKeyFromFileUrl: (fileUrl: string) =>
     fileUrl === "https://files.example.com/users/user-1/file/file.txt"
       ? "users/user-1/file/file.txt"
@@ -56,7 +56,7 @@ vi.mock("@/lib/file-upload", () => ({
         : null,
 }));
 
-vi.mock("@/lib/r2", () => ({
+vi.mock("@/lib/files/r2", () => ({
   deleteR2Object: deleteR2ObjectMock,
 }));
 

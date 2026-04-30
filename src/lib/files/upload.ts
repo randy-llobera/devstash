@@ -1,4 +1,6 @@
-export const FILE_UPLOAD_TYPES = ["file", "image"] as const;
+import { FILE_ITEM_TYPES } from "@/lib/item-form";
+
+export const FILE_UPLOAD_TYPES = FILE_ITEM_TYPES;
 
 export type FileUploadItemType = (typeof FILE_UPLOAD_TYPES)[number];
 

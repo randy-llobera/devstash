@@ -4,7 +4,7 @@ import {
   getPasswordResetEmail,
   hashVerificationToken,
   isEmailVerificationIdentifier,
-} from "@/lib/email-verification";
+} from "@/lib/auth/email-verification";
 import { prisma } from "@/lib/prisma";
 
 export type VerifyEmailTokenResult = "invalid" | "verified";
@@ -12,9 +12,12 @@ export type ResetPasswordWithTokenResult =
   | { status: "invalid" }
   | { email: string; status: "reset" };
 
-export const verifyEmailToken = async (token: string): Promise<VerifyEmailTokenResult> => {
+const findValidVerificationToken = async (
+  token: string,
+  isValidIdentifier: (identifier: string) => boolean,
+) => {
   if (!token) {
-    return "invalid";
+    return null;
   }
 
   const hashedToken = hashVerificationToken(token);
@@ -23,11 +26,11 @@ export const verifyEmailToken = async (token: string): Promise<VerifyEmailTokenR
   });
 
   if (!verificationToken) {
-    return "invalid";
+    return null;
   }
 
-  if (!isEmailVerificationIdentifier(verificationToken.identifier)) {
-    return "invalid";
+  if (!isValidIdentifier(verificationToken.identifier)) {
+    return null;
   }
 
   if (verificationToken.expires < new Date()) {
@@ -35,6 +38,19 @@ export const verifyEmailToken = async (token: string): Promise<VerifyEmailTokenR
       where: { token: verificationToken.token },
     });
 
+    return null;
+  }
+
+  return verificationToken;
+};
+
+export const verifyEmailToken = async (token: string): Promise<VerifyEmailTokenResult> => {
+  const verificationToken = await findValidVerificationToken(
+    token,
+    isEmailVerificationIdentifier,
+  );
+
+  if (!verificationToken) {
     return "invalid";
   }
 
@@ -67,14 +83,10 @@ export const resetPasswordWithToken = async ({
   password: string;
   token: string;
 }): Promise<ResetPasswordWithTokenResult> => {
-  if (!token) {
-    return { status: "invalid" };
-  }
-
-  const hashedToken = hashVerificationToken(token);
-  const resetToken = await prisma.verificationToken.findUnique({
-    where: { token: hashedToken },
-  });
+  const resetToken = await findValidVerificationToken(
+    token,
+    (identifier) => getPasswordResetEmail(identifier) !== null,
+  );
 
   if (!resetToken) {
     return { status: "invalid" };
@@ -83,14 +95,6 @@ export const resetPasswordWithToken = async ({
   const email = getPasswordResetEmail(resetToken.identifier);
 
   if (!email) {
-    return { status: "invalid" };
-  }
-
-  if (resetToken.expires < new Date()) {
-    await prisma.verificationToken.delete({
-      where: { token: resetToken.token },
-    });
-
     return { status: "invalid" };
   }
 

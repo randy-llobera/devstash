@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatFileSize } from '@/lib/file-size';
+import { formatFileSize } from '@/lib/files/size';
 
 describe('formatFileSize', () => {
   it('returns null for missing or invalid sizes', () => {

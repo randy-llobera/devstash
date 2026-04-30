@@ -7,9 +7,9 @@ export {
   getPasswordResetEmail,
   getPasswordResetIdentifier,
   isEmailVerificationIdentifier,
-} from "@/lib/auth-token-identifiers";
-import { getPasswordResetIdentifier } from "@/lib/auth-token-identifiers";
-import { isEmailVerificationEnabled } from "@/lib/email-verification-settings";
+} from "@/lib/auth/token-identifiers";
+import { getPasswordResetIdentifier } from "@/lib/auth/token-identifiers";
+import { isEmailVerificationEnabled } from "@/lib/auth/email-verification-settings";
 import { prisma } from "@/lib/prisma";
 
 const VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
@@ -29,25 +29,46 @@ export const escapeHtml = (value: string) =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
+const buildAuthEmailHtml = ({
+  actionText,
+  bodyText,
+  ignoreText,
+  name,
+  url,
+}: {
+  actionText: string;
+  bodyText: string;
+  ignoreText: string;
+  name: string | null;
+  url: string;
+}) => {
+  const greeting = name ? `Hi ${escapeHtml(name)},` : "Hi,";
+  const safeUrl = escapeHtml(url);
+
+  return `
+    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827;">
+      <p>${greeting}</p>
+      <p>${bodyText}</p>
+      <p><a href="${safeUrl}">${actionText}</a></p>
+      <p>${ignoreText}</p>
+    </div>
+  `;
+};
+
 const getEmailVerificationHtml = ({
   name,
   verificationUrl,
 }: {
   name: string | null;
   verificationUrl: string;
-}) => {
-  const greeting = name ? `Hi ${escapeHtml(name)},` : "Hi,";
-  const safeVerificationUrl = escapeHtml(verificationUrl);
-
-  return `
-    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827;">
-      <p>${greeting}</p>
-      <p>Click the link below to verify your email address for DevStash.</p>
-      <p><a href="${safeVerificationUrl}">Verify your email</a></p>
-      <p>If you did not create this account, you can ignore this message.</p>
-    </div>
-  `;
-};
+}) =>
+  buildAuthEmailHtml({
+    actionText: "Verify your email",
+    bodyText: "Click the link below to verify your email address for DevStash.",
+    ignoreText: "If you did not create this account, you can ignore this message.",
+    name,
+    url: verificationUrl,
+  });
 
 const getPasswordResetHtml = ({
   name,
@@ -55,19 +76,14 @@ const getPasswordResetHtml = ({
 }: {
   name: string | null;
   resetUrl: string;
-}) => {
-  const greeting = name ? `Hi ${escapeHtml(name)},` : "Hi,";
-  const safeResetUrl = escapeHtml(resetUrl);
-
-  return `
-    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827;">
-      <p>${greeting}</p>
-      <p>Click the link below to reset your DevStash password.</p>
-      <p><a href="${safeResetUrl}">Reset your password</a></p>
-      <p>If you did not request this, you can ignore this message.</p>
-    </div>
-  `;
-};
+}) =>
+  buildAuthEmailHtml({
+    actionText: "Reset your password",
+    bodyText: "Click the link below to reset your DevStash password.",
+    ignoreText: "If you did not request this, you can ignore this message.",
+    name,
+    url: resetUrl,
+  });
 
 export const hashVerificationToken = (token: string) =>
   createHash("sha256").update(token).digest("hex");
@@ -84,29 +100,25 @@ export const getAuthEmailBaseUrl = () => {
   return new URL(configuredBaseUrl).origin;
 };
 
-const createVerificationUrl = ({
+const createAuthUrl = ({
   baseUrl,
+  pathname,
   token,
 }: {
   baseUrl: string;
+  pathname: string;
   token: string;
 }) => {
-  const url = new URL("/verify-email", baseUrl);
+  const url = new URL(pathname, baseUrl);
   url.searchParams.set("token", token);
   return url.toString();
 };
 
-const createPasswordResetUrl = ({
-  baseUrl,
-  token,
-}: {
-  baseUrl: string;
-  token: string;
-}) => {
-  const url = new URL("/reset-password", baseUrl);
-  url.searchParams.set("token", token);
-  return url.toString();
-};
+const createVerificationUrl = (options: { baseUrl: string; token: string }) =>
+  createAuthUrl({ ...options, pathname: "/verify-email" });
+
+const createPasswordResetUrl = (options: { baseUrl: string; token: string }) =>
+  createAuthUrl({ ...options, pathname: "/reset-password" });
 
 const sendAuthEmail = async ({
   email,

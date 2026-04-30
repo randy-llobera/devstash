@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 
 import { syncUserBillingFromCheckoutSession, syncUserBillingFromSubscription } from "@/lib/db/billing";
-import { getStripe, getStripeWebhookSecret } from "@/lib/stripe";
+import { getStripe, getStripeWebhookSecret } from "@/lib/billing/stripe";
 
 export const runtime = "nodejs";
 

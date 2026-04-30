@@ -10,7 +10,7 @@ import {
   PRO_PLAN_NAME,
   PRO_PRICE_LABELS,
   type BillingInterval,
-} from "@/lib/billing-config";
+} from "@/lib/billing/config";
 import { cn } from "@/lib/utils";
 
 import { Badge } from "@/components/ui/badge";

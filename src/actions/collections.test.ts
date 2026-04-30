@@ -20,7 +20,7 @@ vi.mock("@/auth", () => ({
   auth: authMock,
 }));
 
-vi.mock("@/lib/billing", () => ({
+vi.mock("@/lib/billing/guards", () => ({
   canCreateCollectionForPlan: canCreateCollectionForPlanMock,
 }));
 

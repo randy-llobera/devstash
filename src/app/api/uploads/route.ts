@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { auth } from "@/auth";
-import { canUploadFilesForPlan } from "@/lib/billing";
+import { canUploadFilesForPlan } from "@/lib/billing/guards";
 import { getBillingState } from "@/lib/db/billing";
 import {
   buildUploadedFileUrl,
@@ -9,8 +9,8 @@ import {
   isFileUploadItemType,
   sanitizeUploadedFileName,
   validateUploadFile,
-} from "@/lib/file-upload";
-import { deleteR2Object, uploadR2Object } from "@/lib/r2";
+} from "@/lib/files/upload";
+import { deleteR2Object, uploadR2Object } from "@/lib/files/r2";
 
 export const runtime = "nodejs";
 

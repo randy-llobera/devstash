@@ -425,9 +425,14 @@ describe("collection db helpers", () => {
       select: expect.any(Object),
       skip: 21,
       take: 21,
-      orderBy: {
-        updatedAt: "desc",
-      },
+      orderBy: [
+        {
+          isPinned: "desc",
+        },
+        {
+          updatedAt: "desc",
+        },
+      ],
     });
     expect(result?.pagination).toEqual({
       currentPage: 2,

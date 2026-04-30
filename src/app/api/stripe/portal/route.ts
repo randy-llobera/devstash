@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { auth } from "@/auth";
 import { getBillingState } from "@/lib/db/billing";
-import { getStripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/billing/stripe";
 
 export const runtime = "nodejs";
 

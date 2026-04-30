@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 
 import { auth } from "@/auth";
-import { getObjectKeyFromFileUrl, isSvgFileName } from "@/lib/file-upload";
+import { getObjectKeyFromFileUrl, isSvgFileName } from "@/lib/files/upload";
 import { getItemDrawerDetail } from "@/lib/db/items";
-import { getR2Object } from "@/lib/r2";
+import { getR2Object } from "@/lib/files/r2";
 
 interface ItemDownloadRouteContext {
   params: Promise<{

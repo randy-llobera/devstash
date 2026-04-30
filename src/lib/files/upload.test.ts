@@ -4,7 +4,7 @@ import {
   buildUploadedFileUrl,
   getObjectKeyFromFileUrl,
   validateUploadFile,
-} from "@/lib/file-upload";
+} from "@/lib/files/upload";
 
 beforeAll(() => {
   process.env.R2_PUBLIC_URL = "https://pub.example.r2.dev/uploads";

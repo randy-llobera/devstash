@@ -2,9 +2,9 @@
 
 import { z } from "zod";
 
-import { getSessionUserId } from "@/lib/action-auth";
+import { getSessionUserId } from "@/lib/actions/auth";
 import { getBillingState } from "@/lib/db/billing";
-import { formatFileSize } from "@/lib/file-size";
+import { formatFileSize } from "@/lib/files/size";
 import { getOpenAIClient, AI_MODEL } from "@/lib/openai";
 import { checkAiRateLimit, getRateLimitMessage, isRateLimitUnavailable } from "@/lib/rate-limit";
 import { canUseAiFeatures } from "@/lib/usage-limits";

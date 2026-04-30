@@ -1,6 +1,6 @@
 import { RegisterForm } from "@/components/auth/register-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { isEmailVerificationEnabled } from "@/lib/email-verification-settings";
+import { isEmailVerificationEnabled } from "@/lib/auth/email-verification-settings";
 
 const RegisterPage = () => {
   const emailVerificationEnabled = isEmailVerificationEnabled();

@@ -20,8 +20,8 @@ This phase sets up the shared Stripe and plan infrastructure, exposes Pro status
 
 ## Files to Create
 
-1. `src/lib/stripe.ts` - Stripe client creation and required env checks
-2. `src/lib/billing.ts` - plan constants, interval-to-price mapping, billing helpers that do not depend on routes
+1. `src/lib/billing/stripe.ts` - Stripe client creation and required env checks
+2. `src/lib/billing/guards.ts` - plan constants, interval-to-price mapping, billing helpers that do not depend on routes
 3. `src/lib/usage-limits.ts` - centralized free-tier limit and Pro-access checks
 4. `src/lib/usage-limits.test.ts` - unit tests for item, collection, and Pro-only feature checks
 

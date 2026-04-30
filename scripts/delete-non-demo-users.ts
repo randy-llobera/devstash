@@ -3,7 +3,7 @@ import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 import { PrismaClient } from "../src/generated/prisma/client";
-import { getAuthTokenIdentifiersForEmail } from "../src/lib/auth-token-identifiers";
+import { getAuthTokenIdentifiersForEmail } from "../src/lib/auth/token-identifiers";
 
 const DEMO_USER_EMAIL = "demo@devstash.io";
 const shouldExecute = process.argv.includes("--execute");

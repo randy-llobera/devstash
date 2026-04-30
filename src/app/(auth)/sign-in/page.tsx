@@ -2,7 +2,7 @@ import { Suspense } from "react";
 
 import { SignInForm } from "@/components/auth/sign-in-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { isEmailVerificationEnabled } from "@/lib/email-verification-settings";
+import { isEmailVerificationEnabled } from "@/lib/auth/email-verification-settings";
 
 const SignInPageShell = ({ children }: { children: React.ReactNode }) => {
   return (
