@@ -1,13 +1,11 @@
 "use client";
 
-import { createElement } from "react";
-
 import type { DashboardItem } from "@/lib/db/items";
 
 import { ItemFavoriteButton } from "@/components/dashboard/item-favorite-button";
+import { ItemTypeIconBadge } from "@/components/dashboard/item-identity";
 import { useItemDrawer } from "@/components/dashboard/item-drawer-provider";
 import { formatUpdatedAt } from "@/components/utils/date";
-import { getItemTypeIcon } from "@/components/utils/item-type";
 import { Badge } from "@/components/ui/badge";
 
 interface DashboardRecentItemRowProps {
@@ -24,15 +22,11 @@ export const DashboardRecentItemRow = ({ item }: DashboardRecentItemRowProps) =>
         className="flex min-w-0 items-start gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/60"
         onClick={() => openItem(item)}
       >
-        <div
-          className="rounded-xl border border-border/60 bg-muted/50 p-2 text-muted-foreground"
-          style={{ borderColor: item.itemType.color }}
-        >
-          {createElement(getItemTypeIcon(item.itemType.icon), {
-            className: "size-4",
-            style: { color: item.itemType.color },
-          })}
-        </div>
+        <ItemTypeIconBadge
+          icon={item.itemType.icon}
+          color={item.itemType.color}
+          borderColor={item.itemType.color}
+        />
 
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold">{item.title}</p>

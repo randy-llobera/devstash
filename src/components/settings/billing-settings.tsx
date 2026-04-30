@@ -7,10 +7,12 @@ import { CreditCard, ExternalLink, LoaderCircle, ShieldCheck } from "lucide-reac
 import { toast } from "sonner";
 
 import {
+  BILLING_STATUS_MESSAGES,
   FREE_TIER_COLLECTION_LIMIT,
   FREE_TIER_ITEM_LIMIT,
   PRO_PLAN_NAME,
 } from "@/lib/billing/config";
+import { redirectToBillingUrl } from "@/lib/billing/client";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,30 +25,27 @@ interface BillingSettingsProps {
   stripeCustomerId: string | null;
 }
 
-const BILLING_MESSAGES: Record<string, string> = {
-  cancelled: "Checkout was cancelled. Your plan has not changed.",
-  success: "Checkout completed. Refresh this page in a moment if your Pro access has not updated yet.",
-  upgrade: "Upgrade to Pro to unlock file uploads, image uploads, and higher usage limits.",
-};
+const getCurrentAccessCopy = (isPro: boolean) =>
+  isPro
+    ? "Your account can create all item types and use the billing portal."
+    : "Free accounts can create text and link items, with capped item and collection counts.";
 
-const redirectToBillingUrl = async (path: string, body?: Record<string, string>) => {
-  const response = await fetch(path, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const payload = (await response.json().catch(() => null)) as
-    | { error?: string; url?: string }
-    | null;
+interface UsageLimitCardProps {
+  count: number;
+  isPro: boolean;
+  label: string;
+  limit: number;
+}
 
-  if (!response.ok || !payload?.url) {
-    throw new Error(payload?.error ?? "Unable to open billing.");
-  }
-
-  window.location.href = payload.url;
-};
+const UsageLimitCard = ({ count, isPro, label, limit }: UsageLimitCardProps) => (
+  <div className="rounded-xl border border-border/70 bg-background px-4 py-3">
+    <div className="text-sm font-medium">{label}</div>
+    <div className="mt-1 text-sm text-muted-foreground">
+      {count}
+      {isPro ? " total" : ` / ${limit} free`}
+    </div>
+  </div>
+);
 
 export const BillingSettings = ({
   collectionCount,
@@ -59,7 +58,7 @@ export const BillingSettings = ({
   const statusMessage = useMemo(() => {
     const billingState = searchParams.get("billing");
 
-    return billingState ? BILLING_MESSAGES[billingState] ?? null : null;
+    return billingState ? BILLING_STATUS_MESSAGES[billingState] ?? null : null;
   }, [searchParams]);
 
   const handlePortal = () => {
@@ -105,9 +104,7 @@ export const BillingSettings = ({
                 Current access
               </div>
               <p className="mt-2 text-sm text-muted-foreground">
-                {isPro
-                  ? "Your account can create all item types and use the billing portal."
-                  : "Free accounts can create text and link items, with capped item and collection counts."}
+                {getCurrentAccessCopy(isPro)}
               </p>
             </div>
 
@@ -136,20 +133,18 @@ export const BillingSettings = ({
               </p>
             </div>
             <div className="space-y-3">
-              <div className="rounded-xl border border-border/70 bg-background px-4 py-3">
-                <div className="text-sm font-medium">Items</div>
-                <div className="mt-1 text-sm text-muted-foreground">
-                  {itemCount}
-                  {isPro ? " total" : ` / ${FREE_TIER_ITEM_LIMIT} free`}
-                </div>
-              </div>
-              <div className="rounded-xl border border-border/70 bg-background px-4 py-3">
-                <div className="text-sm font-medium">Collections</div>
-                <div className="mt-1 text-sm text-muted-foreground">
-                  {collectionCount}
-                  {isPro ? " total" : ` / ${FREE_TIER_COLLECTION_LIMIT} free`}
-                </div>
-              </div>
+              <UsageLimitCard
+                count={itemCount}
+                isPro={isPro}
+                label="Items"
+                limit={FREE_TIER_ITEM_LIMIT}
+              />
+              <UsageLimitCard
+                count={collectionCount}
+                isPro={isPro}
+                label="Collections"
+                limit={FREE_TIER_COLLECTION_LIMIT}
+              />
             </div>
           </div>
         </div>

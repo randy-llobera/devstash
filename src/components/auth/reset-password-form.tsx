@@ -6,8 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { LockKeyhole, Mail } from "lucide-react";
 import { toast } from "sonner";
 
+import { AuthFormError, AuthInputField } from "@/components/auth/auth-form-fields";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 
 export const ResetPasswordForm = () => {
   const router = useRouter();
@@ -115,70 +115,45 @@ export const ResetPasswordForm = () => {
 
   return (
     <>
-      {error ? (
-        <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {error}
-        </div>
-      ) : null}
+      <AuthFormError message={error} />
 
       <form className="space-y-4" onSubmit={hasToken ? handleResetPassword : handleForgotPassword}>
         {!hasToken ? (
-          <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium">
-              Email
-            </label>
-            <div className="relative">
-              <Mail className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                autoComplete="email"
-                placeholder="you@example.com"
-                className="pl-9"
-              />
-            </div>
-          </div>
+          <AuthInputField
+            id="email"
+            label="Email"
+            type="email"
+            value={email}
+            onChange={setEmail}
+            autoComplete="email"
+            placeholder="you@example.com"
+            icon={Mail}
+          />
         ) : null}
 
         {hasToken ? (
           <>
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
-                New password
-              </label>
-              <div className="relative">
-                <LockKeyhole className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  autoComplete="new-password"
-                  placeholder="Enter a new password"
-                  className="pl-9"
-                />
-              </div>
-            </div>
+            <AuthInputField
+              id="password"
+              label="New password"
+              type="password"
+              value={password}
+              onChange={setPassword}
+              autoComplete="new-password"
+              placeholder="Enter a new password"
+              icon={LockKeyhole}
+            />
 
-            <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="text-sm font-medium">
-                Confirm new password
-              </label>
-              <div className="relative">
-                <LockKeyhole className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(event) => setConfirmPassword(event.target.value)}
-                  autoComplete="new-password"
-                  placeholder="Confirm your new password"
-                  className="pl-9"
-                />
-              </div>
-            </div>
+            <AuthInputField
+              id="confirmPassword"
+              label="Confirm new password"
+              type="password"
+              value={confirmPassword}
+              onChange={setConfirmPassword}
+              autoComplete="new-password"
+              placeholder="Confirm your new password"
+              icon={LockKeyhole}
+            />
           </>
         ) : null}
 

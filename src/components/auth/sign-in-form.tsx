@@ -7,8 +7,13 @@ import { LockKeyhole, Mail } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 
+import {
+  AuthFormDivider,
+  AuthFormError,
+  AuthGitHubButton,
+  AuthInputField,
+} from "@/components/auth/auth-form-fields";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { getRateLimitMessageFromCode } from "@/lib/rate-limit";
 
 const getErrorMessage = (error: string | null, code?: string | null) => {
@@ -197,71 +202,36 @@ export const SignInForm = ({ emailVerificationEnabled }: SignInFormProps) => {
 
   return (
     <>
-      {pageError ? (
-        <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {pageError}
-        </div>
-      ) : null}
+      <AuthFormError message={pageError} />
 
-      {error ? (
-        <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {error}
-        </div>
-      ) : null}
+      <AuthFormError message={error} />
 
-      <Button
-        type="button"
-        variant="outline"
-        size="lg"
-        className="w-full justify-center"
-        onClick={handleGithubSignIn}
-        disabled={isSubmitting}
-      >
-        Sign in with GitHub
-      </Button>
+      <AuthGitHubButton onClick={handleGithubSignIn} disabled={isSubmitting} />
 
-      <div className="flex items-center gap-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-        <div className="h-px flex-1 bg-border/70" />
-        <span>Or</span>
-        <div className="h-px flex-1 bg-border/70" />
-      </div>
+      <AuthFormDivider />
 
       <form className="space-y-4" onSubmit={handleCredentialsSignIn}>
-        <div className="space-y-2">
-          <label htmlFor="email" className="text-sm font-medium">
-            Email
-          </label>
-          <div className="relative">
-            <Mail className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              autoComplete="email"
-              placeholder="you@example.com"
-              className="pl-9"
-            />
-          </div>
-        </div>
+        <AuthInputField
+          id="email"
+          label="Email"
+          type="email"
+          value={email}
+          onChange={setEmail}
+          autoComplete="email"
+          placeholder="you@example.com"
+          icon={Mail}
+        />
 
-        <div className="space-y-2">
-          <label htmlFor="password" className="text-sm font-medium">
-            Password
-          </label>
-          <div className="relative">
-            <LockKeyhole className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              autoComplete="current-password"
-              placeholder="Enter your password"
-              className="pl-9"
-            />
-          </div>
-        </div>
+        <AuthInputField
+          id="password"
+          label="Password"
+          type="password"
+          value={password}
+          onChange={setPassword}
+          autoComplete="current-password"
+          placeholder="Enter your password"
+          icon={LockKeyhole}
+        />
 
         <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? "Signing in..." : "Sign in"}

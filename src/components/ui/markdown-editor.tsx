@@ -1,6 +1,5 @@
 'use client';
 
-import { Check, Copy } from 'lucide-react';
 import type { ComponentPropsWithoutRef } from 'react';
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
@@ -10,7 +9,11 @@ import { toast } from 'sonner';
 
 import { cn } from '@/lib/utils';
 
-import { Button } from '@/components/ui/button';
+import {
+  EditorCopyButton,
+  EditorTabButton,
+  EditorWindowDots,
+} from '@/components/ui/editor-shell';
 import { Textarea } from '@/components/ui/textarea';
 
 const DEFAULT_MAX_HEIGHT = 400;
@@ -242,11 +245,7 @@ export const MarkdownEditor = ({
     >
       <div className='flex min-h-[53px] items-center justify-between border-b border-[#3a3a3a] bg-[#2d2d2d] px-4 py-3'>
         <div className='flex min-w-0 items-center gap-3'>
-          <div className='flex items-center gap-1.5'>
-            <span className='size-3 rounded-full bg-rose-500' />
-            <span className='size-3 rounded-full bg-amber-400' />
-            <span className='size-3 rounded-full bg-emerald-500' />
-          </div>
+          <EditorWindowDots />
 
           {readOnly ? (
             onReadOnlyViewChange ? (
@@ -255,34 +254,18 @@ export const MarkdownEditor = ({
                 role='tablist'
                 aria-label='Prompt optimization views'
               >
-                <button
-                  type='button'
-                  role='tab'
-                  aria-selected={readOnlyView === 'current'}
-                  className={cn(
-                    'rounded-full px-3 py-1 text-[11px] font-medium tracking-[0.14em] uppercase transition-colors',
-                    readOnlyView === 'current'
-                      ? 'bg-slate-200 text-slate-950'
-                      : 'text-slate-300 hover:text-white',
-                  )}
+                <EditorTabButton
+                  active={readOnlyView === 'current'}
                   onClick={() => onReadOnlyViewChange('current')}
                 >
                   {readOnlyViewLabels.current}
-                </button>
-                <button
-                  type='button'
-                  role='tab'
-                  aria-selected={readOnlyView === 'optimized'}
-                  className={cn(
-                    'rounded-full px-3 py-1 text-[11px] font-medium tracking-[0.14em] uppercase transition-colors',
-                    readOnlyView === 'optimized'
-                      ? 'bg-slate-200 text-slate-950'
-                      : 'text-slate-300 hover:text-white',
-                  )}
+                </EditorTabButton>
+                <EditorTabButton
+                  active={readOnlyView === 'optimized'}
                   onClick={() => onReadOnlyViewChange('optimized')}
                 >
                   {readOnlyViewLabels.optimized}
-                </button>
+                </EditorTabButton>
               </div>
             ) : (
               <span className='truncate rounded-full border border-[#4b5563] bg-[#1e1e1e] px-2.5 py-1 text-[11px] font-medium tracking-[0.18em] text-slate-200 uppercase'>
@@ -295,58 +278,35 @@ export const MarkdownEditor = ({
               role='tablist'
               aria-label='Markdown editor tabs'
             >
-              <button
+              <EditorTabButton
                 id={writeTabId}
-                type='button'
-                role='tab'
-                aria-controls={writePanelId}
-                aria-selected={activeTab === 'write'}
-                className={cn(
-                  'rounded-full px-3 py-1 text-[11px] font-medium tracking-[0.14em] uppercase transition-colors',
-                  activeTab === 'write'
-                    ? 'bg-slate-200 text-slate-950'
-                    : 'text-slate-300 hover:text-white',
-                )}
+                controls={writePanelId}
+                active={activeTab === 'write'}
                 onClick={() => setEditableTab('write')}
               >
                 Write
-              </button>
-              <button
+              </EditorTabButton>
+              <EditorTabButton
                 id={previewTabId}
-                type='button'
-                role='tab'
-                aria-controls={previewPanelId}
-                aria-selected={activeTab === 'preview'}
-                className={cn(
-                  'rounded-full px-3 py-1 text-[11px] font-medium tracking-[0.14em] uppercase transition-colors',
-                  activeTab === 'preview'
-                    ? 'bg-slate-200 text-slate-950'
-                    : 'text-slate-300 hover:text-white',
-                )}
+                controls={previewPanelId}
+                active={activeTab === 'preview'}
                 onClick={() => setEditableTab('preview')}
               >
                 Preview
-              </button>
+              </EditorTabButton>
             </div>
           )}
         </div>
 
         <div className='flex items-center gap-2'>
           {headerActions}
-          <Button
-            type='button'
-            variant='ghost'
-            size='sm'
-            className='h-8 rounded-lg border border-[#4b5563] bg-[#1e1e1e] px-2.5 text-slate-300 hover:bg-[#242424] hover:text-slate-100'
-            onClick={() => {
+          <EditorCopyButton
+            copied={copied}
+            disabled={!value.trim()}
+            onCopy={() => {
               void handleCopy();
             }}
-            disabled={!value.trim()}
-            aria-label='Copy editor content'
-          >
-            {copied ? <Check className='size-4' /> : <Copy className='size-4' />}
-            {copied ? 'Copied' : 'Copy'}
-          </Button>
+          />
         </div>
       </div>
 
