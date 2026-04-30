@@ -256,7 +256,7 @@ export const CollectionActions = ({
           </DropdownMenuContent>
         </DropdownMenu>
       ) : (
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-nowrap items-center gap-2">
           <Button
             type="button"
             variant="outline"
