@@ -1,28 +1,16 @@
-# Current Feature: Components Refactor
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Refactor duplicated component patterns in `src/components` while keeping UI flow explicit and easy to follow.
-- Reuse shadcn primitives before introducing custom components.
-- Extract focused dashboard form pieces shared by create and edit flows without hiding create/edit differences.
-- Move pure item form logic into `src/lib/items/form.ts`.
-- Reduce duplication in favorite/pin optimistic toggles, item identity UI, global search readability, editor shells, auth forms, and billing redirect/status copy where it stays simple.
-- Add or update focused unit tests for pure item form helpers.
+<!-- Add goals here -->
 
 ## Notes
 
-- Keep the app shadcn-first. Add missing shadcn components only when useful for this app.
-- Keep file upload, create-only item type picker, drawer metadata, drawer actions, and dialog/sheet layout in parent components.
-- Avoid one generic item form component that obscures create/edit behavior.
-- Item form helpers must stay pure: no React, browser APIs, server actions, or UI state.
-- Preserve optimistic rollback, search invalidation, `router.refresh()`, and `onToggled` behavior for favorite and pin buttons.
-- Keep Monaco sizing in `code-editor.tsx` and textarea/preview sizing in `markdown-editor.tsx`.
-- Billing redirect helper must remain client-safe because it uses `window.location.href`.
-- Test plan: run `npm run typecheck`, `npm run lint`, and `npm run test`; manually verify create/edit item flows, favorite/pin interactions, editors, billing checkout/portal buttons, and auth forms.
+<!-- Add notes here -->
 
 ## History
 
@@ -97,3 +85,4 @@ In Progress
 - Auth token scope cleanup completed with shared token identifier helpers, centralized email verification and password reset token flow utilities, wrong-flow token rejection without consumption, cleanup script coverage for reset identifiers, and focused regression tests
 - Refactor Action Shared Logic completed with shared Server Action auth and validation helpers, AI action preflight/request/error handling deduplicated locally, existing file-size and item-form utilities reused, and focused action/helper coverage preserved
 - Lib organization refactor completed with domain folders for actions, auth, billing, editors, files, items, users, and AI helpers, shared DB/rate-limit/auth utility extractions, updated imports and docs, and full typecheck, lint, and test verification preserved
+- Components Refactor completed with shared dashboard item form fields, pure item form payload helpers, optimistic favorite/pin toggle handling, item identity badges, auth form primitives, billing client helpers, editor shell controls, global search cleanup, and focused helper coverage.
