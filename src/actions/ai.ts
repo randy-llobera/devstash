@@ -2,8 +2,9 @@
 
 import { z } from "zod";
 
-import { auth } from "@/auth";
+import { getSessionUserId } from "@/lib/action-auth";
 import { getBillingState } from "@/lib/db/billing";
+import { formatFileSize } from "@/lib/file-size";
 import { getOpenAIClient, AI_MODEL } from "@/lib/openai";
 import { checkAiRateLimit, getRateLimitMessage, isRateLimitUnavailable } from "@/lib/rate-limit";
 import { canUseAiFeatures } from "@/lib/usage-limits";
@@ -167,27 +168,6 @@ const parseAutoTagResponse = (outputText: string, existingTags: string[]) => {
   return normalizedTags;
 };
 
-const formatFileSize = (value: number | null | undefined) => {
-  if (value === null || value === undefined || value <= 0) {
-    return null;
-  }
-
-  if (value < 1024) {
-    return `${value} B`;
-  }
-
-  const units = ["KB", "MB", "GB"];
-  let size = value / 1024;
-  let unitIndex = 0;
-
-  while (size >= 1024 && unitIndex < units.length - 1) {
-    size /= 1024;
-    unitIndex += 1;
-  }
-
-  return `${size >= 10 ? Math.round(size) : size.toFixed(1)} ${units[unitIndex]}`;
-};
-
 const parseDescriptionSummaryResponse = (outputText: string) => {
   const parsedJson = JSON.parse(outputText) as unknown;
   const parsedResponse = descriptionSummaryResponseSchema.parse(parsedJson);
@@ -312,6 +292,142 @@ const getOpenAIErrorRequestId = (error: unknown) =>
       ? error.requestID
       : null;
 
+type AiRateLimitType = "autoTag" | "summary" | "explain" | "optimizePrompt";
+
+interface RunAiJsonFeatureOptions<Result> {
+  emptyOutputError: string;
+  fallbackError: string;
+  input: string;
+  instructions: string;
+  logMessage: string;
+  metadataFeature: string;
+  parseOutput: (outputText: string) => Result;
+  rateLimitType: AiRateLimitType;
+  signedInError: string;
+  upgradeError: string;
+}
+
+type AiJsonFeatureResult<Result> =
+  | {
+      success: true;
+      data: Result;
+    }
+  | {
+      success: false;
+      error: string;
+    };
+
+const runAiJsonFeature = async <Result>({
+  emptyOutputError,
+  fallbackError,
+  input,
+  instructions,
+  logMessage,
+  metadataFeature,
+  parseOutput,
+  rateLimitType,
+  signedInError,
+  upgradeError,
+}: RunAiJsonFeatureOptions<Result>): Promise<AiJsonFeatureResult<Result>> => {
+  const userId = await getSessionUserId();
+
+  if (!userId) {
+    return {
+      success: false,
+      error: signedInError,
+    };
+  }
+
+  const billingState = await getBillingState(userId);
+
+  if (!billingState) {
+    return {
+      success: false,
+      error: "User not found.",
+    };
+  }
+
+  if (!canUseAiFeatures({ isPro: billingState.isPro })) {
+    return {
+      success: false,
+      error: upgradeError,
+    };
+  }
+
+  const rateLimitResult = await checkAiRateLimit({
+    identifier: userId,
+    type: rateLimitType,
+  });
+
+  if (!rateLimitResult.success) {
+    return {
+      success: false,
+      error: isRateLimitUnavailable(rateLimitResult)
+        ? AUTO_TAG_RATE_LIMIT_UNAVAILABLE_MESSAGE
+        : getRateLimitMessage(rateLimitResult.reset),
+    };
+  }
+
+  try {
+    const response = await getOpenAIClient().responses.create({
+      model: AI_MODEL,
+      instructions,
+      input,
+      metadata: {
+        feature: metadataFeature,
+        userId,
+      },
+      text: {
+        format: {
+          type: "json_object",
+        },
+      },
+    });
+
+    if (!response.output_text) {
+      return {
+        success: false,
+        error: emptyOutputError,
+      };
+    }
+
+    return {
+      success: true,
+      data: parseOutput(response.output_text),
+    };
+  } catch (error) {
+    const status = getOpenAIErrorStatus(error);
+    const requestId = getOpenAIErrorRequestId(error);
+
+    console.error(logMessage, {
+      error,
+      feature: metadataFeature,
+      requestId,
+      status,
+      userId,
+    });
+
+    if (status === 429) {
+      return {
+        success: false,
+        error: "AI suggestions are temporarily rate limited. Please try again shortly.",
+      };
+    }
+
+    if (status === 400 || status === 401 || status === 403 || status === 422 || (status ?? 0) >= 500) {
+      return {
+        success: false,
+        error: AUTO_TAG_RATE_LIMIT_UNAVAILABLE_MESSAGE,
+      };
+    }
+
+    return {
+      success: false,
+      error: fallbackError,
+    };
+  }
+};
+
 export const generateAutoTags = async (
   data: GenerateAutoTagsPayload,
 ): Promise<GenerateAutoTagsActionResult> => {
@@ -339,107 +455,23 @@ export const generateAutoTags = async (
     };
   }
 
-  const session = await auth();
-  const userId = session?.user?.id ?? null;
-
-  if (!userId) {
-    return {
-      success: false,
-      error: "You must be signed in to suggest tags.",
-    };
-  }
-
-  const billingState = await getBillingState(userId);
-
-  if (!billingState) {
-    return {
-      success: false,
-      error: "User not found.",
-    };
-  }
-
-  if (!canUseAiFeatures({ isPro: billingState.isPro })) {
-    return {
-      success: false,
-      error: "Upgrade to Pro to use AI tag suggestions.",
-    };
-  }
-
-  const rateLimitResult = await checkAiRateLimit({
-    identifier: userId,
-    type: "autoTag",
+  const result = await runAiJsonFeature({
+    emptyOutputError: "Unable to generate tag suggestions right now.",
+    fallbackError: "Unable to generate tag suggestions right now.",
+    input: buildAutoTagPrompt(parsedPayload.data),
+    instructions:
+      "You suggest 3 to 5 concise freeform tags for a developer knowledge item. Return JSON only in the shape {\"tags\": [\"tag\"]}. Use lowercase tags, avoid duplicates, avoid generic filler, and do not repeat any existing tags.",
+    logMessage: "Failed to generate auto tags.",
+    metadataFeature: "auto-tagging",
+    parseOutput: (outputText) => ({
+      tags: parseAutoTagResponse(outputText, parsedPayload.data.tags),
+    }),
+    rateLimitType: "autoTag",
+    signedInError: "You must be signed in to suggest tags.",
+    upgradeError: "Upgrade to Pro to use AI tag suggestions.",
   });
 
-  if (!rateLimitResult.success) {
-    return {
-      success: false,
-      error: isRateLimitUnavailable(rateLimitResult)
-        ? AUTO_TAG_RATE_LIMIT_UNAVAILABLE_MESSAGE
-        : getRateLimitMessage(rateLimitResult.reset),
-    };
-  }
-
-  try {
-    const response = await getOpenAIClient().responses.create({
-      model: AI_MODEL,
-      instructions:
-        "You suggest 3 to 5 concise freeform tags for a developer knowledge item. Return JSON only in the shape {\"tags\": [\"tag\"]}. Use lowercase tags, avoid duplicates, avoid generic filler, and do not repeat any existing tags.",
-      input: buildAutoTagPrompt(parsedPayload.data),
-      metadata: {
-        feature: "auto-tagging",
-        userId,
-      },
-      text: {
-        format: {
-          type: "json_object",
-        },
-      },
-    });
-
-    if (!response.output_text) {
-      return {
-        success: false,
-        error: "Unable to generate tag suggestions right now.",
-      };
-    }
-
-    return {
-      success: true,
-      data: {
-        tags: parseAutoTagResponse(response.output_text, parsedPayload.data.tags),
-      },
-    };
-  } catch (error) {
-    const status = getOpenAIErrorStatus(error);
-    const requestId = getOpenAIErrorRequestId(error);
-
-    console.error("Failed to generate auto tags.", {
-      error,
-      feature: "auto-tagging",
-      requestId,
-      status,
-      userId,
-    });
-
-    if (status === 429) {
-      return {
-        success: false,
-        error: "AI suggestions are temporarily rate limited. Please try again shortly.",
-      };
-    }
-
-    if (status === 400 || status === 401 || status === 403 || status === 422 || (status ?? 0) >= 500) {
-      return {
-        success: false,
-        error: AUTO_TAG_RATE_LIMIT_UNAVAILABLE_MESSAGE,
-      };
-    }
-
-    return {
-      success: false,
-      error: "Unable to generate tag suggestions right now.",
-    };
-  }
+  return result;
 };
 
 export const generateDescriptionSummary = async (
@@ -475,107 +507,23 @@ export const generateDescriptionSummary = async (
     };
   }
 
-  const session = await auth();
-  const userId = session?.user?.id ?? null;
-
-  if (!userId) {
-    return {
-      success: false,
-      error: "You must be signed in to generate descriptions.",
-    };
-  }
-
-  const billingState = await getBillingState(userId);
-
-  if (!billingState) {
-    return {
-      success: false,
-      error: "User not found.",
-    };
-  }
-
-  if (!canUseAiFeatures({ isPro: billingState.isPro })) {
-    return {
-      success: false,
-      error: "Upgrade to Pro to use AI descriptions.",
-    };
-  }
-
-  const rateLimitResult = await checkAiRateLimit({
-    identifier: userId,
-    type: "summary",
+  const result = await runAiJsonFeature({
+    emptyOutputError: "Unable to generate a description right now.",
+    fallbackError: "Unable to generate a description right now.",
+    input: buildDescriptionSummaryPrompt(parsedPayload.data),
+    instructions:
+      'You write concise descriptions for developer knowledge items. Return JSON only in the shape {"summary":"text"}. Write 1 to 2 sentences, keep it specific, use the provided item details only, and avoid filler.',
+    logMessage: "Failed to generate description summary.",
+    metadataFeature: "description-summary",
+    parseOutput: (outputText) => ({
+      summary: parseDescriptionSummaryResponse(outputText),
+    }),
+    rateLimitType: "summary",
+    signedInError: "You must be signed in to generate descriptions.",
+    upgradeError: "Upgrade to Pro to use AI descriptions.",
   });
 
-  if (!rateLimitResult.success) {
-    return {
-      success: false,
-      error: isRateLimitUnavailable(rateLimitResult)
-        ? AUTO_TAG_RATE_LIMIT_UNAVAILABLE_MESSAGE
-        : getRateLimitMessage(rateLimitResult.reset),
-    };
-  }
-
-  try {
-    const response = await getOpenAIClient().responses.create({
-      model: AI_MODEL,
-      instructions:
-        'You write concise descriptions for developer knowledge items. Return JSON only in the shape {"summary":"text"}. Write 1 to 2 sentences, keep it specific, use the provided item details only, and avoid filler.',
-      input: buildDescriptionSummaryPrompt(parsedPayload.data),
-      metadata: {
-        feature: "description-summary",
-        userId,
-      },
-      text: {
-        format: {
-          type: "json_object",
-        },
-      },
-    });
-
-    if (!response.output_text) {
-      return {
-        success: false,
-        error: "Unable to generate a description right now.",
-      };
-    }
-
-    return {
-      success: true,
-      data: {
-        summary: parseDescriptionSummaryResponse(response.output_text),
-      },
-    };
-  } catch (error) {
-    const status = getOpenAIErrorStatus(error);
-    const requestId = getOpenAIErrorRequestId(error);
-
-    console.error("Failed to generate description summary.", {
-      error,
-      feature: "description-summary",
-      requestId,
-      status,
-      userId,
-    });
-
-    if (status === 429) {
-      return {
-        success: false,
-        error: "AI suggestions are temporarily rate limited. Please try again shortly.",
-      };
-    }
-
-    if (status === 400 || status === 401 || status === 403 || status === 422 || (status ?? 0) >= 500) {
-      return {
-        success: false,
-        error: AUTO_TAG_RATE_LIMIT_UNAVAILABLE_MESSAGE,
-      };
-    }
-
-    return {
-      success: false,
-      error: "Unable to generate a description right now.",
-    };
-  }
+  return result;
 };
 
 export const explainCode = async (
@@ -595,107 +543,23 @@ export const explainCode = async (
     };
   }
 
-  const session = await auth();
-  const userId = session?.user?.id ?? null;
-
-  if (!userId) {
-    return {
-      success: false,
-      error: "You must be signed in to explain code.",
-    };
-  }
-
-  const billingState = await getBillingState(userId);
-
-  if (!billingState) {
-    return {
-      success: false,
-      error: "User not found.",
-    };
-  }
-
-  if (!canUseAiFeatures({ isPro: billingState.isPro })) {
-    return {
-      success: false,
-      error: "Upgrade to Pro to use AI code explanations.",
-    };
-  }
-
-  const rateLimitResult = await checkAiRateLimit({
-    identifier: userId,
-    type: "explain",
+  const result = await runAiJsonFeature({
+    emptyOutputError: "Unable to explain this code right now.",
+    fallbackError: "Unable to explain this code right now.",
+    input: buildExplainCodePrompt(parsedPayload.data),
+    instructions:
+      'You explain developer code and shell commands. Return JSON only in the shape {"explanation":"markdown"}. Write a concise explanation around 200 to 300 words. Cover what it does, how it works, and the key concepts or risks. Use short markdown paragraphs or bullets. Do not invent behavior not supported by the content.',
+    logMessage: "Failed to explain code.",
+    metadataFeature: "explain-code",
+    parseOutput: (outputText) => ({
+      explanation: parseExplainCodeResponse(outputText),
+    }),
+    rateLimitType: "explain",
+    signedInError: "You must be signed in to explain code.",
+    upgradeError: "Upgrade to Pro to use AI code explanations.",
   });
 
-  if (!rateLimitResult.success) {
-    return {
-      success: false,
-      error: isRateLimitUnavailable(rateLimitResult)
-        ? AUTO_TAG_RATE_LIMIT_UNAVAILABLE_MESSAGE
-        : getRateLimitMessage(rateLimitResult.reset),
-    };
-  }
-
-  try {
-    const response = await getOpenAIClient().responses.create({
-      model: AI_MODEL,
-      instructions:
-        'You explain developer code and shell commands. Return JSON only in the shape {"explanation":"markdown"}. Write a concise explanation around 200 to 300 words. Cover what it does, how it works, and the key concepts or risks. Use short markdown paragraphs or bullets. Do not invent behavior not supported by the content.',
-      input: buildExplainCodePrompt(parsedPayload.data),
-      metadata: {
-        feature: "explain-code",
-        userId,
-      },
-      text: {
-        format: {
-          type: "json_object",
-        },
-      },
-    });
-
-    if (!response.output_text) {
-      return {
-        success: false,
-        error: "Unable to explain this code right now.",
-      };
-    }
-
-    return {
-      success: true,
-      data: {
-        explanation: parseExplainCodeResponse(response.output_text),
-      },
-    };
-  } catch (error) {
-    const status = getOpenAIErrorStatus(error);
-    const requestId = getOpenAIErrorRequestId(error);
-
-    console.error("Failed to explain code.", {
-      error,
-      feature: "explain-code",
-      requestId,
-      status,
-      userId,
-    });
-
-    if (status === 429) {
-      return {
-        success: false,
-        error: "AI suggestions are temporarily rate limited. Please try again shortly.",
-      };
-    }
-
-    if (status === 400 || status === 401 || status === 403 || status === 422 || (status ?? 0) >= 500) {
-      return {
-        success: false,
-        error: AUTO_TAG_RATE_LIMIT_UNAVAILABLE_MESSAGE,
-      };
-    }
-
-    return {
-      success: false,
-      error: "Unable to explain this code right now.",
-    };
-  }
+  return result;
 };
 
 export const optimizePrompt = async (
@@ -715,103 +579,20 @@ export const optimizePrompt = async (
     };
   }
 
-  const session = await auth();
-  const userId = session?.user?.id ?? null;
-
-  if (!userId) {
-    return {
-      success: false,
-      error: "You must be signed in to optimize prompts.",
-    };
-  }
-
-  const billingState = await getBillingState(userId);
-
-  if (!billingState) {
-    return {
-      success: false,
-      error: "User not found.",
-    };
-  }
-
-  if (!canUseAiFeatures({ isPro: billingState.isPro })) {
-    return {
-      success: false,
-      error: "Upgrade to Pro to use AI prompt optimization.",
-    };
-  }
-
-  const rateLimitResult = await checkAiRateLimit({
-    identifier: userId,
-    type: "optimizePrompt",
+  const result = await runAiJsonFeature({
+    emptyOutputError: "Unable to optimize this prompt right now.",
+    fallbackError: "Unable to optimize this prompt right now.",
+    input: buildOptimizePromptInput(parsedPayload.data),
+    instructions:
+      'You improve prompts for developer workflows. Return JSON only in the shape {"changed":boolean,"optimizedPrompt":"text"}. Preserve the original intent. Improve clarity, structure, constraints, and output instructions only when needed. If the prompt is already strong, return {"changed":false,"optimizedPrompt":""}.',
+    logMessage: "Failed to optimize prompt.",
+    metadataFeature: "prompt-optimization",
+    parseOutput: (outputText) =>
+      parseOptimizePromptResponse(outputText, parsedPayload.data.content),
+    rateLimitType: "optimizePrompt",
+    signedInError: "You must be signed in to optimize prompts.",
+    upgradeError: "Upgrade to Pro to use AI prompt optimization.",
   });
 
-  if (!rateLimitResult.success) {
-    return {
-      success: false,
-      error: isRateLimitUnavailable(rateLimitResult)
-        ? AUTO_TAG_RATE_LIMIT_UNAVAILABLE_MESSAGE
-        : getRateLimitMessage(rateLimitResult.reset),
-    };
-  }
-
-  try {
-    const response = await getOpenAIClient().responses.create({
-      model: AI_MODEL,
-      instructions:
-        'You improve prompts for developer workflows. Return JSON only in the shape {"changed":boolean,"optimizedPrompt":"text"}. Preserve the original intent. Improve clarity, structure, constraints, and output instructions only when needed. If the prompt is already strong, return {"changed":false,"optimizedPrompt":""}.',
-      input: buildOptimizePromptInput(parsedPayload.data),
-      metadata: {
-        feature: "prompt-optimization",
-        userId,
-      },
-      text: {
-        format: {
-          type: "json_object",
-        },
-      },
-    });
-
-    if (!response.output_text) {
-      return {
-        success: false,
-        error: "Unable to optimize this prompt right now.",
-      };
-    }
-
-    return {
-      success: true,
-      data: parseOptimizePromptResponse(response.output_text, parsedPayload.data.content),
-    };
-  } catch (error) {
-    const status = getOpenAIErrorStatus(error);
-    const requestId = getOpenAIErrorRequestId(error);
-
-    console.error("Failed to optimize prompt.", {
-      error,
-      feature: "prompt-optimization",
-      requestId,
-      status,
-      userId,
-    });
-
-    if (status === 429) {
-      return {
-        success: false,
-        error: "AI suggestions are temporarily rate limited. Please try again shortly.",
-      };
-    }
-
-    if (status === 400 || status === 401 || status === 403 || status === 422 || (status ?? 0) >= 500) {
-      return {
-        success: false,
-        error: AUTO_TAG_RATE_LIMIT_UNAVAILABLE_MESSAGE,
-      };
-    }
-
-    return {
-      success: false,
-      error: "Unable to optimize this prompt right now.",
-    };
-  }
+  return result;
 };

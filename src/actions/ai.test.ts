@@ -42,24 +42,28 @@ import {
   optimizePrompt,
 } from "@/actions/ai";
 
+const setupAiActionMocks = () => {
+  authMock.mockReset();
+  checkAiRateLimitMock.mockReset();
+  getBillingStateMock.mockReset();
+  getOpenAIClientMock.mockReset();
+  openAIResponsesCreateMock.mockReset();
+  getOpenAIClientMock.mockReturnValue({
+    responses: {
+      create: openAIResponsesCreateMock,
+    },
+  });
+  checkAiRateLimitMock.mockResolvedValue({
+    remaining: 19,
+    reason: null,
+    reset: Date.now(),
+    success: true,
+  });
+};
+
 describe("generateAutoTags action", () => {
   beforeEach(() => {
-    authMock.mockReset();
-    checkAiRateLimitMock.mockReset();
-    getBillingStateMock.mockReset();
-    getOpenAIClientMock.mockReset();
-    openAIResponsesCreateMock.mockReset();
-    getOpenAIClientMock.mockReturnValue({
-      responses: {
-        create: openAIResponsesCreateMock,
-      },
-    });
-    checkAiRateLimitMock.mockResolvedValue({
-      remaining: 19,
-      reason: null,
-      reset: Date.now(),
-      success: true,
-    });
+    setupAiActionMocks();
   });
 
   it("rejects unauthenticated AI tag requests", async () => {
@@ -223,22 +227,7 @@ describe("generateAutoTags action", () => {
 
 describe("generateDescriptionSummary action", () => {
   beforeEach(() => {
-    authMock.mockReset();
-    checkAiRateLimitMock.mockReset();
-    getBillingStateMock.mockReset();
-    getOpenAIClientMock.mockReset();
-    openAIResponsesCreateMock.mockReset();
-    getOpenAIClientMock.mockReturnValue({
-      responses: {
-        create: openAIResponsesCreateMock,
-      },
-    });
-    checkAiRateLimitMock.mockResolvedValue({
-      remaining: 19,
-      reason: null,
-      reset: Date.now(),
-      success: true,
-    });
+    setupAiActionMocks();
   });
 
   it("rejects summary requests with no usable item input", async () => {
@@ -372,22 +361,7 @@ describe("generateDescriptionSummary action", () => {
 
 describe("explainCode action", () => {
   beforeEach(() => {
-    authMock.mockReset();
-    checkAiRateLimitMock.mockReset();
-    getBillingStateMock.mockReset();
-    getOpenAIClientMock.mockReset();
-    openAIResponsesCreateMock.mockReset();
-    getOpenAIClientMock.mockReturnValue({
-      responses: {
-        create: openAIResponsesCreateMock,
-      },
-    });
-    checkAiRateLimitMock.mockResolvedValue({
-      remaining: 19,
-      reason: null,
-      reset: Date.now(),
-      success: true,
-    });
+    setupAiActionMocks();
   });
 
   it("rejects explain requests without code content", async () => {
@@ -519,22 +493,7 @@ describe("explainCode action", () => {
 
 describe("optimizePrompt action", () => {
   beforeEach(() => {
-    authMock.mockReset();
-    checkAiRateLimitMock.mockReset();
-    getBillingStateMock.mockReset();
-    getOpenAIClientMock.mockReset();
-    openAIResponsesCreateMock.mockReset();
-    getOpenAIClientMock.mockReturnValue({
-      responses: {
-        create: openAIResponsesCreateMock,
-      },
-    });
-    checkAiRateLimitMock.mockResolvedValue({
-      remaining: 19,
-      reason: null,
-      reset: Date.now(),
-      success: true,
-    });
+    setupAiActionMocks();
   });
 
   it("rejects optimization requests without prompt content", async () => {

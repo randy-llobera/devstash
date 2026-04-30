@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 
-import { auth } from "@/auth";
+import { getSessionUserId } from "@/lib/action-auth";
 import {
   editorPreferencesPatchSchema,
   mergeEditorPreferences,
@@ -16,12 +16,6 @@ interface UpdateEditorPreferencesActionResult {
   data?: EditorPreferences;
   error?: string;
 }
-
-const getSessionUserId = async () => {
-  const session = await auth();
-
-  return session?.user?.id ?? null;
-};
 
 export const updateEditorPreferences = async (
   patch: EditorPreferencesPatch,

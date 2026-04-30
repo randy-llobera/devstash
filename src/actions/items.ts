@@ -2,11 +2,17 @@
 
 import { z } from "zod";
 
-import { auth } from "@/auth";
+import { getSessionUserId } from "@/lib/action-auth";
+import {
+  getFieldValidationError,
+  normalizeOptionalText,
+  VALIDATION_ERROR_MESSAGE,
+} from "@/lib/action-validation";
 import { canCreateItemForPlan } from "@/lib/billing";
 import { getBillingState } from "@/lib/db/billing";
 import { deleteR2Object } from "@/lib/r2";
 import { getObjectKeyFromFileUrl } from "@/lib/file-upload";
+import { ITEM_FORM_TYPES } from "@/lib/item-form";
 import {
   createItem as createItemRecord,
   deleteItem as deleteItemRecord,
@@ -16,15 +22,7 @@ import {
   updateItem as updateItemRecord,
 } from "@/lib/db/items";
 
-const createItemTypeSchema = z.enum([
-  "snippet",
-  "prompt",
-  "command",
-  "note",
-  "file",
-  "image",
-  "link",
-]);
+const createItemTypeSchema = z.enum(ITEM_FORM_TYPES);
 
 const itemCreateSchema = z
   .object({
@@ -189,18 +187,6 @@ interface ToggleItemPinActionResult {
   error?: string;
 }
 
-const VALIDATION_ERROR_MESSAGE = "Please fix the highlighted fields.";
-
-const normalizeOptionalText = (value: string | null | undefined) => {
-  if (typeof value !== "string") {
-    return value ?? null;
-  }
-
-  const trimmedValue = value.trim();
-
-  return trimmedValue.length > 0 ? trimmedValue : null;
-};
-
 const buildParsedPayload = <T extends CreateItemPayload | UpdateItemPayload>(
   data: T,
 ) => ({
@@ -234,19 +220,6 @@ const buildCreateItemPayload = (data: CreateItemPayload) => ({
     ? { fileUrl: normalizeOptionalText(data.fileUrl) }
     : {}),
 });
-
-const getFieldValidationError = (
-  error: z.ZodError<CreateItemPayload | UpdateItemPayload>,
-): CreateItemActionError | UpdateItemActionError => ({
-  message: VALIDATION_ERROR_MESSAGE,
-  fieldErrors: error.flatten().fieldErrors,
-});
-
-const getSessionUserId = async () => {
-  const session = await auth();
-
-  return session?.user?.id ?? null;
-};
 
 const getOwnedItem = async (itemId: string, userId: string) => getItemDrawerDetail(itemId, userId);
 

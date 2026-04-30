@@ -1,16 +1,24 @@
-# Current Feature
+# Current Feature: Refactor Action Shared Logic
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
 <!-- Add goals here -->
+- Add a shared Server Action auth helper for session user ID lookup.
+- Reuse existing utility helpers where duplicated action logic exists.
+- Reduce repeated AI action preflight and request handling without changing behavior.
+- Keep user-facing action errors and result shapes unchanged.
+- Preserve focused action and utility test coverage.
 
 ## Notes
 
 <!-- Add notes here -->
+- Use `src/lib/action-auth.ts` for Server Action auth/session helpers, following the flat `src/lib/[utility].ts` convention.
+- Prefer small, local extractions over new nested lib folders or broad utility modules.
+- Keep the AI request helper local to `src/actions/ai.ts`.
 
 ## History
 

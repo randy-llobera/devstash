@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@/auth";
+import { getSessionUserId } from "@/lib/action-auth";
 import type { GlobalSearchCollection } from "@/lib/db/collections";
 import { getGlobalSearchCollections } from "@/lib/db/collections";
 import type { GlobalSearchItem } from "@/lib/db/items";
@@ -16,12 +16,6 @@ interface SearchActionResult {
   data?: SearchData;
   error?: string;
 }
-
-const getSessionUserId = async () => {
-  const session = await auth();
-
-  return session?.user?.id ?? null;
-};
 
 export const getSearchData = async (): Promise<SearchActionResult> => {
   const userId = await getSessionUserId();

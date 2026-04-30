@@ -2,7 +2,11 @@
 
 import { z } from "zod";
 
-import { auth } from "@/auth";
+import {
+  getFieldValidationError,
+  normalizeOptionalText,
+} from "@/lib/action-validation";
+import { getSessionUserId } from "@/lib/action-auth";
 import { canCreateCollectionForPlan } from "@/lib/billing";
 import { getBillingState } from "@/lib/db/billing";
 import {
@@ -59,37 +63,12 @@ interface ToggleCollectionFavoriteActionResult {
   error?: string;
 }
 
-const VALIDATION_ERROR_MESSAGE = "Please fix the highlighted fields.";
-
-const normalizeOptionalText = (value: string | null | undefined) => {
-  if (typeof value !== "string") {
-    return value ?? null;
-  }
-
-  const trimmedValue = value.trim();
-
-  return trimmedValue.length > 0 ? trimmedValue : null;
-};
-
 const buildCreateCollectionPayload = (data: CreateCollectionPayload) => ({
   name: data.name,
   ...(Object.prototype.hasOwnProperty.call(data, "description")
     ? { description: normalizeOptionalText(data.description) }
     : {}),
 });
-
-const getFieldValidationError = (
-  error: z.ZodError<CreateCollectionPayload>,
-): CreateCollectionActionError => ({
-  message: VALIDATION_ERROR_MESSAGE,
-  fieldErrors: error.flatten().fieldErrors,
-});
-
-const getSessionUserId = async () => {
-  const session = await auth();
-
-  return session?.user?.id ?? null;
-};
 
 export const createCollection = async (
   data: CreateCollectionPayload,
