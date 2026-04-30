@@ -56,6 +56,7 @@ export const Sidebar = ({
 }: SidebarProps) => {
   const pathname = usePathname();
   const [isCollectionsOpen, setIsCollectionsOpen] = useState(true);
+  const [activeCollectionNavKey, setActiveCollectionNavKey] = useState<string | null>(null);
   const collectionsSectionId = mobile ? "sidebar-collections-mobile" : "sidebar-collections";
   const displayName = user?.name?.trim() || "User";
   const getNavLinkClassName = (isActive: boolean, compact = false) =>
@@ -71,6 +72,9 @@ export const Sidebar = ({
     onNavigate?.();
     await clientSignOut({ callbackUrl: "/sign-in" });
   };
+
+  const getCollectionNavKey = (section: "favorite" | "recent", collectionId: string) =>
+    `${section}:${collectionId}`;
 
   return (
     <aside
@@ -188,15 +192,24 @@ export const Sidebar = ({
                   <div className="space-y-1">
                     {favoriteCollections.map((collection) => {
                       const href = `/collections/${collection.id}`;
+                      const navKey = getCollectionNavKey("favorite", collection.id);
+                      const hasActiveCollectionNavKey =
+                        activeCollectionNavKey?.endsWith(`:${collection.id}`) ?? false;
+                      const isActive =
+                        pathname === href &&
+                        (hasActiveCollectionNavKey ? activeCollectionNavKey === navKey : true);
 
                       return (
                       <Link
                         key={collection.id}
                         href={href}
-                        onClick={onNavigate}
+                        onClick={() => {
+                          setActiveCollectionNavKey(navKey);
+                          onNavigate?.();
+                        }}
                         title={collection.name}
-                        aria-current={pathname === href ? "page" : undefined}
-                        className={getNavLinkClassName(pathname === href)}
+                        aria-current={isActive ? "page" : undefined}
+                        className={getNavLinkClassName(isActive)}
                       >
                         <Folder className="size-4 shrink-0 text-muted-foreground" />
                         <span className="min-w-0 flex-1 truncate">{collection.name}</span>
@@ -214,15 +227,29 @@ export const Sidebar = ({
                   <div className="space-y-1">
                     {recentCollections.map((collection) => {
                       const href = `/collections/${collection.id}`;
+                      const navKey = getCollectionNavKey("recent", collection.id);
+                      const isFavoriteCollection = favoriteCollections.some(
+                        (favoriteCollection) => favoriteCollection.id === collection.id
+                      );
+                      const hasActiveCollectionNavKey =
+                        activeCollectionNavKey?.endsWith(`:${collection.id}`) ?? false;
+                      const isActive =
+                        pathname === href &&
+                        (hasActiveCollectionNavKey
+                          ? activeCollectionNavKey === navKey
+                          : !isFavoriteCollection);
 
                       return (
                       <Link
                         key={collection.id}
                         href={href}
-                        onClick={onNavigate}
+                        onClick={() => {
+                          setActiveCollectionNavKey(navKey);
+                          onNavigate?.();
+                        }}
                         title={collection.name}
-                        aria-current={pathname === href ? "page" : undefined}
-                        className={getNavLinkClassName(pathname === href)}
+                        aria-current={isActive ? "page" : undefined}
+                        className={getNavLinkClassName(isActive)}
                       >
                         <span
                           className="size-2.5 shrink-0 rounded-full"
