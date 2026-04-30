@@ -1,24 +1,16 @@
-# Current Feature: Refactor Action Shared Logic
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
 <!-- Add goals here -->
-- Add a shared Server Action auth helper for session user ID lookup.
-- Reuse existing utility helpers where duplicated action logic exists.
-- Reduce repeated AI action preflight and request handling without changing behavior.
-- Keep user-facing action errors and result shapes unchanged.
-- Preserve focused action and utility test coverage.
 
 ## Notes
 
 <!-- Add notes here -->
-- Use `src/lib/action-auth.ts` for Server Action auth/session helpers, following the flat `src/lib/[utility].ts` convention.
-- Prefer small, local extractions over new nested lib folders or broad utility modules.
-- Keep the AI request helper local to `src/actions/ai.ts`.
 
 ## History
 
@@ -91,3 +83,4 @@ In Progress
 - Item Drawer UI Polish completed with drawer preview content-first ordering, compact metadata rows, tag and collection pill sections, create/edit collection fields moved below tags, and shared selected-collection pill styling in the collection picker
 - Dashboard item layout refinements completed with aligned recent-item table columns, simpler items-page cards with full-width tag rows, and corrected create-collection modal footer spacing
 - Auth token scope cleanup completed with shared token identifier helpers, centralized email verification and password reset token flow utilities, wrong-flow token rejection without consumption, cleanup script coverage for reset identifiers, and focused regression tests
+- Refactor Action Shared Logic completed with shared Server Action auth and validation helpers, AI action preflight/request/error handling deduplicated locally, existing file-size and item-form utilities reused, and focused action/helper coverage preserved
