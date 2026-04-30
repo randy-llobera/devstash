@@ -3,7 +3,7 @@
 import type { ComponentPropsWithoutRef } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { Check, Copy, Crown, Loader2, Sparkles } from 'lucide-react';
+import { Crown, Loader2, Sparkles } from 'lucide-react';
 import type { OnMount } from '@monaco-editor/react';
 import type * as MonacoNamespace from 'monaco-editor';
 import ReactMarkdown from 'react-markdown';
@@ -14,6 +14,11 @@ import { getCodeEditorLanguage, getCodeEditorWordWrap } from '@/lib/editors/code
 import { cn } from '@/lib/utils';
 
 import { Button } from '@/components/ui/button';
+import {
+  EditorCopyButton,
+  EditorTabButton,
+  EditorWindowDots,
+} from '@/components/ui/editor-shell';
 import { useEditorPreferences } from '@/contexts/editor-preferences-context';
 
 const MonacoEditor = dynamic(
@@ -205,11 +210,7 @@ export const CodeEditor = ({
     >
       <div className='flex min-h-[53px] items-center justify-between border-b border-border/80 bg-[#303030] px-4 py-3'>
         <div className='flex min-w-0 items-center gap-3'>
-          <div className='flex items-center gap-1.5'>
-            <span className='size-3 rounded-full bg-rose-500' />
-            <span className='size-3 rounded-full bg-amber-400' />
-            <span className='size-3 rounded-full bg-emerald-500' />
-          </div>
+          <EditorWindowDots />
           {showLanguageBadge ? (
             <span className='truncate px-2.5 py-1 text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase'>
               {label}
@@ -221,30 +222,20 @@ export const CodeEditor = ({
               role='tablist'
               aria-label='Code explanation view'
             >
-              <button
-                type='button'
-                role='tab'
-                aria-selected={aiExplanation?.view === 'code'}
-                className={cn(
-                  'rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors',
-                  aiExplanation?.view === 'code' && 'bg-[#303030] text-foreground',
-                )}
+              <EditorTabButton
+                active={aiExplanation?.view === 'code'}
+                rounded='md'
                 onClick={() => aiExplanation?.onViewChange('code')}
               >
                 Code
-              </button>
-              <button
-                type='button'
-                role='tab'
-                aria-selected={aiExplanation?.view === 'explain'}
-                className={cn(
-                  'rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors',
-                  aiExplanation?.view === 'explain' && 'bg-[#303030] text-foreground',
-                )}
+              </EditorTabButton>
+              <EditorTabButton
+                active={aiExplanation?.view === 'explain'}
+                rounded='md'
                 onClick={() => aiExplanation?.onViewChange('explain')}
               >
                 Explain
-              </button>
+              </EditorTabButton>
             </div>
           ) : null}
         </div>
@@ -283,20 +274,14 @@ export const CodeEditor = ({
               </Button>
             )
           ) : null}
-          <Button
-            type='button'
-            variant='ghost'
-            size='sm'
-            className='h-8 rounded-lg border border-border/80 bg-[#222] px-2.5 text-muted-foreground hover:bg-[#2a2a2a] hover:text-foreground'
-            onClick={() => {
+          <EditorCopyButton
+            copied={copied}
+            disabled={!activeValue.trim()}
+            className='border-border/80 bg-[#222] text-muted-foreground hover:bg-[#2a2a2a] hover:text-foreground'
+            onCopy={() => {
               void handleCopy();
             }}
-            disabled={!activeValue.trim()}
-            aria-label='Copy editor content'
-          >
-            {copied ? <Check className='size-4' /> : <Copy className='size-4' />}
-            {copied ? 'Copied' : 'Copy'}
-          </Button>
+          />
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { createElement, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { ChevronDown, Folder, Star } from "lucide-react";
 
@@ -12,7 +12,7 @@ import type {
 } from "@/lib/items/favorites-sort";
 
 import { formatDate } from "@/components/utils/date";
-import { getItemTypeIcon } from "@/components/utils/item-type";
+import { ItemTypeIconBadge } from "@/components/dashboard/item-identity";
 import { useItemDrawer } from "@/components/dashboard/item-drawer-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -150,10 +150,7 @@ export const FavoritesList = ({ items, collections }: FavoritesListProps) => {
         />
         {sortedItems.length > 0 ? (
           <div className="divide-y divide-border/60 border-y border-border/60">
-            {sortedItems.map((item) => {
-              const Icon = getItemTypeIcon(item.itemType.icon);
-
-              return (
+            {sortedItems.map((item) => (
                 <button
                   key={item.id}
                   type="button"
@@ -161,12 +158,11 @@ export const FavoritesList = ({ items, collections }: FavoritesListProps) => {
                   onClick={() => openItem(item)}
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex size-8 shrink-0 items-center justify-center rounded-md border border-border/60 bg-muted/35">
-                      {createElement(Icon, {
-                        className: "size-4",
-                        style: { color: item.itemType.color },
-                      })}
-                    </div>
+                    <ItemTypeIconBadge
+                      icon={item.itemType.icon}
+                      color={item.itemType.color}
+                      className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted/35 p-0"
+                    />
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="truncate font-mono text-sm font-medium text-foreground">
@@ -192,8 +188,7 @@ export const FavoritesList = ({ items, collections }: FavoritesListProps) => {
                     {formatDate(item.updatedAt)}
                   </div>
                 </button>
-              );
-            })}
+              ))}
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">No favorited items.</p>

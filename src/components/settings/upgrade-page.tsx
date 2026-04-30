@@ -7,10 +7,12 @@ import { Check, CreditCard, ExternalLink, LoaderCircle, Sparkles } from "lucide-
 import { toast } from "sonner";
 
 import {
+  BILLING_STATUS_MESSAGES,
   PRO_PLAN_NAME,
   PRO_PRICE_LABELS,
   type BillingInterval,
 } from "@/lib/billing/config";
+import { redirectToBillingUrl } from "@/lib/billing/client";
 import { cn } from "@/lib/utils";
 
 import { Badge } from "@/components/ui/badge";
@@ -22,11 +24,6 @@ interface UpgradePageProps {
   stripeCustomerId: string | null;
   showHeader?: boolean;
 }
-
-const BILLING_MESSAGES: Record<string, string> = {
-  cancelled: "Checkout was cancelled. Your plan has not changed.",
-  success: "Checkout completed. Refresh this page in a moment if your Pro access has not updated yet.",
-};
 
 const freeFeatures = [
   "50 items",
@@ -44,25 +41,6 @@ const proFeatures = [
   "Data export (JSON/ZIP)",
 ];
 
-const redirectToBillingUrl = async (path: string, body?: Record<string, string>) => {
-  const response = await fetch(path, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const payload = (await response.json().catch(() => null)) as
-    | { error?: string; url?: string }
-    | null;
-
-  if (!response.ok || !payload?.url) {
-    throw new Error(payload?.error ?? "Unable to open billing.");
-  }
-
-  window.location.href = payload.url;
-};
-
 export const UpgradePage = ({
   isPro,
   stripeCustomerId,
@@ -76,7 +54,7 @@ export const UpgradePage = ({
   const statusMessage = useMemo(() => {
     const billingState = searchParams.get("billing");
 
-    return billingState ? BILLING_MESSAGES[billingState] ?? null : null;
+    return billingState ? BILLING_STATUS_MESSAGES[billingState] ?? null : null;
   }, [searchParams]);
 
   const handleCheckout = (interval: BillingInterval) => {

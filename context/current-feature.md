@@ -1,16 +1,28 @@
-# Current Feature
+# Current Feature: Components Refactor
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Add goals here -->
+- Refactor duplicated component patterns in `src/components` while keeping UI flow explicit and easy to follow.
+- Reuse shadcn primitives before introducing custom components.
+- Extract focused dashboard form pieces shared by create and edit flows without hiding create/edit differences.
+- Move pure item form logic into `src/lib/items/form.ts`.
+- Reduce duplication in favorite/pin optimistic toggles, item identity UI, global search readability, editor shells, auth forms, and billing redirect/status copy where it stays simple.
+- Add or update focused unit tests for pure item form helpers.
 
 ## Notes
 
-<!-- Add notes here -->
+- Keep the app shadcn-first. Add missing shadcn components only when useful for this app.
+- Keep file upload, create-only item type picker, drawer metadata, drawer actions, and dialog/sheet layout in parent components.
+- Avoid one generic item form component that obscures create/edit behavior.
+- Item form helpers must stay pure: no React, browser APIs, server actions, or UI state.
+- Preserve optimistic rollback, search invalidation, `router.refresh()`, and `onToggled` behavior for favorite and pin buttons.
+- Keep Monaco sizing in `code-editor.tsx` and textarea/preview sizing in `markdown-editor.tsx`.
+- Billing redirect helper must remain client-safe because it uses `window.location.href`.
+- Test plan: run `npm run typecheck`, `npm run lint`, and `npm run test`; manually verify create/edit item flows, favorite/pin interactions, editors, billing checkout/portal buttons, and auth forms.
 
 ## History
 

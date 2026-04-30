@@ -274,9 +274,9 @@ export const Sidebar = ({
                   onClick={onNavigate}
                   aria-current={pathname === "/collections" ? "page" : undefined}
                   className={cn(
-                    "inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    "inline-flex items-center px-3 py-2 text-sm font-medium transition-colors",
                     pathname === "/collections"
-                      ? "bg-primary/12 text-foreground"
+                      ? "text-foreground"
                       : "text-primary hover:text-primary/80"
                   )}
                 >

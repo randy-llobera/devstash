@@ -1,14 +1,13 @@
 "use client";
 
-import { createElement } from "react";
 import { Pin } from "lucide-react";
 
 import type { DashboardItem } from "@/lib/db/items";
 
 import { ItemFavoriteButton } from "@/components/dashboard/item-favorite-button";
+import { ItemTypeIconBadge } from "@/components/dashboard/item-identity";
 import { useItemDrawer } from "@/components/dashboard/item-drawer-provider";
 import { formatUpdatedAt } from "@/components/utils/date";
-import { getItemTypeIcon } from "@/components/utils/item-type";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -49,12 +48,12 @@ export const DashboardItemCard = ({
             onClick={() => openItem(item)}
           >
             <div className="flex min-w-0 flex-1 items-start gap-4">
-              <div className="mt-0.5 rounded-2xl bg-muted/45 p-3 text-muted-foreground ring-1 ring-white/5">
-                {createElement(getItemTypeIcon(item.itemType.icon), {
-                  className: "size-5",
-                  style: { color: item.itemType.color },
-                })}
-              </div>
+              <ItemTypeIconBadge
+                icon={item.itemType.icon}
+                color={item.itemType.color}
+                iconClassName="size-5"
+                className="mt-0.5 rounded-2xl border-0 bg-muted/45 p-3 ring-1 ring-white/5"
+              />
 
               <div className="min-w-0 flex-1">
                 <div className="flex min-w-0 items-start">
@@ -115,12 +114,10 @@ export const DashboardItemCard = ({
             className="flex min-w-0 flex-1 items-start gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
             onClick={() => openItem(item)}
           >
-            <div className="rounded-xl border border-border/60 bg-muted/50 p-2 text-muted-foreground">
-              {createElement(getItemTypeIcon(item.itemType.icon), {
-                className: "size-4",
-                style: { color: item.itemType.color },
-              })}
-            </div>
+            <ItemTypeIconBadge
+              icon={item.itemType.icon}
+              color={item.itemType.color}
+            />
 
             <div className="flex min-w-0 flex-1 flex-col">
               <div className="flex items-center gap-2">
