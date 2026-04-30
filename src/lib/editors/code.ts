@@ -1,4 +1,4 @@
-import { LANGUAGE_ITEM_TYPES } from "@/lib/item-form";
+import { LANGUAGE_ITEM_TYPES } from "@/lib/items/form";
 
 const CODE_EDITOR_ITEM_TYPES = new Set<string>(LANGUAGE_ITEM_TYPES);
 

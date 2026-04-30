@@ -19,7 +19,7 @@ import {
 import type { SidebarCollection } from "@/lib/db/collections";
 import type { DashboardUser } from "@/lib/db/dashboard-user";
 import type { SidebarItemType } from "@/lib/db/items";
-import { getItemTypeHref, isProOnlyItemRoute } from "@/lib/items-navigation";
+import { getItemTypeHref, isProOnlyItemRoute } from "@/lib/items/navigation";
 
 import { UserAvatar } from "@/components/auth/user-avatar";
 import { Badge } from "@/components/ui/badge";

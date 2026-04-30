@@ -1,4 +1,4 @@
-import { FILE_ITEM_TYPES } from "@/lib/item-form";
+import { FILE_ITEM_TYPES } from "@/lib/items/form";
 
 export const PRO_PLAN_NAME = "Pro";
 export const BILLING_INTERVALS = ["monthly", "yearly"] as const;

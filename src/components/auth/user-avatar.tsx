@@ -1,7 +1,7 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getUserInitials } from "@/lib/user-avatar";
+import { getUserInitials } from "@/lib/users/avatar";
 
 interface UserAvatarProps {
   name?: string | null;

@@ -9,7 +9,7 @@ import type { DashboardItem } from "@/lib/db/items";
 import type {
   FavoriteCollectionSortKey,
   FavoriteItemSortKey,
-} from "@/lib/favorites-sort";
+} from "@/lib/items/favorites-sort";
 
 import { formatDate } from "@/components/utils/date";
 import { getItemTypeIcon } from "@/components/utils/item-type";
@@ -26,7 +26,7 @@ import {
 import {
   sortFavoriteCollections,
   sortFavoriteItems,
-} from "@/lib/favorites-sort";
+} from "@/lib/items/favorites-sort";
 
 interface FavoritesListProps {
   items: DashboardItem[];

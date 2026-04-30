@@ -1,4 +1,4 @@
-import { FILE_ITEM_TYPES } from "@/lib/item-form";
+import { FILE_ITEM_TYPES } from "@/lib/items/form";
 
 export const FILE_UPLOAD_TYPES = FILE_ITEM_TYPES;
 

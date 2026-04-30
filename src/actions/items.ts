@@ -12,7 +12,7 @@ import { canCreateItemForPlan } from "@/lib/billing/guards";
 import { getBillingState } from "@/lib/db/billing";
 import { deleteR2Object } from "@/lib/files/r2";
 import { getObjectKeyFromFileUrl } from "@/lib/files/upload";
-import { ITEM_FORM_TYPES } from "@/lib/item-form";
+import { ITEM_FORM_TYPES } from "@/lib/items/form";
 import {
   createItem as createItemRecord,
   deleteItem as deleteItemRecord,

@@ -19,7 +19,7 @@ import type { DashboardItem, ItemDrawerDetail } from '@/lib/db/items';
 import { getCodeEditorLanguageOptions, isCodeEditorItemType } from '@/lib/editors/code';
 import { formatFileSize } from '@/lib/files/size';
 import { isSvgFileName } from '@/lib/files/upload';
-import { isContentItemType, isFileItemType, isLanguageItemType, isUrlItemType, parseItemTagsInput } from '@/lib/item-form';
+import { isContentItemType, isFileItemType, isLanguageItemType, isUrlItemType, parseItemTagsInput } from '@/lib/items/form';
 import { isMarkdownEditorItemType } from '@/lib/editors/markdown';
 
 import { cn } from '@/lib/utils';

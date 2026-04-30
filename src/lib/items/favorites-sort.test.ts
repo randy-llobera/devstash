@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   sortFavoriteCollections,
   sortFavoriteItems,
-} from "@/lib/favorites-sort";
+} from "@/lib/items/favorites-sort";
 
 describe("favorites sort helpers", () => {
   it("sorts favorite items by updated date descending by default", () => {

@@ -8,7 +8,7 @@ import {
   canUseAiFeatures,
   canUseFileUploads,
   canUseImageUploads,
-} from "@/lib/usage-limits";
+} from "@/lib/billing/usage-limits";
 
 describe("usage limits", () => {
   it("allows free users to create items below the limit", () => {

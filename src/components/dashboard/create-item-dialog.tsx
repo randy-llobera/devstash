@@ -26,8 +26,8 @@ import {
   isLanguageItemType,
   parseItemTagsInput,
   isUrlItemType,
-} from '@/lib/item-form';
-import { getItemTypeHref } from '@/lib/items-navigation';
+} from '@/lib/items/form';
+import { getItemTypeHref } from '@/lib/items/navigation';
 import type { SidebarItemType } from '@/lib/db/items';
 import {
   getCodeEditorLanguageOptions,

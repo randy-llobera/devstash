@@ -6,7 +6,7 @@ import {
   isLanguageItemType,
   isUrlItemType,
   parseItemTagsInput,
-} from '@/lib/item-form';
+} from '@/lib/items/form';
 
 describe('item-form helpers', () => {
   it('parses comma-separated tags and removes duplicates', () => {

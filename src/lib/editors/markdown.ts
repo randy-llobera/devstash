@@ -1,4 +1,4 @@
-import { MARKDOWN_ITEM_TYPES } from "@/lib/item-form";
+import { MARKDOWN_ITEM_TYPES } from "@/lib/items/form";
 
 const MARKDOWN_EDITOR_ITEM_TYPES = new Set<string>(MARKDOWN_ITEM_TYPES);
 

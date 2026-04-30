@@ -5,9 +5,9 @@ import { z } from "zod";
 import { getSessionUserId } from "@/lib/actions/auth";
 import { getBillingState } from "@/lib/db/billing";
 import { formatFileSize } from "@/lib/files/size";
-import { getOpenAIClient, AI_MODEL } from "@/lib/openai";
+import { getOpenAIClient, AI_MODEL } from "@/lib/ai/openai";
 import { checkAiRateLimit, getRateLimitMessage, isRateLimitUnavailable } from "@/lib/rate-limit";
-import { canUseAiFeatures } from "@/lib/usage-limits";
+import { canUseAiFeatures } from "@/lib/billing/usage-limits";
 
 const autoTagSchema = z.object({
   itemType: z.string().trim().min(1, "Item type is required."),

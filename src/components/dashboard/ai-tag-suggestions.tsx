@@ -5,7 +5,7 @@ import { Check, Sparkles, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { generateAutoTags } from '@/actions/ai';
-import { parseItemTagsInput } from '@/lib/item-form';
+import { parseItemTagsInput } from '@/lib/items/form';
 
 import { Button } from '@/components/ui/button';
 

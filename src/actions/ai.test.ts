@@ -22,7 +22,7 @@ vi.mock("@/lib/db/billing", () => ({
   getBillingState: getBillingStateMock,
 }));
 
-vi.mock("@/lib/openai", () => ({
+vi.mock("@/lib/ai/openai", () => ({
   AI_MODEL: "gpt-5-nano",
   getOpenAIClient: getOpenAIClientMock,
 }));

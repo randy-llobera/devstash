@@ -1,7 +1,7 @@
 "use client";
 
 import type { DashboardUser } from "@/lib/db/dashboard-user";
-import { getUserAvatarName } from "@/lib/user-avatar";
+import { getUserAvatarName } from "@/lib/users/avatar";
 
 import { UserAvatar } from "@/components/auth/user-avatar";
 import { formatDate } from "@/components/utils/date";

@@ -1,4 +1,4 @@
-import { getUserAvatarName, getUserInitials } from "@/lib/user-avatar";
+import { getUserAvatarName, getUserInitials } from "@/lib/users/avatar";
 
 describe("user-avatar utilities", () => {
   it("builds initials from up to three name parts", () => {
