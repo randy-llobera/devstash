@@ -1,32 +1,16 @@
-# Current Feature: Homepage Standards Refactor
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
 <!-- Add goals here -->
 
-- Refactor `src/components/homepage` to use Tailwind utilities and existing app design tokens instead of `homepage.module.css`.
-- Replace custom homepage buttons, cards, badges, and mobile navigation with existing shadcn/ui primitives where applicable.
-- Preserve current homepage sections, copy, routes, anchors, auth-aware CTA behavior, and core client interactions.
-- Keep `src/app/page.tsx` as a server component and limit client components to mobile nav, pricing toggle, and chaos animation behavior.
-- Remove `src/components/homepage/homepage.module.css` after all imports and `styles.*` usages are gone.
-- Verify typecheck, lint, build, and no remaining homepage CSS module usage.
-
 ## Notes
 
 <!-- Add notes here -->
-
-- Source of truth is the current implementation in `src/components/homepage`; `prototypes/homepage` is historical reference only.
-- Existing sections to preserve: nav, hero, chaos-to-dashboard visual, features, AI section, pricing, CTA, and footer.
-- Use existing shadcn primitives: `Button`, `Card`, `CardHeader`, `CardContent`, `CardTitle`, `CardDescription`, `Badge`, and `Sheet` for mobile navigation if appropriate.
-- Use `lucide-react` icons where available; keep custom SVGs only for brand icons not available in lucide.
-- Avoid inline styles except dynamic runtime values needed for animation or item-type colors.
-- Maintain responsive behavior: desktop horizontal hero visual, mobile stacked hero visual, mobile arrow rotation, single-column mobile grids, and usable mobile nav.
-- Key risks: visual spacing shifts, hero animation transform/sizing regressions, accent color mapping changes, and mobile nav focus/layout changes if replaced with `Sheet`.
-- Test plan: `npm run typecheck`, `npm run lint`, `npm run build`, `rg "homepage.module.css|styles\\." src/components/homepage`, and manual `/` checks at mobile and desktop widths.
 
 ## History
 
@@ -102,3 +86,4 @@ In Progress
 - Refactor Action Shared Logic completed with shared Server Action auth and validation helpers, AI action preflight/request/error handling deduplicated locally, existing file-size and item-form utilities reused, and focused action/helper coverage preserved
 - Lib organization refactor completed with domain folders for actions, auth, billing, editors, files, items, users, and AI helpers, shared DB/rate-limit/auth utility extractions, updated imports and docs, and full typecheck, lint, and test verification preserved
 - Components Refactor completed with shared dashboard item form fields, pure item form payload helpers, optimistic favorite/pin toggle handling, item identity badges, auth form primitives, billing client helpers, editor shell controls, global search cleanup, and focused helper coverage.
+- Homepage Standards Refactor completed with homepage CSS module removal, Tailwind and design-token-based styling, shadcn buttons/cards/badges/sheet mobile navigation, lucide icons where applicable, preserved auth-aware homepage routes and interactions, scoped homepage dark blue-gray background, and full typecheck, lint, build, and test verification.
