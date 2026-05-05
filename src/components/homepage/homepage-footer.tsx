@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import { HomepageLogo } from "./homepage-logo";
-import styles from "./homepage.module.css";
 
 const footerColumns = [
   {
@@ -32,24 +31,36 @@ const footerColumns = [
 
 export function HomepageFooter() {
   return (
-    <footer className={styles.footer}>
-      <div className={styles.footerInner}>
-        <div className={styles.footerGrid}>
-          <div className={styles.footerBrand}>
+    <footer className="border-t border-border py-10 pb-6 md:py-12 md:pb-6 lg:pt-16 lg:pb-8">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="mb-8 grid grid-cols-3 gap-x-3 gap-y-5 md:gap-x-4 lg:mb-12 lg:grid-cols-[2fr_1fr_1fr_1fr] lg:gap-12">
+          <div className="col-span-full lg:col-span-1">
             <HomepageLogo />
-            <p>Your developer knowledge hub. One place for snippets, prompts, commands, and more.</p>
+            <p className="mt-3 max-w-none text-sm leading-6 text-muted-foreground lg:max-w-72">
+              Your developer knowledge hub. One place for snippets, prompts, commands, and more.
+            </p>
           </div>
 
           {footerColumns.map((column) => (
-            <div key={column.title} className={styles.footerCol}>
-              <h4>{column.title}</h4>
+            <div key={column.title} className="flex flex-col gap-2 lg:gap-2.5">
+              <h4 className="mb-1 text-[0.72rem] font-bold tracking-[0.06em] text-foreground uppercase lg:text-[0.85rem] lg:tracking-[0.08em]">
+                {column.title}
+              </h4>
               {column.links.map((link) =>
                 link.href.startsWith("#") ? (
-                  <a key={link.label} href={link.href}>
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    className="text-[0.8rem] font-medium text-muted-foreground transition-colors hover:text-foreground lg:text-sm"
+                  >
                     {link.label}
                   </a>
                 ) : (
-                  <Link key={link.label} href={link.href}>
+                  <Link
+                    key={link.label}
+                    href={link.href}
+                    className="text-[0.8rem] font-medium text-muted-foreground transition-colors hover:text-foreground lg:text-sm"
+                  >
                     {link.label}
                   </Link>
                 ),
@@ -58,8 +69,10 @@ export function HomepageFooter() {
           ))}
         </div>
 
-        <div className={styles.footerBottom}>
-          <p>© {new Date().getFullYear()} DevStash. All rights reserved.</p>
+        <div className="border-t border-border pt-6 text-center">
+          <p className="text-[0.85rem] text-muted-foreground/70">
+            © {new Date().getFullYear()} DevStash. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>

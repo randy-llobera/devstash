@@ -121,6 +121,10 @@
     @apply border-border outline-ring/50;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply min-h-full bg-background text-foreground;
   }

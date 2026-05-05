@@ -1,6 +1,13 @@
 import type { CSSProperties } from "react";
+import { Code2, FileText, Folder, Search, Sparkles, Terminal } from "lucide-react";
 
-import styles from "./homepage.module.css";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const features = [
   {
@@ -49,31 +56,39 @@ const features = [
 
 export function HomepageFeatures() {
   return (
-    <section className={styles.features} id="features">
-      <div className={styles.sectionInner}>
-        <h2 className={styles.sectionTitle}>
+    <section className="bg-[#12121a] py-14 text-center md:py-[72px] lg:py-[120px]" id="features">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <h2 className="mb-2 text-3xl leading-tight font-extrabold tracking-normal sm:text-4xl lg:mb-4 lg:text-[2.8rem]">
           Everything You Need,
           <br />
-          <span className={styles.gradientText}>One Place</span>
+          <span className="bg-gradient-to-br from-blue-600 via-blue-500 to-blue-400 bg-clip-text text-transparent">
+            One Place
+          </span>
         </h2>
-        <p className={`${styles.sectionSubtitle} ${styles.featuresSubtitle}`}>
+        <p className="mx-auto mb-8 max-w-xl text-[0.95rem] leading-7 text-muted-foreground md:text-[1.05rem] lg:mb-16">
           Stop context-switching between tools. DevStash keeps all your developer resources
           organized and searchable.
         </p>
 
-        <div className={styles.featuresGrid}>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {features.map((feature) => (
-            <article
+            <Card
               key={feature.title}
-              className={styles.featureCard}
-              style={{ "--accent": feature.accent } as CSSProperties}
+              className="border border-border bg-[#12121a] text-left transition hover:-translate-y-1 hover:border-[var(--feature-accent)] hover:ring-[var(--feature-accent)]/30"
+              style={{ "--feature-accent": feature.accent } as CSSProperties}
             >
-              <div className={styles.featureIcon}>
-                <FeatureIcon type={feature.icon} />
-              </div>
-              <h3>{feature.title}</h3>
-              <p>{feature.description}</p>
-            </article>
+              <CardHeader className="px-5 pt-5 lg:px-6 lg:pt-6">
+                <div className="mb-1 flex size-12 items-center justify-center rounded-lg bg-[color-mix(in_srgb,var(--feature-accent)_15%,transparent)] text-[var(--feature-accent)] [&_svg]:size-6">
+                  <FeatureIcon type={feature.icon} />
+                </div>
+                <CardTitle className="text-[1.15rem] font-bold">{feature.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="px-5 pb-5 lg:px-6 lg:pb-6">
+                <CardDescription className="text-sm leading-6">
+                  {feature.description}
+                </CardDescription>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>
@@ -84,86 +99,16 @@ export function HomepageFeatures() {
 function FeatureIcon({ type }: { type: (typeof features)[number]["icon"] }) {
   switch (type) {
     case "code":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <polyline points="16 18 22 12 16 6" />
-          <polyline points="8 6 2 12 8 18" />
-        </svg>
-      );
+      return <Code2 />;
     case "sparkles":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
-        </svg>
-      );
+      return <Sparkles />;
     case "search":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <circle cx="11" cy="11" r="8" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
-      );
+      return <Search />;
     case "terminal":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <polyline points="4 17 10 11 4 5" />
-          <line x1="12" y1="19" x2="20" y2="19" />
-        </svg>
-      );
+      return <Terminal />;
     case "file":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-          <polyline points="14 2 14 8 20 8" />
-        </svg>
-      );
+      return <FileText />;
     case "folder":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
-        </svg>
-      );
+      return <Folder />;
   }
 }

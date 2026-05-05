@@ -1,16 +1,32 @@
-# Current Feature
+# Current Feature: Homepage Standards Refactor
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
 <!-- Add goals here -->
 
+- Refactor `src/components/homepage` to use Tailwind utilities and existing app design tokens instead of `homepage.module.css`.
+- Replace custom homepage buttons, cards, badges, and mobile navigation with existing shadcn/ui primitives where applicable.
+- Preserve current homepage sections, copy, routes, anchors, auth-aware CTA behavior, and core client interactions.
+- Keep `src/app/page.tsx` as a server component and limit client components to mobile nav, pricing toggle, and chaos animation behavior.
+- Remove `src/components/homepage/homepage.module.css` after all imports and `styles.*` usages are gone.
+- Verify typecheck, lint, build, and no remaining homepage CSS module usage.
+
 ## Notes
 
 <!-- Add notes here -->
+
+- Source of truth is the current implementation in `src/components/homepage`; `prototypes/homepage` is historical reference only.
+- Existing sections to preserve: nav, hero, chaos-to-dashboard visual, features, AI section, pricing, CTA, and footer.
+- Use existing shadcn primitives: `Button`, `Card`, `CardHeader`, `CardContent`, `CardTitle`, `CardDescription`, `Badge`, and `Sheet` for mobile navigation if appropriate.
+- Use `lucide-react` icons where available; keep custom SVGs only for brand icons not available in lucide.
+- Avoid inline styles except dynamic runtime values needed for animation or item-type colors.
+- Maintain responsive behavior: desktop horizontal hero visual, mobile stacked hero visual, mobile arrow rotation, single-column mobile grids, and usable mobile nav.
+- Key risks: visual spacing shifts, hero animation transform/sizing regressions, accent color mapping changes, and mobile nav focus/layout changes if replaced with `Sheet`.
+- Test plan: `npm run typecheck`, `npm run lint`, `npm run build`, `rg "homepage.module.css|styles\\." src/components/homepage`, and manual `/` checks at mobile and desktop widths.
 
 ## History
 

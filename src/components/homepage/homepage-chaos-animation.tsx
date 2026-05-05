@@ -5,8 +5,6 @@ import type { CSSProperties } from "react";
 
 import { cn } from "@/lib/utils";
 
-import styles from "./homepage.module.css";
-
 const chaosIcons = [
   "notion",
   "github",
@@ -187,20 +185,30 @@ export function HomepageChaosAnimation() {
   }, []);
 
   return (
-    <div className={styles.heroVisual}>
-      <div className={styles.chaosBox}>
-        <span className={styles.chaosLabel}>Your knowledge today...</span>
-        <div ref={containerRef} className={styles.chaosContainer}>
+    <div className="flex w-full max-w-2xl flex-col items-center gap-2.5 md:gap-2.5 lg:max-w-6xl lg:flex-row lg:gap-10">
+      <div className="mt-2 w-full lg:mt-0 lg:flex-1">
+        <span className="mb-1.5 block text-center text-xs font-semibold tracking-[0.1em] text-muted-foreground/70 uppercase lg:mb-3">
+          Your knowledge today...
+        </span>
+        <div
+          ref={containerRef}
+          className="relative h-[150px] overflow-hidden rounded-xl border border-border bg-card sm:h-[168px] lg:h-80"
+        >
           {chaosIcons.map((icon) => (
-            <div key={icon} className={styles.chaosIcon} data-chaos-icon="true">
+            <div
+              key={icon}
+              className="absolute flex size-[76px] items-center justify-center text-muted-foreground opacity-70 transition-opacity [&_svg]:size-[54px]"
+              data-chaos-icon="true"
+            >
               <ChaosIcon type={icon} />
             </div>
           ))}
         </div>
       </div>
 
-      <div className={styles.transformArrow}>
+      <div className="my-0.5 flex shrink-0 animate-pulse text-muted-foreground/70 md:mb-1.5 lg:my-0">
         <svg
+          className="rotate-90 lg:rotate-0"
           width="48"
           height="48"
           viewBox="0 0 24 24"
@@ -215,40 +223,53 @@ export function HomepageChaosAnimation() {
         </svg>
       </div>
 
-      <div className={styles.dashboardBox}>
-        <span className={styles.dashboardLabel}>...with DevStash</span>
-        <div className={styles.dashboardPreview}>
-          <div className={styles.dashTopbar}>
-            <div className={styles.dashSearch} />
-            <div className={styles.dashAvatar} />
+      <div className="mb-2.5 w-full lg:mb-0 lg:flex-1">
+        <span className="mb-1.5 block text-center text-xs font-semibold tracking-[0.1em] text-muted-foreground/70 uppercase lg:mb-3">
+          ...with DevStash
+        </span>
+        <div className="flex h-[150px] flex-col overflow-hidden rounded-xl border border-border bg-card sm:h-[168px] lg:h-80">
+          <div className="flex shrink-0 items-center justify-between border-b border-border bg-muted/40 px-3 py-2">
+            <div className="h-2 w-24 rounded bg-border" />
+            <div className="size-3.5 rounded-full bg-blue-500" />
           </div>
-          <div className={styles.dashBody}>
-            <div className={styles.dashSidebar}>
+          <div className="flex min-h-0 flex-1">
+            <div className="flex w-[90px] shrink-0 flex-col gap-1 border-r border-border bg-muted/40 px-2 py-2.5">
               {sidebarItems.map((item, index) => (
                 <div
                   key={item.label}
                   className={cn(
-                    styles.dashSidebarItem,
-                    index === 0 && styles.dashSidebarItemActive,
+                    "flex cursor-default items-center gap-1.5 rounded px-1.5 py-[3px]",
+                    index === 0 && "bg-foreground/6",
                   )}
                 >
                   <span
-                    className={styles.dashSidebarDot}
+                    className="size-[5px] shrink-0 rounded-full"
                     style={{ background: item.color }}
                   />
-                  <span className={styles.dashSidebarLabel}>{item.label}</span>
+                  <span
+                    className={cn(
+                      "text-[0.45rem] leading-none font-medium whitespace-nowrap text-muted-foreground/60",
+                      index === 0 && "text-muted-foreground",
+                    )}
+                  >
+                    {item.label}
+                  </span>
                 </div>
               ))}
             </div>
-            <div className={styles.dashMain}>
-              <div className={styles.dashSectionLabel}>Collections</div>
-              <div className={styles.dashCardsGrid}>
+            <div className="flex flex-1 flex-col gap-1.5 overflow-hidden px-3 py-2.5">
+              <div className="text-[0.45rem] font-bold tracking-[0.08em] text-muted-foreground/60 uppercase">
+                Collections
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
                 {dashboardCards.slice(0, 4).map((color) => (
                   <DashboardCard key={`collection-${color}`} color={color} />
                 ))}
               </div>
-              <div className={styles.dashSectionLabel}>Recent Items</div>
-              <div className={styles.dashCardsGrid}>
+              <div className="text-[0.45rem] font-bold tracking-[0.08em] text-muted-foreground/60 uppercase">
+                Recent Items
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
                 {dashboardCards.slice(4).map((color, index) => (
                   <DashboardCard key={`item-${index}-${color}`} color={color} />
                 ))}
@@ -263,10 +284,13 @@ export function HomepageChaosAnimation() {
 
 function DashboardCard({ color }: { color: string }) {
   return (
-    <div className={styles.dashCard} style={{ "--card-color": color } as CSSProperties}>
-      <div className={styles.dashCardTitle} />
-      <div className={styles.dashCardLine} />
-      <div className={cn(styles.dashCardLine, styles.dashCardLineShort)} />
+    <div
+      className="flex flex-col gap-[5px] rounded-lg border-t-[3px] border-[var(--card-color)] bg-muted/40 px-2.5 py-2"
+      style={{ "--card-color": color } as CSSProperties}
+    >
+      <div className="h-[5px] w-3/5 rounded-sm bg-muted-foreground/50" />
+      <div className="h-[3px] w-[90%] rounded-sm bg-border" />
+      <div className="h-[3px] w-1/2 rounded-sm bg-border" />
     </div>
   );
 }
